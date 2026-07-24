@@ -1,0 +1,13 @@
+{
+  "imageWidthPx": 8192,
+  "imageHeightPx": 4608,
+  "totalPixels": 37748736,
+  "landPixels": 6618943,
+  "seaPixels": 31129793,
+  "seaLevel": 9,
+  "minimumHeightValue": 0,
+  "maximumHeightValue": 255,
+  "landCoverageRatio": 0.175342109468,
+  "mapAreaKm2": 54912.0,
+  "territoryAreaKm2": 9628.385915
+}

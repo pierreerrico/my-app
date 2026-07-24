@@ -1,0 +1,19 @@
+{
+  "mapWidthKm": 312,
+  "mapHeightKm": 176,
+  "topLeft": {
+    "latitude": 38.416,
+    "longitude": -1.798
+  },
+  "planetRadiusKm": 5497.23,
+  "heightmap": {
+    "file": "public/maps/selodia/selodia-heightmap.png",
+    "publicUrl": "/maps/selodia/selodia-heightmap.png",
+    "seaLevel": 9,
+    "maximumElevationKm": 4.326
+  },
+  "generatedLandMask": {
+    "file": "public/maps/selodia/selodia-land-mask.png",
+    "publicUrl": "/maps/selodia/selodia-land-mask.png"
+  }
+}
