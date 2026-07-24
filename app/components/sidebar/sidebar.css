@@ -1,0 +1,77 @@
+.sidebar-panel {
+  --sidebar-width: clamp(
+    var(--sidebar-size-min, 300px),
+    var(--sidebar-size-ideal, 25vw),
+    var(--sidebar-size-max, 450px)
+  );
+  --sidebar-speed: .48s;
+  --sidebar-ease: cubic-bezier(.22, .8, .2, 1);
+
+  position: fixed;
+  z-index: 94;
+  top: 0;
+  bottom: 0;
+  box-sizing: border-box;
+  width: var(--sidebar-width);
+  height: 100svh;
+  overflow-x: hidden;
+  overflow-y: auto;
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    transform var(--sidebar-speed) var(--sidebar-ease),
+    visibility 0s linear var(--sidebar-speed);
+}
+
+.sidebar-panel--left {
+  left: 0;
+  right: auto;
+  transform: translateX(-103%);
+}
+
+.sidebar-panel--right {
+  right: 0;
+  left: auto;
+  transform: translateX(103%);
+}
+
+.sidebar-panel[data-open="true"] {
+  visibility: visible;
+  transform: translateX(0);
+  pointer-events: auto;
+  transition:
+    transform var(--sidebar-speed) var(--sidebar-ease),
+    visibility 0s;
+}
+
+.sidebar-scrim {
+  position: fixed;
+  z-index: 93;
+  inset: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    opacity .34s ease,
+    visibility 0s linear .34s;
+}
+
+.sidebar-scrim[data-open="true"] {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transition:
+    opacity .34s ease,
+    visibility 0s;
+}
+
+@media (max-width: 600px) {
+  .sidebar-panel {
+    --sidebar-size-min: 100vw;
+    --sidebar-size-ideal: 100vw;
+    --sidebar-size-max: 100vw;
+  }
+}

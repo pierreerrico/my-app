@@ -1,0 +1,125 @@
+.nation-lore-page {
+  --nation-green: #102f30;
+  --nation-green-deep: #091f23;
+  --nation-green-soft: #183c3a;
+  --nation-gold: #b99a5c;
+  --nation-gold-bright: #d4b875;
+  --nation-ivory: #eee7d8;
+  --nation-muted: #b9c0b4;
+  /*
+   * Sistema dimensionale desktop:
+   * - la colonna di lettura cresce con la viewport;
+   * - menu, informazioni e indice condividono la stessa misura;
+   * - la colonna laterale mantiene una proporzione costante rispetto al testo.
+   */
+  --nation-subchapter-width: clamp(500px, 48vw, 850px);
+  --nation-side-column-width: clamp(
+    300px,
+    calc(var(--nation-subchapter-width) * .4),
+    450px
+  );
+  --sidebar-size-min: 300px;
+  --sidebar-size-ideal: var(--nation-side-column-width);
+  --sidebar-size-max: 450px;
+  position: relative;
+  width: 100%;
+  height: 100svh;
+  overflow: hidden;
+  color: var(--nation-ivory);
+  background:
+    radial-gradient(circle at 26% 16%, rgba(54, 91, 81, .42), transparent 42%),
+    linear-gradient(145deg, var(--nation-green-soft), var(--nation-green) 48%, var(--nation-green-deep));
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+.nation-lore-layout {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  overflow: hidden;
+}
+
+.nation-lore-swiper {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.nation-lore-divider {
+  position: absolute;
+  z-index: 12;
+  top: 8%;
+  right: var(--nation-side-column-width);
+  bottom: 8%;
+  width: 4px;
+  height: auto;
+  margin: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(
+      to bottom,
+      transparent,
+      rgba(185, 154, 92, .28) 14%,
+      var(--nation-gold) 50%,
+      rgba(185, 154, 92, .28) 86%,
+      transparent
+    );
+  clip-path:
+    polygon(
+      42% 0,
+      58% 0,
+      68% 28%,
+      100% 50%,
+      68% 72%,
+      58% 100%,
+      42% 100%,
+      32% 72%,
+      0 50%,
+      32% 28%
+    );
+  opacity: 1;
+  transition: opacity .42s ease .18s;
+}
+
+.is-atlas-active .nation-lore-divider,
+.is-atlas-active .nation-lore-pagination {
+  display: none;
+}
+
+.nation-lore-swiper,
+.nation-lore-swiper>.swiper-wrapper,
+.nation-lore-swiper>.swiper-wrapper>.swiper-slide {
+  width: 100%;
+  height: 100%;
+}
+
+.nation-encyclopedia-link,
+.nation-return-atlas {
+  position: fixed;
+  z-index: 80;
+  top: 18px;
+  padding: 10px 15px;
+  color: var(--nation-gold-bright);
+  border: 1px solid color-mix(in srgb, var(--nation-gold) 58%, transparent);
+  background: color-mix(in srgb, var(--nation-green-deep) 88%, transparent);
+  backdrop-filter: blur(12px);
+  font: 700 10px/1 Georgia, serif;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+}
+
+.nation-encyclopedia-link {
+  left: 18px;
+}
+
+.nation-return-atlas {
+  right: 18px;
+  cursor: pointer;
+}
+
+.is-atlas-active .nation-return-atlas {
+  opacity: 0;
+  pointer-events: none;
+}

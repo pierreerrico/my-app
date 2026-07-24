@@ -1,0 +1,179 @@
+/* NationLorePage integration for the generic Sidebar component. */
+
+.nation-lore-page .sidebar-panel {
+  --sidebar-bg-start: #fffdf7;
+  --sidebar-bg-end: #e4d4ba;
+  --sidebar-ink: #342a22;
+  --sidebar-muted: #66584a;
+  --sidebar-accent: #762d2a;
+  --sidebar-rule: #b58b43;
+
+  padding: 76px 34px 28px;
+  color: var(--sidebar-ink);
+  border-color: var(--sidebar-rule);
+  background:
+    radial-gradient(circle at 16% 8%, color-mix(in srgb, var(--sidebar-accent) 16%, transparent), transparent 36%),
+    linear-gradient(155deg, var(--sidebar-bg-start), var(--sidebar-bg-end));
+  box-shadow: 20px 0 48px rgba(20, 12, 10, .24);
+}
+
+.nation-lore-page .sidebar-panel--left {
+  border-width: 0 1px 0 0;
+}
+
+.nation-lore-page .sidebar-panel--right {
+  border-width: 0 0 0 1px;
+  box-shadow: -20px 0 48px rgba(2, 12, 14, .28);
+}
+
+.nation-lore-page:not(.is-menu-pinned).is-menu-open .nation-global-controls,
+.nation-lore-page:not(.is-menu-pinned).is-menu-open .nation-menu-control,
+.nation-lore-page.is-info-open .nation-atlas-toggle {
+  z-index: 221;
+}
+
+.nation-lore-page:not(.is-menu-pinned).is-menu-open .nation-menu-control,
+.nation-lore-page.is-info-open .nation-atlas-toggle {
+  opacity: 1 !important;
+  visibility: visible !important;
+  transform: none !important;
+  pointer-events: auto !important;
+}
+
+.nation-lore-page .sidebar-panel header strong,
+.nation-lore-page .sidebar-panel nav p,
+.nation-lore-page .sidebar-panel .nation-drawer-mark,
+.nation-lore-page .sidebar-panel nav svg,
+.nation-lore-page .sidebar-panel .nation-facts dt svg {
+  color: var(--sidebar-accent);
+}
+
+.nation-lore-page .sidebar-panel header small,
+.nation-lore-page .sidebar-panel nav a,
+.nation-lore-page .sidebar-panel .nation-drawer-note,
+.nation-lore-page .sidebar-panel .nation-drawer-note p,
+.nation-lore-page .sidebar-panel .nation-flavor,
+.nation-lore-page .sidebar-panel .nation-facts dt {
+  color: var(--sidebar-muted);
+}
+
+.nation-lore-page .sidebar-panel .nation-facts dd,
+.nation-lore-page .sidebar-panel .nation-flavor strong,
+.nation-lore-page .sidebar-panel .nation-flavor em {
+  color: var(--sidebar-ink);
+}
+
+.nation-lore-page .sidebar-panel .nation-atlas-sidebar-content {
+  width: 100%;
+  height: auto;
+  padding: 0;
+  overflow: visible;
+}
+
+.nation-lore-page .sidebar-panel header {
+  position: relative;
+  min-height: 64px;
+  margin: 0 0 26px;
+  padding: 0 0 20px;
+}
+
+.nation-lore-page .sidebar-panel header::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--sidebar-rule) 72%, transparent) 16% 43%,
+    var(--sidebar-rule) 50%,
+    color-mix(in srgb, var(--sidebar-rule) 72%, transparent) 57% 84%,
+    transparent
+  );
+}
+
+.nation-lore-page .sidebar-panel header strong,
+.nation-lore-page .sidebar-panel header h1 {
+  margin: 0;
+  color: var(--sidebar-accent);
+  font: 600 30px/1.05 Georgia, "Times New Roman", serif;
+}
+
+.nation-lore-page .sidebar-panel header small,
+.nation-lore-page .sidebar-panel header p {
+  margin: 6px 0 0;
+  color: var(--sidebar-muted);
+  font: italic 14px/1.25 Georgia, "Times New Roman", serif;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.nation-lore-page .sidebar-panel nav a,
+.nation-lore-page .sidebar-panel .nation-facts > div {
+  box-sizing: border-box;
+  min-height: 42px;
+  padding: 8px 9px;
+  border-bottom: 1px solid color-mix(in srgb, var(--sidebar-rule) 17%, transparent);
+  transition:
+    color .22s ease,
+    background-color .22s ease,
+    transform .22s ease;
+}
+
+.nation-lore-page .sidebar-panel nav a:hover,
+.nation-lore-page .sidebar-panel .nation-facts > div:hover {
+  color: var(--sidebar-accent);
+  background: color-mix(in srgb, var(--sidebar-accent) 9%, transparent);
+  transform: translateX(3px);
+}
+
+.nation-lore-page .sidebar-panel .nation-separator {
+  margin: 20px 0;
+  color: var(--sidebar-rule);
+}
+
+.nation-lore-page .sidebar-panel .nation-separator::before {
+  background: linear-gradient(90deg, transparent, var(--sidebar-rule));
+}
+
+.nation-lore-page .sidebar-panel .nation-separator::after {
+  background: linear-gradient(90deg, var(--sidebar-rule), transparent);
+}
+
+.nation-lore-page .sidebar-panel .nation-separator span {
+  border-color: var(--sidebar-rule);
+}
+
+.nation-lore-page .sidebar-panel .nation-drawer-note {
+  border-top-color: color-mix(in srgb, var(--sidebar-rule) 45%, transparent);
+}
+
+@media (min-width: 1281px) {
+  .nation-lore-page.is-menu-pinned .sidebar-panel--left {
+    z-index: 20;
+    visibility: visible;
+    transform: translateX(0);
+    pointer-events: auto;
+  }
+
+  /*
+   * Le colonne laterali sono overlay; soltanto il contenuto delle slide lore
+   * riserva il loro spazio. La viewport Swiper resta quindi invariata quando
+   * si lascia l'Atlante.
+   */
+  .nation-lore-page.is-menu-pinned .nation-chapter {
+    box-sizing: border-box;
+    padding-right: var(--nation-side-column-width);
+    padding-left: var(--nation-side-column-width);
+  }
+
+  .nation-lore-page.is-menu-pinned .nation-menu-control,
+  .nation-lore-page.is-menu-pinned .nation-drawer-close,
+  .nation-lore-page.is-menu-pinned .sidebar-scrim--menu {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+}

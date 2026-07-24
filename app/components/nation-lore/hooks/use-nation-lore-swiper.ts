@@ -1,0 +1,175 @@
+"use client";
+
+import { useEffect, useRef, useState, type RefObject } from "react";
+import Swiper from "swiper";
+import { HashNavigation, Keyboard, Mousewheel, Pagination } from "swiper/modules";
+import {
+  getNestedSwiper,
+  labelChapterPagination,
+  mountSubnavigation,
+  navigateToFlatPosition,
+  readFlatLorePosition,
+  type FlatLorePosition,
+} from "../navigation/nation-swiper-dom";
+
+const PORTRAIT_MOBILE_QUERY =
+  "(max-width: 600px) and (orientation: portrait)";
+
+interface UseNationLoreSwiperOptions {
+  rootRef: RefObject<HTMLElement | null>;
+  onAtlasLeave(): void;
+  onSlideChange(): void;
+}
+
+export function useNationLoreSwiper({
+  rootRef,
+  onAtlasLeave,
+  onSlideChange,
+}: UseNationLoreSwiperOptions) {
+  const swiperRef = useRef<Swiper | null>(null);
+  const [activeSlide, setActiveSlide] = useState(0);
+  const [flatPosition, setFlatPosition] = useState<FlatLorePosition>({
+    index: 0,
+    total: 1,
+    labels: ["Atlante"],
+    depths: [0],
+  });
+
+  useEffect(() => {
+    const root = rootRef.current;
+    const element = root?.querySelector<HTMLElement>(".nation-lore-swiper");
+    const pagination =
+      root?.querySelector<HTMLElement>(".nation-swiper-pagination-engine");
+    if (!root || !element || !pagination) return;
+
+    const syncPosition = (outer: Swiper) =>
+      setFlatPosition(readFlatLorePosition(outer));
+    const syncAtlasState = (instance: Swiper) => {
+      const atlasActive = instance.activeIndex === 0;
+      setActiveSlide(instance.activeIndex);
+      root.classList.toggle("is-atlas-active", atlasActive);
+      instance.allowTouchMove = !atlasActive;
+      if (atlasActive) instance.mousewheel.disable();
+      else instance.mousewheel.enable();
+    };
+
+    const swiper = new Swiper(element, {
+      modules: [HashNavigation, Keyboard, Mousewheel, Pagination],
+      direction: "vertical",
+      slidesPerView: 1,
+      speed: 800,
+      threshold: 16,
+      nested: true,
+      keyboard: { enabled: true, onlyInViewport: true },
+      mousewheel: { enabled: false, forceToAxis: true, releaseOnEdges: true },
+      hashNavigation: { enabled: true, replaceState: true, watchState: true },
+      pagination: {
+        el: pagination,
+        clickable: true,
+        bulletClass: "nation-lore-bullet",
+        bulletActiveClass: "is-active",
+        renderBullet(_index, className) {
+          return `<div role="button" tabindex="0" class="${className}"><span aria-hidden="true"></span><b></b></div>`;
+        },
+      },
+      on: {
+        init(instance) {
+          syncAtlasState(instance);
+          labelChapterPagination(instance);
+          mountSubnavigation(instance);
+          window.setTimeout(() => syncPosition(instance), 100);
+        },
+        slideChange(instance) {
+          syncAtlasState(instance);
+          onSlideChange();
+          if (instance.activeIndex > 0) onAtlasLeave();
+          labelChapterPagination(instance);
+          mountSubnavigation(instance);
+          window.setTimeout(() => syncPosition(instance), 100);
+        },
+        slideChangeTransitionStart() {
+          root.classList.add("is-slide-moving");
+        },
+        slideChangeTransitionEnd(instance) {
+          mountSubnavigation(instance);
+          window.setTimeout(() => root.classList.remove("is-slide-moving"), 90);
+        },
+      },
+    });
+
+    swiperRef.current = swiper;
+    const handleSubchapterChange = (event: Event) => {
+      const detail = (
+        event as CustomEvent<{ chapterId: string; index: number; total: number }>
+      ).detail;
+      if (swiper.slides[swiper.activeIndex]?.id === detail.chapterId) {
+        syncPosition(swiper);
+      }
+      /*
+       * Il cambio della slide annidata provoca un render React. Rimontiamo la
+       * navigazione dopo quel render, evitando che torni dentro al capitolo e
+       * scompaia dall'indice laterale.
+       */
+      window.requestAnimationFrame(() => mountSubnavigation(swiper));
+    };
+    root.addEventListener("nation-subchapter-change", handleSubchapterChange);
+
+    return () => {
+      root.removeEventListener(
+        "nation-subchapter-change",
+        handleSubchapterChange,
+      );
+      swiperRef.current = null;
+      swiper.destroy(true, true);
+    };
+  }, [onAtlasLeave, onSlideChange, rootRef]);
+
+  const navigateFlat = (target: number) => {
+    if (swiperRef.current) {
+      navigateToFlatPosition(swiperRef.current, target);
+    }
+  };
+
+  const navigateLore = (direction: "previous" | "next") => {
+    const outer = swiperRef.current;
+    if (!outer) return;
+
+    if (
+      direction === "previous" &&
+      window.matchMedia(PORTRAIT_MOBILE_QUERY).matches
+    ) {
+      outer.slideTo(0);
+      return;
+    }
+
+    const nested = getNestedSwiper(outer.slides[outer.activeIndex]);
+    if (nested) {
+      if (direction === "previous" && nested.activeIndex > 0) {
+        nested.slidePrev();
+        return;
+      }
+      if (
+        direction === "next" &&
+        nested.activeIndex < nested.slides.length - 1
+      ) {
+        nested.slideNext();
+        return;
+      }
+    }
+    if (direction === "previous") outer.slidePrev();
+    else outer.slideNext();
+  };
+
+  return {
+    activeSlide,
+    flatPosition,
+    navigateFlat,
+    navigateLore,
+    showNext: !(
+      activeSlide > 0 &&
+      flatPosition.total > 1 &&
+      flatPosition.index === flatPosition.total - 1
+    ),
+    openLore: () => swiperRef.current?.slideNext(),
+  };
+}

@@ -1,0 +1,322 @@
+.nation-mobile-double-chevron,
+.nation-mobile-section-timeline {
+  display: none;
+}
+
+/* I pannelli aperti devono prevalere su ogni controllo flottante. */
+.sidebar-panel {
+  z-index: 200;
+}
+
+.sidebar-scrim {
+  z-index: 190;
+}
+
+@media (max-width: 800px) {
+  .nation-lore-swiper,
+  .nation-lore-swiper > .swiper-wrapper,
+  .nation-lore-swiper > .swiper-wrapper > .swiper-slide,
+  .nation-subchapter-swiper,
+  .nation-subchapter-swiper > .swiper-wrapper,
+  .nation-subchapter-swiper > .swiper-wrapper > .swiper-slide {
+    min-height: 100%;
+    height: 100% !important;
+  }
+
+  .nation-lore-swiper > .swiper-wrapper > .swiper-slide,
+  .nation-subchapter-swiper > .swiper-wrapper > .swiper-slide {
+    flex: 0 0 100%;
+    overflow: hidden;
+  }
+
+  /*
+   * Indice mobile compatto: sostituisce il filetto sotto al titolo con una
+   * sequenza orizzontale di tap target. La traccia di fondo resta inerte,
+   * quella superiore raggiunge sempre il punto attivo.
+   */
+  .nation-mobile-progress {
+    display: none !important;
+  }
+
+  .nation-mobile-section-timeline {
+    --timeline-padding: 12px;
+    position: fixed;
+    z-index: 89;
+    top: 58px;
+    right: 54px;
+    left: 54px;
+    width: auto;
+    height: 50px;
+    margin: 0;
+    display: block;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+    overscroll-behavior-inline: contain;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    mask-image: linear-gradient(to right, transparent, #000 13%, #000 87%, transparent);
+  }
+
+  .nation-mobile-section-timeline::-webkit-scrollbar {
+    display: none;
+  }
+
+  .is-atlas-active .nation-mobile-section-timeline {
+    display: none;
+    pointer-events: none;
+  }
+
+  .nation-mobile-section-track {
+    position: relative;
+    isolation: isolate;
+    width: max-content;
+    min-width: 0;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: clamp(25px, 8vw, 38px);
+    padding-inline: var(--timeline-padding);
+  }
+
+  .nation-mobile-section-track::before {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    top: 50%;
+    left: calc(var(--timeline-padding) + 7px);
+    height: 1px;
+    transform: translateY(-50%);
+  }
+
+  .nation-mobile-section-track::before {
+    right: calc(var(--timeline-padding) + 7px);
+    background:
+      linear-gradient(
+        to right,
+        transparent,
+        color-mix(in srgb, var(--nation-gold) 46%, transparent) 7%,
+        color-mix(in srgb, var(--nation-gold) 46%, transparent) 93%,
+        transparent
+      );
+  }
+
+  .nation-mobile-section-track button {
+    position: relative;
+    flex: 0 0 13px;
+    width: 13px;
+    height: 13px;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: var(--nation-green-deep);
+    cursor: pointer;
+    scroll-snap-align: center;
+  }
+
+  .nation-mobile-section-track button > span {
+    width: 7px;
+    height: 7px;
+    border: 1px solid var(--nation-gold);
+    border-radius: 50%;
+    background: var(--nation-green-deep);
+    transition:
+      background-color .3s ease,
+      border-color .3s ease,
+      box-shadow .3s ease,
+      transform .3s cubic-bezier(.22, .8, .2, 1);
+  }
+
+  .nation-mobile-section-track button:is(:hover, :focus-visible) > span {
+    border-color: var(--nation-gold-bright);
+    transform: scale(1.22);
+  }
+
+  .nation-mobile-section-track button.is-active > span {
+    border-color: var(--nation-gold-bright);
+    background: var(--nation-gold-bright);
+    box-shadow: 0 0 0 4px rgba(212, 184, 117, .12);
+    transform: scale(1.12);
+  }
+
+  .nation-mobile-section-track button.is-preview:not(.is-active) > span {
+    border-color: var(--nation-ivory);
+    background: var(--nation-green-deep);
+    box-shadow: 0 0 0 3px rgba(238, 231, 216, .08);
+    transform: scale(1.1);
+  }
+
+  .nation-mobile-section-timeline output {
+    position: sticky;
+    left: 50%;
+    width: max-content;
+    max-width: calc(100vw - 130px);
+    display: block;
+    margin-top: 1px;
+    color: var(--nation-ivory);
+    font: 600 10px/1.15 Georgia, "Times New Roman", serif;
+    letter-spacing: .025em;
+    text-align: center;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    transform: translateX(-50%);
+    transition: color .28s ease, text-shadow .28s ease;
+  }
+
+  .nation-mobile-section-timeline output.is-selected {
+    color: var(--nation-gold-bright);
+    text-shadow: 0 0 8px rgba(212, 184, 117, .22);
+  }
+
+  .nation-subchapter header {
+    border-bottom-color: rgba(185, 154, 92, .38);
+  }
+
+  /*
+   * Su mobile il controllo che ha aperto il pannello rimane sopra di esso:
+   * l'icona Motion riceve `active` e diventa la X di chiusura, come desktop.
+   */
+  .is-menu-open .nation-global-controls {
+    z-index: 221;
+  }
+
+  .is-menu-open .nation-menu-control,
+  .is-info-open .nation-atlas-toggle {
+    z-index: 221;
+    opacity: 1 !important;
+    transform: none !important;
+    pointer-events: auto !important;
+  }
+
+  .is-info-open .nation-atlas-toggle {
+    top: var(--nation-control-edge);
+    right: var(--nation-control-edge);
+    bottom: auto;
+    left: auto;
+  }
+
+  .sidebar-panel .nation-panel-close {
+    display: none !important;
+  }
+
+  .nation-mobile-quotes {
+    position: static;
+    height: 0;
+    display: block;
+  }
+
+  .nation-mobile-quote-triggers {
+    position: fixed;
+    z-index: 96;
+    top: auto;
+    right: auto;
+    bottom: var(--nation-control-edge);
+    left: 14px;
+    display: grid;
+    gap: 7px;
+    transform: none;
+  }
+
+  .nation-mobile-quote-action {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+  }
+
+  .nation-mobile-quote-action .nation-circle-control {
+    position: relative;
+    flex: 0 0 var(--circle-size);
+    width: var(--circle-size);
+    height: var(--circle-size);
+    border: 0;
+    box-shadow: none;
+  }
+
+  .nation-mobile-quote-action > span {
+    max-width: 105px;
+    color: var(--nation-gold-bright);
+    font: 600 10px/1.15 Georgia, "Times New Roman", serif;
+    letter-spacing: .03em;
+    text-wrap: balance;
+  }
+
+  .nation-mobile-quote-overlay {
+    z-index: 240;
+    background: rgba(3, 15, 17, .52);
+    backdrop-filter: none;
+  }
+
+  .nation-mobile-quote-overlay > div {
+    width: min(calc(100vw - 36px), 390px);
+    padding: 46px 26px 30px;
+    overflow: visible;
+    color: #312920;
+    border: 2px solid #312920;
+    border-radius: 24px;
+    background:
+      radial-gradient(circle at 18% 10%, rgba(255, 255, 255, .7), transparent 34%),
+      linear-gradient(145deg, #fffdf7, #eadcc4);
+    box-shadow:
+      7px 8px 0 rgba(49, 41, 32, .82),
+      0 24px 70px rgba(0, 0, 0, .32);
+  }
+
+  .nation-mobile-quote-overlay > div::after {
+    content: "";
+    position: absolute;
+    right: 38px;
+    bottom: -20px;
+    width: 34px;
+    height: 34px;
+    border-right: 2px solid #312920;
+    border-bottom: 2px solid #312920;
+    background: #eadcc4;
+    transform: skewY(-34deg) rotate(22deg);
+  }
+
+  .nation-mobile-quote-overlay > div > button {
+    z-index: 2;
+    color: #762d2a;
+  }
+
+  .nation-mobile-quote-overlay blockquote {
+    position: relative;
+    z-index: 1;
+    max-height: min(62svh, 500px);
+    padding: 0;
+    overflow-y: auto;
+    color: #312920;
+    border: 0;
+    font-weight: 600;
+  }
+}
+
+/* Solo telefono: doppio chevron superiore e nessun avanzamento inferiore.
+   I tablet, anche sotto gli 800 px, conservano il controllo singolo desktop. */
+@media (max-width: 600px), (max-height: 600px) and (pointer: coarse) {
+  .nation-slide-arrow.is-next {
+    display: none;
+  }
+
+  .nation-slide-arrow.is-previous .nation-primary-chevron {
+    transform: translateY(-3px);
+  }
+
+  .nation-mobile-double-chevron {
+    display: block;
+  }
+}
+
+@media (max-width: 600px) and (orientation: portrait) {
+  .nation-subchapter {
+    padding-top: 116px;
+  }
+
+  .nation-subchapter header {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

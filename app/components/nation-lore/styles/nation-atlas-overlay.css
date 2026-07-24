@@ -1,0 +1,77 @@
+/* I due pannelli sono overlay speculari: nessuno dei due ridimensiona la
+   carta o modifica la camera. */
+.nation-atlas-map,
+.nation-atlas.is-open .nation-atlas-map,
+.nation-atlas.is-open:has(.interactive-map:not(.zoom-level-0)) .nation-atlas-map {
+  flex: 1 1 100%;
+  flex-basis: 100%;
+  width: 100%;
+}
+
+.nation-atlas-sidebar,
+.nation-atlas.is-open:has(.interactive-map:not(.zoom-level-0)) .nation-atlas-sidebar {
+  position: absolute;
+  z-index: 94;
+  inset: 0 0 0 auto;
+  width: min(var(--nation-side-column-width), 92vw);
+  height: 100%;
+  flex: none;
+  transform: translateX(103%);
+  transition: transform .48s cubic-bezier(.22, .8, .2, 1);
+}
+
+.nation-atlas:not(.is-open) .nation-atlas-sidebar {
+  width: min(var(--nation-side-column-width), 92vw);
+}
+
+.nation-atlas.is-open .nation-atlas-sidebar {
+  transform: translateX(0);
+}
+
+.nation-atlas.is-open .nation-atlas-toggle {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
+
+/* Il pannello Info è globale: Swiper non può più trascinare via né il
+   comando né il pannello quando si lascia la slide Atlante. */
+.nation-lore-page.is-info-open .nation-atlas-sidebar {
+  transform: translateX(0);
+  min-width: 300px;
+  pointer-events: auto;
+}
+
+.nation-lore-page:not(.is-info-open) .nation-atlas-sidebar {
+  transform: translateX(103%);
+  pointer-events: none;
+}
+
+.is-info-open .nation-atlas-sidebar-content {
+  opacity: 1;
+}
+
+.is-info-open .nation-atlas-sidebar::before {
+  opacity: 1;
+}
+
+.is-menu-open .nation-menu-control {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
+
+.nation-atlas-sidebar-content {
+  width: min(var(--nation-side-column-width), 92vw);
+}
+
+.sidebar-scrim--menu[data-open="true"],
+.nation-atlas.is-open::before {
+  backdrop-filter: blur(2px);
+}
+
+/* Il menu hamburger si trasforma in X: le tre linee originali spariscono
+   insieme e lasciano posto alle diagonali dell’icona close. */
+.nation-menu-control svg path {
+  transition: opacity .2s ease, transform .32s ease;
+}
