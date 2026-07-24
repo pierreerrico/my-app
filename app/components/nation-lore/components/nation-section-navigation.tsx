@@ -16,13 +16,12 @@ export function NationSectionNavigation({
   onNavigate,
 }: NationSectionNavigationProps) {
   const navigationRef = useRef<HTMLElement>(null);
-  const loopTimer = useRef<number | null>(null);
   const [preview, setPreview] = useState(current);
 
   const center = (index: number, behavior: ScrollBehavior = "smooth") => {
     const navigation = navigationRef.current;
     const target = navigation?.querySelector<HTMLElement>(
-      `[data-cycle="1"][data-index="${index}"]`,
+      `[data-index="${index}"]`,
     );
     if (!navigation || !target) return;
     navigation.scrollTo({
@@ -37,13 +36,6 @@ export function NationSectionNavigation({
   useEffect(() => {
     center(current);
   }, [current, labels.length]);
-
-  useEffect(
-    () => () => {
-      if (loopTimer.current !== null) window.clearTimeout(loopTimer.current);
-    },
-    [],
-  );
 
   const handleScroll = () => {
     const navigation = navigationRef.current;
@@ -66,11 +58,6 @@ export function NationSectionNavigation({
 
     const index = Number(nearest.dataset.index);
     setPreview(index);
-    if (loopTimer.current !== null) window.clearTimeout(loopTimer.current);
-    loopTimer.current = window.setTimeout(() => {
-      if (nearest.dataset.cycle === "1") return;
-      center(index, "auto");
-    }, 160);
   };
 
   return (
@@ -81,30 +68,25 @@ export function NationSectionNavigation({
       onScroll={handleScroll}
     >
       <div className="nation-section-navigation-track">
-        {[0, 1, 2].flatMap((cycle) =>
-          labels.map((label, index) => (
-            <button
-              key={`${cycle}-${index}`}
-              type="button"
-              className={[
-                index === current ? "is-active" : "",
-                index === preview ? "is-preview" : "",
-              ]
-                .filter(Boolean)
-                .join(" ")}
-              data-cycle={cycle}
-              data-index={index}
-              data-depth={depths[index] ?? 0}
-              aria-current={
-                cycle === 1 && index === current ? "step" : undefined
-              }
-              onClick={() => onNavigate(index)}
-            >
-              <span aria-hidden="true" />
-              <b>{label}</b>
-            </button>
-          )),
-        )}
+        {labels.map((label, index) => (
+          <button
+            key={index}
+            type="button"
+            className={[
+              index === current ? "is-active" : "",
+              index === preview ? "is-preview" : "",
+            ]
+              .filter(Boolean)
+              .join(" ")}
+            data-index={index}
+            data-depth={depths[index] ?? 0}
+            aria-current={index === current ? "step" : undefined}
+            onClick={() => onNavigate(index)}
+          >
+            <span aria-hidden="true" />
+            <b>{label}</b>
+          </button>
+        ))}
       </div>
     </nav>
   );

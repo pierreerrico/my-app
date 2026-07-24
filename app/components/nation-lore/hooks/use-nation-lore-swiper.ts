@@ -27,6 +27,8 @@ export function useNationLoreSwiper({
   onSlideChange,
 }: UseNationLoreSwiperOptions) {
   const swiperRef = useRef<Swiper | null>(null);
+  const pendingFlatTargetRef = useRef<number | null>(null);
+  const pendingFlatTimerRef = useRef<number | null>(null);
   const [activeSlide, setActiveSlide] = useState(0);
   const [flatPosition, setFlatPosition] = useState<FlatLorePosition>({
     index: 0,
@@ -42,8 +44,13 @@ export function useNationLoreSwiper({
       root?.querySelector<HTMLElement>(".nation-swiper-pagination-engine");
     if (!root || !element || !pagination) return;
 
-    const syncPosition = (outer: Swiper) =>
-      setFlatPosition(readFlatLorePosition(outer));
+    const syncPosition = (outer: Swiper) => {
+      const position = readFlatLorePosition(outer);
+      setFlatPosition({
+        ...position,
+        index: pendingFlatTargetRef.current ?? position.index,
+      });
+    };
     const syncAtlasState = (instance: Swiper) => {
       const atlasActive = instance.activeIndex === 0;
       setActiveSlide(instance.activeIndex);
@@ -80,6 +87,26 @@ export function useNationLoreSwiper({
           window.setTimeout(() => syncPosition(instance), 100);
         },
         slideChange(instance) {
+          /*
+           * Lo scroll legge l'articolo come un'unica sequenza. Quando si
+           * attraversa il confine fra capitoli non ripristiniamo l'ultima
+           * sottosezione visitata: entrando in avanti si parte dall'inizio,
+           * tornando indietro si arriva alla fine del capitolo precedente.
+           * Le selezioni esplicite dall'indice piatto impostano invece una
+           * destinazione precisa e non devono essere sovrascritte.
+           */
+          if (
+            pendingFlatTargetRef.current === null &&
+            instance.activeIndex > 0
+          ) {
+            const nested = getNestedSwiper(instance.slides[instance.activeIndex]);
+            if (nested) {
+              const enteringForward =
+                instance.activeIndex > instance.previousIndex;
+              const target = enteringForward ? 0 : nested.slides.length - 1;
+              if (nested.activeIndex !== target) nested.slideTo(target, 0);
+            }
+          }
           syncAtlasState(instance);
           onSlideChange();
           if (instance.activeIndex > 0) onAtlasLeave();
@@ -120,13 +147,27 @@ export function useNationLoreSwiper({
         handleSubchapterChange,
       );
       swiperRef.current = null;
+      if (pendingFlatTimerRef.current !== null) {
+        window.clearTimeout(pendingFlatTimerRef.current);
+      }
       swiper.destroy(true, true);
     };
   }, [onAtlasLeave, onSlideChange, rootRef]);
 
   const navigateFlat = (target: number) => {
     if (swiperRef.current) {
+      pendingFlatTargetRef.current = target;
+      setFlatPosition((position) => ({ ...position, index: target }));
       navigateToFlatPosition(swiperRef.current, target);
+      if (pendingFlatTimerRef.current !== null) {
+        window.clearTimeout(pendingFlatTimerRef.current);
+      }
+      pendingFlatTimerRef.current = window.setTimeout(() => {
+        pendingFlatTargetRef.current = null;
+        if (swiperRef.current) {
+          setFlatPosition(readFlatLorePosition(swiperRef.current));
+        }
+      }, (swiperRef.current.params.speed ?? 800) + 120);
     }
   };
 

@@ -72,9 +72,12 @@ export function navigateToFlatPosition(outer: Swiper, target: number) {
         nested?.slideTo(nestedTarget);
         return;
       }
-      outer.once("slideChangeTransitionEnd", () =>
-        getNestedSwiper(outer.slides[outerIndex])?.slideTo(nestedTarget),
-      );
+      /*
+       * Prepariamo la sottosezione mentre il capitolo è ancora fuori vista.
+       * Così lo stato piatto non espone per un frame la sottosezione che quel
+       * capitolo aveva precedentemente attiva.
+       */
+      nested?.slideTo(nestedTarget, 0, false);
       outer.slideTo(outerIndex);
       return;
     }
@@ -159,9 +162,7 @@ export function mountSubnavigation(swiper: Swiper) {
            * In questo modo funziona anche quando il parent non è attivo.
            */
           if (swiper.activeIndex !== index) {
-            swiper.once("slideChangeTransitionEnd", () =>
-              getNestedSwiper(slide)?.slideTo(subchapterIndex),
-            );
+            getNestedSwiper(slide)?.slideTo(subchapterIndex, 0, false);
             swiper.slideTo(index);
             return;
           }
