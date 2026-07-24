@@ -1,6 +1,6 @@
 {
-  "mapWidthKm": 312,
-  "mapHeightKm": 176,
+  "mapWidthKm": 390,
+  "mapHeightKm": 220,
   "topLeft": {
     "latitude": 38.416,
     "longitude": -1.798
@@ -15,5 +15,45 @@
   "generatedLandMask": {
     "file": "public/maps/selodia/selodia-land-mask.png",
     "publicUrl": "/maps/selodia/selodia-land-mask.png"
+  },
+  "bathymetry": {
+    "file": "public/maps/selodia/selodia-bathymetry.png",
+    "publicUrl": "/maps/selodia/selodia-bathymetry.png",
+    "maximumDepthKm": 6.0,
+    "landThreshold": 0.999,
+    "minimumWetDepthKm": 0.02
+  },
+  "ocean": {
+    "output": {
+      "file": "public/maps/selodia/selodia-current.png",
+      "diagnosticsDirectory": "scripts/currents/generated-currents",
+      "prefix": "selodia-current"
+    },
+    "grid": {
+      "width": 512,
+      "height": 290
+    },
+    "atmosphere": {
+      "enabled": true,
+      "transitionWidthDegrees": 6.0,
+      "meridionalStrength": 0.14,
+      "variationStrength": 0.12,
+      "variationScale": 2.2
+    },
+    "currents": [
+      {
+        "name": "Corrente Selodiana",
+        "entry": {
+          "edge": "south",
+          "position": 0.34,
+          "width": 0.72,
+          "depth": 18,
+          "feather": 0.24
+        },
+        "strength": 1.0,
+        "directionDegrees": 58.0,
+        "spawnWeight": 1.0
+      }
+    ]
   }
 }

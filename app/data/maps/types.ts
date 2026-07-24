@@ -40,13 +40,14 @@ export type MapFeature = {
   icon?: ReactNode;
 };
 
-export type MapRiverPoint = GeographicPoint & {
-  /**
-   * Elevazione puramente visuale sopra il terreno Three.js.
-   * Non rappresenta necessariamente una quota geografica reale.
-   */
-  visualElevation?: number;
-};
+export type MapRiverPoint =
+  GeographicPoint & {
+    /**
+     * Elevazione puramente visuale sopra il terreno Three.js.
+     * Non rappresenta necessariamente una quota geografica reale.
+     */
+    visualElevation?: number;
+  };
 
 export type MapRiver = {
   id: string;
@@ -62,6 +63,121 @@ export type NationMapTextures = {
 
   riversMask?: string;
   routesMask?: string;
+
+  coastDistance?: string;
+  currentMap?: string;
+};
+
+export type Vector2Tuple =
+  readonly [
+    number,
+    number,
+  ];
+
+export type Vector3Tuple =
+  readonly [
+    number,
+    number,
+    number,
+  ];
+
+export type NationMapSeaRendering = {
+  /**
+   * Normal map tileable principale.
+   */
+  normalMapA: string;
+
+  /**
+   * Seconda normal map tileable.
+   *
+   * Può anche essere una copia della prima:
+   * viene campionata con scala, rotazione e
+   * movimento differenti.
+   */
+  normalMapB: string;
+
+  deepColor?: string;
+  midColor?: string;
+  shallowColor?: string;
+  foamColor?: string;
+
+  /**
+   * Velocità complessiva dell’animazione.
+   */
+  surfaceSpeed?: number;
+
+  /**
+   * Intensità complessiva del rilievo ottico
+   * e dell’illuminazione superficiale.
+   */
+  surfaceStrength?: number;
+
+  /**
+   * Ripetizione UV della prima normal map.
+   */
+  normalScaleA?: number;
+
+  /**
+   * Ripetizione UV della seconda normal map.
+   */
+  normalScaleB?: number;
+
+  normalStrengthA?: number;
+  normalStrengthB?: number;
+
+  /**
+   * Spostamento UV compiuto dalla normal map.
+   * L’animazione viene comunque chiusa in loop
+   * dallo shader.
+   */
+  normalSpeedA?: Vector2Tuple;
+  normalSpeedB?: Vector2Tuple;
+
+  /**
+   * Rotazione in radianti delle due texture.
+   */
+  normalRotationA?: number;
+  normalRotationB?: number;
+
+  /**
+   * Direzione della luce in coordinate mondo.
+   */
+  sunDirection?: Vector3Tuple;
+
+  sunColor?: string;
+
+  /**
+   * Intensità e concentrazione del riflesso.
+   */
+  specularStrength?: number;
+  specularPower?: number;
+
+  /**
+   * Riflesso crescente agli angoli radenti.
+   */
+  fresnelStrength?: number;
+  fresnelPower?: number;
+
+  /**
+   * Creste luminose in mare aperto.
+   */
+  whitecapStrength?: number;
+  whitecapThreshold?: number;
+
+  /**
+   * Estensione cromatica dell’acqua bassa.
+   */
+  coastWidth?: number;
+
+  /**
+   * Estensione delle fasce di schiuma.
+   */
+  foamWidth?: number;
+
+  foamStrength?: number;
+  foamScale?: number;
+  foamSpeed?: number;
+  foamBreakup?: number;
 };
 
 export type NationMapPalette = {
@@ -180,6 +296,7 @@ export type NationMapConfig = {
   labels?: MapLabel[];
 
   rendering?: NationMapRendering;
+  seaRendering?: NationMapSeaRendering;
 };
 
 export type DerivedMapGeometry = {
