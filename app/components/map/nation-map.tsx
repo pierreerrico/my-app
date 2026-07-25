@@ -1,7 +1,14 @@
 "use client";
 
 import { Canvas } from "@react-three/fiber";
-import { useMemo, useRef, useState } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type TouchEvent,
+  type WheelEvent,
+} from "react";
 import { PCFSoftShadowMap } from "three";
 import type { NationMapConfig } from "../../data/maps/";
 import { deriveMapGeometry } from "../../data/maps/geography";
@@ -17,26 +24,63 @@ export default function NationMap({ config }: { config: NationMapConfig }) {
   const [zoomLevel, setZoomLevel] = useState(0);
   const [rotationAvailable, setRotationAvailable] = useState(false);
   const [resetNorthSignal, setResetNorthSignal] = useState(0);
-  const lastWheel = useRef(0);
+  const mapRef = useRef<HTMLDivElement>(null);
+  const pinchDistanceRef = useRef<number | null>(null);
 
-  function changeZoom(direction: 1 | -1) {
-    const now = Date.now();
-    if (now - lastWheel.current < 320) return;
-    lastWheel.current = now;
-    setZoomLevel((level) => Math.min(2, Math.max(0, level + direction)));
+  useEffect(() => {
+    const map = mapRef.current;
+    const lorePage = map?.closest(".nation-lore-page");
+    if (!lorePage) return;
+
+    const resetToStatic = () => {
+      setZoomLevel(0);
+      setResetNorthSignal((value) => value + 1);
+    };
+    lorePage.addEventListener("nation-map-reset-static", resetToStatic);
+    return () => {
+      lorePage.removeEventListener("nation-map-reset-static", resetToStatic);
+    };
+  }, []);
+
+  function changeZoom(amount: number) {
+    setZoomLevel((level) => Math.min(2, Math.max(0, level + amount)));
   }
+
+  function handleWheel(event: WheelEvent<HTMLDivElement>) {
+    event.preventDefault();
+    const unit = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? 120 : 1;
+    changeZoom(-event.deltaY * unit * 0.0025);
+  }
+
+  function handleTouchStart(event: TouchEvent<HTMLDivElement>) {
+    pinchDistanceRef.current =
+      event.touches.length === 2 ? touchDistance(event.touches) : null;
+  }
+
+  function handleTouchMove(event: TouchEvent<HTMLDivElement>) {
+    if (event.touches.length !== 2 || pinchDistanceRef.current === null) return;
+    const distance = touchDistance(event.touches);
+    const previousDistance = pinchDistanceRef.current;
+    pinchDistanceRef.current = distance;
+    changeZoom((distance - previousDistance) * 0.008);
+  }
+
+  const visualZoomLevel = zoomLevel === 0 ? 0 : zoomLevel < 1.15 ? 1 : 2;
 
   return (
     <div
-      className={`interactive-map zoom-level-${zoomLevel}`}
-      onWheel={(event) => {
-        event.preventDefault();
-        changeZoom(event.deltaY < 0 ? 1 : -1);
+      ref={mapRef}
+      className={`interactive-map zoom-level-${visualZoomLevel}`}
+      onWheel={handleWheel}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={() => {
+        pinchDistanceRef.current = null;
       }}
       data-map-id={config.id}
       data-map-width-km={config.geography.mapWidthKm}
       data-map-height-km={config.geography.mapHeightKm}
-      data-territory-area-km2={geometry.estimatedTerritoryAreaKm2}
+      data-territory-area-km2={geometry.territoryAreaKm2}
     >
       <div className="cartographic-sheet">
         <Canvas
@@ -72,5 +116,14 @@ export default function NationMap({ config }: { config: NationMapConfig }) {
         />
       )}
     </div>
+  );
+}
+
+function touchDistance(touches: React.TouchList): number {
+  const first = touches.item(0);
+  const second = touches.item(1);
+  return Math.hypot(
+    second.clientX - first.clientX,
+    second.clientY - first.clientY,
   );
 }

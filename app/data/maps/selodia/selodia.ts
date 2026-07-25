@@ -170,6 +170,22 @@ export const selodiaMap:
     foamBreakup: 0.42,
   },
 
+  /*
+   * Estensione procedurale generica: il mare cartografico conserva shader,
+   * correnti e schiuma, mentre l'orizzonte economico impedisce di vedere la
+   * fine della carta durante la navigazione prospettica.
+   */
+  oceanHorizon: {
+    extensionScale: 6,
+    transitionWidth: 0.14,
+    seabedDrop: 2.6,
+    mist: {
+      mode: "horizon",
+      density: 0.44,
+      speed: 0.02,
+    },
+  },
+
   features:
     selodiaFeatures,
 

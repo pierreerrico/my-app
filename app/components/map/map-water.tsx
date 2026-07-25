@@ -9,6 +9,7 @@ import type {
 } from "../../data/maps/types";
 import { MapSea } from "./map-sea";
 import { MapSeabed } from "./map-seabed";
+import { MapOceanHorizon } from "./map-ocean-horizon";
 
 /**
  * Composito oceanico della mappa.
@@ -72,6 +73,12 @@ export function MapWater({
 
   return (
     <>
+      <MapOceanHorizon
+        config={config}
+        geometry={geometry}
+        parchment={parchment}
+      />
+
       <MapSeabed
         config={config}
         geometry={geometry}

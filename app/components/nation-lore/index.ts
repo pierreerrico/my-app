@@ -1,7 +1,6 @@
 export { default as NationLorePage } from "./nation-lore-page";
 export { NationAtlasSlide, NationAtlasInfo } from "./nation-atlas-slide";
 export { NationLoreChapter } from "./content/nation-lore-chapter";
-export { MobileQuoteDialog } from "./content/nation-quote-dialog";
 export { CircleControl } from "./circle-control";
 export { Sidebar } from "../sidebar/sidebar";
 export { EncyclopediaDrawer } from "./encyclopedia-drawer";

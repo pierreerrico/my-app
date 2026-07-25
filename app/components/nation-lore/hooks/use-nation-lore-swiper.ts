@@ -139,13 +139,38 @@ export function useNationLoreSwiper({
        */
       window.requestAnimationFrame(() => mountSubnavigation(swiper));
     };
+    const handleScrollBoundary = (event: Event) => {
+      const { direction } = (
+        event as CustomEvent<{ direction: "previous" | "next" }>
+      ).detail;
+      const nested = getNestedSwiper(swiper.slides[swiper.activeIndex]);
+
+      if (nested) {
+        if (direction === "previous" && nested.activeIndex > 0) {
+          nested.slidePrev();
+          return;
+        }
+        if (
+          direction === "next" &&
+          nested.activeIndex < nested.slides.length - 1
+        ) {
+          nested.slideNext();
+          return;
+        }
+      }
+
+      if (direction === "previous") swiper.slidePrev();
+      else swiper.slideNext();
+    };
     root.addEventListener("nation-subchapter-change", handleSubchapterChange);
+    root.addEventListener("nation-scroll-boundary", handleScrollBoundary);
 
     return () => {
       root.removeEventListener(
         "nation-subchapter-change",
         handleSubchapterChange,
       );
+      root.removeEventListener("nation-scroll-boundary", handleScrollBoundary);
       swiperRef.current = null;
       if (pendingFlatTimerRef.current !== null) {
         window.clearTimeout(pendingFlatTimerRef.current);

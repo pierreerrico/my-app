@@ -33,7 +33,10 @@ export default function NationLorePage({
   const isDesktop = useDesktopLayout();
 
   const closeTransientMenu = useCallback(() => setMenuOpen(false), []);
-  const closeInfo = useCallback(() => setInfoOpen(false), []);
+  const leaveAtlas = useCallback(() => {
+    setInfoOpen(false);
+    rootRef.current?.dispatchEvent(new CustomEvent("nation-map-reset-static"));
+  }, []);
   const {
     activeSlide,
     flatPosition,
@@ -44,7 +47,7 @@ export default function NationLorePage({
   } = useNationLoreSwiper({
     rootRef,
     onSlideChange: closeTransientMenu,
-    onAtlasLeave: closeInfo,
+    onAtlasLeave: leaveAtlas,
   });
 
   const atlasActive = activeSlide === 0;

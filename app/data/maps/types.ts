@@ -183,6 +183,26 @@ export type NationMapSeaRendering = {
   foamBreakup?: number;
 };
 
+export type NationMapOceanHorizon = {
+  /** Disattiva soltanto l'estensione procedurale, senza toccare il mare interno. */
+  enabled?: boolean;
+  /** Dimensione dell'oceano lontano rispetto al rettangolo cartografico. */
+  extensionScale?: number;
+  /** Ampiezza del raccordo, espressa come quota del lato minore della carta. */
+  transitionWidth?: number;
+  /** Profondità visuale del fondale esterno in unità Three.js. */
+  seabedDrop?: number;
+  deepWaterColor?: string;
+  horizonColor?: string;
+  mist?: {
+    enabled?: boolean;
+    /** `horizon` è il raccordo 2D economico; `volumetric` riattiva il raymarch. */
+    mode?: "horizon" | "volumetric" | "off";
+    density?: number;
+    speed?: number;
+  };
+};
+
 export type NationMapPalette = {
   seaDeep: string;
   seaShallow: string;
@@ -300,6 +320,7 @@ export type NationMapConfig = {
 
   rendering?: NationMapRendering;
   seaRendering?: NationMapSeaRendering;
+  oceanHorizon?: NationMapOceanHorizon;
 };
 
 export type DerivedMapGeometry = {

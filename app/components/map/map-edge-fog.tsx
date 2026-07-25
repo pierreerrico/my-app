@@ -734,13 +734,22 @@ export function MapEdgeFog({
     config.textures.landMask;
 
   const fogMapPath =
-    config.textures.fogMap;
+    config.textures.fogMap ??
+    landMaskPath;
 
-  if (!landMaskPath || !fogMapPath) {
+  if (!landMaskPath) {
     throw new Error(
-      `La mappa "${config.id}" deve definire textures.landMask e textures.fogMap per la nebbia volumetrica marina.`,
+      `La mappa "${config.id}" deve definire textures.landMask.`,
     );
   }
+
+  const marineFogMode =
+    config.oceanHorizon?.mist?.mode ??
+    "horizon";
+  const showVolumetricMarineFog =
+    marineFogMode === "volumetric";
+  const showClouds =
+    marineFogMode !== "off";
 
   const [
     landMaskSource,
@@ -982,32 +991,47 @@ export function MapEdgeFog({
     const elapsedTime =
       state.clock.elapsedTime;
 
-    fogMaterial.uniforms.uTime.value =
-      elapsedTime;
+    const activeFogMaterial =
+      fogMeshRef.current?.material as
+        | ShaderMaterial
+        | undefined;
+    const activeCloudMaterial =
+      cloudMeshRef.current?.material as
+        | ShaderMaterial
+        | undefined;
 
-    cloudMaterial.uniforms.uTime.value =
-      elapsedTime;
-
-    if (fogMeshRef.current) {
+    if (
+      fogMeshRef.current &&
+      activeFogMaterial
+    ) {
+      activeFogMaterial.uniforms.uTime.value =
+        elapsedTime;
       const localFogCamera =
         fogMeshRef.current.worldToLocal(
           state.camera.position.clone(),
         );
 
-      fogMaterial.uniforms.uCameraLocal.value.copy(
-        localFogCamera,
-      );
+      activeFogMaterial.uniforms
+        .uCameraLocal.value.copy(
+          localFogCamera,
+        );
     }
 
-    if (cloudMeshRef.current) {
+    if (
+      cloudMeshRef.current &&
+      activeCloudMaterial
+    ) {
+      activeCloudMaterial.uniforms.uTime.value =
+        elapsedTime;
       const localCloudCamera =
         cloudMeshRef.current.worldToLocal(
           state.camera.position.clone(),
         );
 
-      cloudMaterial.uniforms.uCameraLocal.value.copy(
-        localCloudCamera,
-      );
+      activeCloudMaterial.uniforms
+        .uCameraLocal.value.copy(
+          localCloudCamera,
+        );
     }
   });
 
@@ -1037,7 +1061,7 @@ export function MapEdgeFog({
         geometry={cloudGeometry}
         material={cloudMaterial}
         position={[0, cloudVolumeCenterY, 0]}
-        visible={!parchment}
+        visible={!parchment && showClouds}
         frustumCulled={false}
         renderOrder={900}
       />
@@ -1047,7 +1071,10 @@ export function MapEdgeFog({
         geometry={fogGeometry}
         material={fogMaterial}
         position={[0, fogVolumeCenterY, 0]}
-        visible={!parchment}
+        visible={
+          !parchment &&
+          showVolumetricMarineFog
+        }
         frustumCulled={false}
         renderOrder={1500}
       />

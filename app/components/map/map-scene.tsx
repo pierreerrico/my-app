@@ -143,16 +143,16 @@ export function MapScene({
         fitMapWidth,
       ) * 1.02;
 
+    const zoom = MathUtils.clamp(zoomLevel, 0, 2);
+    const zoomStage = Math.min(Math.floor(zoom), 1);
+    const zoomStageProgress = zoom - zoomStage;
     const desiredDistances = [
       staticFitDistance,
       Math.max(
         staticFitDistance * 0.62,
         6.4,
       ),
-      Math.max(
-        staticFitDistance * 0.28,
-        3.2,
-      ),
+      3.2,
     ];
 
     const desiredPolarAngles = [
@@ -161,15 +161,24 @@ export function MapScene({
       1.05,
     ];
 
+    const desiredDistance = MathUtils.lerp(
+      desiredDistances[zoomStage],
+      desiredDistances[zoomStage + 1],
+      zoomStageProgress,
+    );
+    const desiredPolarAngle = MathUtils.lerp(
+      desiredPolarAngles[zoomStage],
+      desiredPolarAngles[zoomStage + 1],
+      zoomStageProgress,
+    );
+
     const currentDistance =
       controls.current.getDistance();
 
     const nextDistance =
       MathUtils.lerp(
         currentDistance,
-        desiredDistances[
-          zoomLevel
-        ],
+        desiredDistance,
         0.095,
       );
 
@@ -180,9 +189,7 @@ export function MapScene({
     const nextPolar =
       MathUtils.lerp(
         currentPolar,
-        desiredPolarAngles[
-          zoomLevel
-        ],
+        desiredPolarAngle,
         0.095,
       );
 
@@ -201,13 +208,13 @@ export function MapScene({
       .add(offset);
 
     const canRotate =
-      zoomLevel === 2;
+      zoom >= 1.85;
 
     controls.current.enableRotate =
       canRotate;
 
     controls.current.enablePan =
-      zoomLevel > 0;
+      zoom > 0.02;
 
     controls.current.setPolarAngle(
       nextPolar,
@@ -233,7 +240,7 @@ export function MapScene({
     }
 
     if (
-      zoomLevel === 0 ||
+      zoom === 0 ||
       recentering.current
     ) {
       controls.current.target.lerp(
@@ -246,7 +253,7 @@ export function MapScene({
       );
     }
 
-    const panLimits = [
+    const panLimitStages = [
       {
         x: 0,
         z: 0,
@@ -267,7 +274,19 @@ export function MapScene({
           geometry.planeHeight *
           0.38,
       },
-    ][zoomLevel];
+    ];
+    const panLimits = {
+      x: MathUtils.lerp(
+        panLimitStages[zoomStage].x,
+        panLimitStages[zoomStage + 1].x,
+        zoomStageProgress,
+      ),
+      z: MathUtils.lerp(
+        panLimitStages[zoomStage].z,
+        panLimitStages[zoomStage + 1].z,
+        zoomStageProgress,
+      ),
+    };
 
     const boundedTarget =
       controls.current

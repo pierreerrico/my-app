@@ -5,12 +5,13 @@ import {
   isValidElement,
   useRef,
   useState,
+  type TouchEvent,
+  type WheelEvent,
   type ReactNode,
 } from "react";
 import type SwiperCore from "swiper";
 import { Keyboard, Mousewheel } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
-import { MobileQuoteDialog } from "./nation-quote-dialog";
 
 interface LoreSection {
   title: string;
@@ -37,8 +38,103 @@ export function NationLoreChapter({
   children,
 }: NationLoreChapterProps) {
   const swiperRef = useRef<SwiperCore | null>(null);
+  const touchStartYRef = useRef<number | null>(null);
+  const touchNavigationUsedRef = useRef(false);
+  const wheelLockedRef = useRef(false);
+  const wheelBoundaryDistanceRef = useRef(0);
+  const wheelDirectionRef = useRef<"previous" | "next" | null>(null);
+  const wheelResetTimerRef = useRef<number | null>(null);
   const [activeSection, setActiveSection] = useState(0);
   const sections = groupContentByHeading(title, children);
+
+  const requestBoundaryNavigation = (
+    target: HTMLElement,
+    direction: "previous" | "next",
+  ) => {
+    target.dispatchEvent(
+      new CustomEvent("nation-scroll-boundary", {
+        bubbles: true,
+        detail: { direction },
+      }),
+    );
+  };
+
+  const handleContentWheel = (event: WheelEvent<HTMLDivElement>) => {
+    event.stopPropagation();
+    const content = event.currentTarget;
+    const atTop = content.scrollTop <= 1;
+    const atBottom =
+      content.scrollTop + content.clientHeight >= content.scrollHeight - 1;
+    const direction =
+      event.deltaY > 0 && atBottom
+        ? "next"
+        : event.deltaY < 0 && atTop
+          ? "previous"
+          : null;
+
+    if (!direction) {
+      wheelBoundaryDistanceRef.current = 0;
+      wheelDirectionRef.current = null;
+      return;
+    }
+    if (wheelLockedRef.current) return;
+
+    if (wheelDirectionRef.current !== direction) {
+      wheelBoundaryDistanceRef.current = 0;
+      wheelDirectionRef.current = direction;
+    }
+    wheelBoundaryDistanceRef.current += Math.abs(event.deltaY);
+
+    if (wheelResetTimerRef.current !== null) {
+      window.clearTimeout(wheelResetTimerRef.current);
+    }
+    wheelResetTimerRef.current = window.setTimeout(() => {
+      wheelBoundaryDistanceRef.current = 0;
+      wheelDirectionRef.current = null;
+    }, 500);
+
+    if (wheelBoundaryDistanceRef.current < 220) return;
+    wheelLockedRef.current = true;
+    wheelBoundaryDistanceRef.current = 0;
+    wheelDirectionRef.current = null;
+    requestBoundaryNavigation(content, direction);
+    window.setTimeout(() => {
+      wheelLockedRef.current = false;
+    }, 800);
+  };
+
+  const handleContentTouchStart = (event: TouchEvent<HTMLDivElement>) => {
+    touchStartYRef.current = event.touches[0]?.clientY ?? null;
+    touchNavigationUsedRef.current = false;
+  };
+
+  const handleContentTouchMove = (event: TouchEvent<HTMLDivElement>) => {
+    const startY = touchStartYRef.current;
+    const currentY = event.touches[0]?.clientY;
+    if (
+      startY === null ||
+      currentY === undefined ||
+      touchNavigationUsedRef.current
+    ) {
+      return;
+    }
+
+    const content = event.currentTarget;
+    const delta = startY - currentY;
+    const atTop = content.scrollTop <= 1;
+    const atBottom =
+      content.scrollTop + content.clientHeight >= content.scrollHeight - 1;
+    const direction =
+      delta > 120 && atBottom
+        ? "next"
+        : delta < -120 && atTop
+          ? "previous"
+          : null;
+
+    if (!direction) return;
+    touchNavigationUsedRef.current = true;
+    requestBoundaryNavigation(content, direction);
+  };
 
   return (
     <section
@@ -81,8 +177,12 @@ export function NationLoreChapter({
               <header>
                 <h2>{section.title}</h2>
               </header>
-              <MobileQuoteDialog quotes={quotesFromContent(section.content)} />
-              <div className="nation-subchapter-content">
+              <div
+                className="nation-subchapter-content swiper-no-swiping swiper-no-mousewheel"
+                onWheel={handleContentWheel}
+                onTouchStart={handleContentTouchStart}
+                onTouchMove={handleContentTouchMove}
+              >
                 {section.content}
               </div>
             </article>
@@ -164,18 +264,6 @@ function groupContentByHeading(
   });
 
   return sections;
-}
-
-function quotesFromContent(content: ReactNode[]): ReactNode[] {
-  return content.flatMap((node) => {
-    if (
-      isValidElement<{ children?: ReactNode }>(node) &&
-      node.type === "blockquote"
-    ) {
-      return [node.props.children];
-    }
-    return [];
-  });
 }
 
 function textFromNode(node: ReactNode): string {
