@@ -66,6 +66,9 @@ export type NationMapTextures = {
 
   coastDistance?: string;
   currentMap?: string;
+
+  bathymetryMap: string;
+  fogMap?: string;
 };
 
 export type Vector2Tuple =

@@ -1,264 +1,93 @@
 "use client";
 
-import {
-  useLoader,
-} from "@react-three/fiber";
-import {
-  useEffect,
-  useMemo,
-} from "react";
-import {
-  ClampToEdgeWrapping,
-  LinearFilter,
-  NearestFilter,
-  NoColorSpace,
-  Texture,
-  TextureLoader,
-} from "three";
+import { useLoader } from "@react-three/fiber";
+import { TextureLoader } from "three";
 
 import type {
   DerivedMapGeometry,
   NationMapConfig,
 } from "../../data/maps/types";
 import { MapSea } from "./map-sea";
-import { useWaterParticleSimulation } from "./particles/water/use-water-particle-simulation";
-import { WaterParticleDebug } from "./particles/water/water-particle-debug";
+import { MapSeabed } from "./map-seabed";
 
-const WATER_PARTICLE_DEBUG =
-  false;
-
-type MapWaterProps = {
-  config: NationMapConfig;
-  geometry: DerivedMapGeometry;
-  parchment: boolean;
-};
-
-type MapWaterContentProps =
-  MapWaterProps & {
-    currentMapPath: string;
-  };
-
+/**
+ * Composito oceanico della mappa.
+ *
+ * MapSeabed:
+ * - bathymetryMap -> displacement del fondale;
+ * - coastDistance -> colore del fondale.
+ *
+ * MapSea:
+ * - currentMap -> direzione delle normali Water2 e moto locale della foam;
+ * - coastDistance -> equivalente della profondità costiera nel port tuxalin;
+ * - landMask -> impedisce alla foam di comparire sulla terra;
+ * - texture fotografiche MIT -> struttura organica della foam.
+ */
 export function MapWater({
   config,
   geometry,
   parchment,
-}: MapWaterProps) {
+}: {
+  config: NationMapConfig;
+  geometry: DerivedMapGeometry;
+  parchment: boolean;
+}) {
   const currentMapPath =
     config.textures.currentMap;
 
-  if (!currentMapPath) {
+  const bathymetryMapPath =
+    config.textures.bathymetryMap;
+
+  const coastDistancePath =
+    config.textures.coastDistance;
+
+  const landMaskPath =
+    config.textures.landMask;
+
+  if (
+    !currentMapPath ||
+    !bathymetryMapPath ||
+    !coastDistancePath ||
+    !landMaskPath
+  ) {
     throw new Error(
-      `La mappa "${config.id}" non definisce textures.currentMap.`,
+      `La mappa "${config.id}" deve definire textures.currentMap, textures.bathymetryMap, textures.coastDistance e textures.landMask.`,
     );
   }
 
-  return (
-    <MapWaterContent
-      config={config}
-      geometry={geometry}
-      parchment={parchment}
-      currentMapPath={
-        currentMapPath
-      }
-    />
-  );
-}
-
-function MapWaterContent({
-  config,
-  geometry,
-  parchment,
-  currentMapPath,
-}: MapWaterContentProps) {
   const [
-    landMaskSource,
-    currentMapSource,
+    currentMap,
+    bathymetry,
+    coastDistance,
+    landMask,
   ] = useLoader(
     TextureLoader,
     [
-      config.textures.landMask,
       currentMapPath,
+      bathymetryMapPath,
+      coastDistancePath,
+      landMaskPath,
     ],
   );
-
-  const landMaskTexture =
-    useMemo(
-      () =>
-        createLandMaskTexture(
-          landMaskSource,
-        ),
-      [landMaskSource],
-    );
-
-  const currentMapTexture =
-    useMemo(
-      () =>
-        createCurrentMapTexture(
-          currentMapSource,
-        ),
-      [currentMapSource],
-    );
-
-  useEffect(
-    () => () => {
-      landMaskTexture.dispose();
-      currentMapTexture.dispose();
-    },
-    [
-      currentMapTexture,
-      landMaskTexture,
-    ],
-  );
-
-  const simulation =
-    useWaterParticleSimulation({
-      landMask:
-        landMaskTexture,
-
-      currentMap:
-        currentMapTexture,
-
-      textureWidth: 128,
-      textureHeight: 128,
-
-      /*
-       * Moltiplicatore globale della velocità.
-       *
-       * La direzione e l’intensità locale
-       * arrivano dalla current map.
-       */
-      currentStrength:
-        0.035,
-
-      turbulenceStrength:
-        0.0015,
-
-      currentResponse:
-        1.65,
-
-      coastLookAhead:
-        2.4,
-
-      coastSlideStrength:
-        0.78,
-
-      coastReflectionStrength:
-        0.22,
-
-      coastAvoidanceStrength:
-        0.032,
-
-      velocityDamping:
-        0.997,
-
-      particleLifetime:
-        24,
-
-      respawnCurrentThreshold:
-        0.025,
-    });
 
   return (
     <>
+      <MapSeabed
+        config={config}
+        geometry={geometry}
+        parchment={parchment}
+        bathymetry={bathymetry}
+        coastDistance={coastDistance}
+      />
+
       <MapSea
         config={config}
         geometry={geometry}
         parchment={parchment}
-        currentMap={currentMapTexture}
-      />
-
-      <WaterParticleDebug
-        simulation={
-          simulation
-        }
-        geometry={geometry}
-        enabled={
-          WATER_PARTICLE_DEBUG &&
-          !parchment
-        }
-        pointSize={2.4}
-        opacity={0.84}
-        surfaceOffset={0.032}
+        currentMap={currentMap}
+        landMask={landMask}
+        coastDistance={coastDistance}
       />
     </>
   );
-}
-
-function createLandMaskTexture(
-  source: Texture,
-): Texture {
-  const texture =
-    source.clone();
-
-  texture.colorSpace =
-    NoColorSpace;
-
-  texture.wrapS =
-    ClampToEdgeWrapping;
-
-  texture.wrapT =
-    ClampToEdgeWrapping;
-
-  texture.minFilter =
-    NearestFilter;
-
-  texture.magFilter =
-    NearestFilter;
-
-  texture.generateMipmaps =
-    false;
-
-  texture.flipY =
-    source.flipY;
-
-  texture.needsUpdate =
-    true;
-
-  return texture;
-}
-
-function createCurrentMapTexture(
-  source: Texture,
-): Texture {
-  const texture =
-    source.clone();
-
-  /*
-   * È una texture di dati, non un’immagine
-   * da interpretare nello spazio colore sRGB.
-   */
-  texture.colorSpace =
-    NoColorSpace;
-
-  texture.wrapS =
-    ClampToEdgeWrapping;
-
-  texture.wrapT =
-    ClampToEdgeWrapping;
-
-  /*
-   * La current map rappresenta un campo
-   * vettoriale continuo: qui vogliamo
-   * interpolazione morbida.
-   */
-  texture.minFilter =
-    LinearFilter;
-
-  texture.magFilter =
-    LinearFilter;
-
-  texture.generateMipmaps =
-    false;
-
-  /*
-   * Deve usare lo stesso orientamento
-   * verticale della land mask.
-   */
-  texture.flipY =
-    source.flipY;
-
-  texture.needsUpdate =
-    true;
-
-  return texture;
 }

@@ -69,6 +69,10 @@ export const selodiaMap:
       "/maps/selodia/selodia-routes-mask.png",
     
     currentMap: "/maps/selodia/selodia-current.png",
+
+    bathymetryMap: "/maps/selodia/selodia-bathymetry.png",
+
+    fogMap: "/maps/selodia/selodia-fog-mask.png",
   },
 
   palette: {

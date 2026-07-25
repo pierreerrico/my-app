@@ -2,6 +2,7 @@
 
 import { Canvas } from "@react-three/fiber";
 import { useMemo, useRef, useState } from "react";
+import { PCFSoftShadowMap } from "three";
 import type { NationMapConfig } from "../../data/maps/";
 import { deriveMapGeometry } from "../../data/maps/geography";
 import NeoclassicalMapFrame from "./neoclassical-map-frame";
@@ -39,7 +40,7 @@ export default function NationMap({ config }: { config: NationMapConfig }) {
     >
       <div className="cartographic-sheet">
         <Canvas
-          shadows
+          shadows={{ type: PCFSoftShadowMap }}
           dpr={[1, 1.6]}
           camera={{
             position: [0, 15.15, 0.01],

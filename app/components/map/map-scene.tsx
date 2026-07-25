@@ -19,11 +19,13 @@ import type {
   DerivedMapGeometry,
   NationMapConfig,
 } from "../../data/maps/types";
+import { MapEdgeFog } from "./map-edge-fog";
 import { MapFeatureMarker } from "./map-feature-marker";
 import { MapLoadingTerrain } from "./map-loading-terrain";
 import { MapRiver } from "./map-river";
-import { MapTerrain } from "./map-terrain";
 import { MapWater } from "./map-water";
+import { MapSkybox } from "./map-skybox";
+import { MapTerrain } from "./map-terrain";
 
 export function MapScene({
   config,
@@ -64,6 +66,7 @@ export function MapScene({
     if (!controls.current) {
       return;
     }
+    
 
     const verticalFov =
       MathUtils.degToRad(45);
@@ -352,6 +355,9 @@ export function MapScene({
     config.palette.background ??
     config.palette.seaDeep;
 
+  const parchment =
+    zoomLevel === 0;
+
   return (
     <>
       <color
@@ -374,6 +380,13 @@ export function MapScene({
 
       <directionalLight
         castShadow
+        shadow-mapSize={[
+          2048,
+          2048,
+        ]}
+        shadow-camera-near={0.5}
+        shadow-camera-far={30}
+        shadow-bias={-0.0004}
         position={[
           -6,
           10,
@@ -391,13 +404,17 @@ export function MapScene({
         ]}
       />
 
+      <MapSkybox
+        config={config}
+        geometry={geometry}
+        parchment={parchment}
+      />
+
       <Suspense fallback={null}>
         <MapWater
           config={config}
           geometry={geometry}
-          parchment={
-            zoomLevel === 0
-          }
+          parchment={parchment}
         />
       </Suspense>
 
@@ -412,34 +429,28 @@ export function MapScene({
         <MapTerrain
           config={config}
           geometry={geometry}
-          parchment={
-            zoomLevel === 0
-          }
+          parchment={parchment}
         />
       </Suspense>
 
-      {config.features.map(
-        (feature) => (
-          <MapFeatureMarker
-            key={feature.id}
-            feature={feature}
-            config={config}
-            geometry={geometry}
-          />
-        ),
-      )}
+      {config.features
+        ? config.features.map(
+            (feature) => (
+              <MapFeatureMarker
+                key={feature.id}
+                feature={feature}
+                config={config}
+                geometry={geometry}
+              />
+            ),
+          )
+        : null}
 
-      {zoomLevel > 0 &&
-        config.rivers?.map(
-          (river) => (
-            <MapRiver
-              key={river.id}
-              river={river}
-              config={config}
-              geometry={geometry}
-            />
-          ),
-        )}
+      <MapEdgeFog
+        config={config}
+        geometry={geometry}
+        parchment={parchment}
+      />
 
       <MapControls
         ref={controls}
