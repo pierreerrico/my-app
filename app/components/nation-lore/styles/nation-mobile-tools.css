@@ -1,6 +1,5 @@
 .nation-mobile-double-chevron,
 .nation-mobile-section-timeline,
-.nation-mobile-section-rule,
 .nation-mobile-browser-blend,
 .nation-mobile-reading-frame {
   display: none;
@@ -40,8 +39,8 @@
     display: block;
     pointer-events: none;
     border-top: 1px solid
-      color-mix(in srgb, var(--nation-gold) 24%, #f2eadb);
-    background: #f2eadb;
+      color-mix(in srgb, var(--nation-gold) 24%, #f6eee1);
+    background: #f6eee1;
     box-shadow:
       0 -10px 24px rgba(4, 18, 20, .34),
       0 -2px 7px rgba(4, 18, 20, .22);
@@ -92,7 +91,7 @@
     height: calc(96px + env(safe-area-inset-top));
     display: block;
     pointer-events: none;
-    background: #f2eadb;
+    background: #f6eee1;
     box-shadow: none;
     opacity: 1;
     transform: translateY(0);
@@ -160,46 +159,6 @@
       visibility 0s;
   }
 
-  /*
-   * The info-panel separator, adapted to the mobile masthead: two rules and
-   * the same small rotated square at their meeting point.
-   */
-  .nation-mobile-section-rule {
-    position: fixed;
-    z-index: 88;
-    top: calc(91px + env(safe-area-inset-top));
-    right: 24px;
-    left: 24px;
-    height: 1px;
-    display: block;
-    pointer-events: none;
-    background:
-      linear-gradient(
-        90deg,
-        rgba(181, 139, 67, .72),
-        rgba(181, 139, 67, .72) 14%,
-        #b58b43 calc(50% - 8px),
-        transparent calc(50% - 8px) calc(50% + 8px),
-        #b58b43 calc(50% + 8px),
-        rgba(181, 139, 67, .72) 86%,
-        rgba(181, 139, 67, .72)
-      );
-  }
-
-  .nation-mobile-section-rule::after {
-    content: "";
-    position: absolute;
-    z-index: 1;
-    top: -3.5px;
-    left: 50%;
-    width: 7px;
-    height: 7px;
-    pointer-events: none;
-    border: 1px solid #b58b43;
-    background: #f2eadb;
-    transform: translateX(-50%) rotate(45deg);
-  }
-
   .nation-mobile-section-timeline::-webkit-scrollbar {
     display: none;
   }
@@ -214,12 +173,6 @@
       transform var(--nation-mobile-masthead-speed)
         var(--nation-mobile-masthead-ease),
       visibility 0s linear var(--nation-mobile-masthead-speed);
-  }
-
-  .is-atlas-active .nation-mobile-section-rule {
-    opacity: 0;
-    visibility: hidden;
-    transform: translateY(calc(-96px - env(safe-area-inset-top)));
   }
 
   .nation-mobile-section-track {
@@ -238,7 +191,7 @@
   .nation-mobile-section-track::before {
     content: "";
     position: absolute;
-    z-index: -1;
+    z-index: 0;
     top: 50%;
     left: 0;
     height: 1px;
@@ -247,14 +200,7 @@
 
   .nation-mobile-section-track::before {
     right: 0;
-    background:
-      linear-gradient(
-        to right,
-        transparent,
-        rgba(181, 139, 67, .48) 7%,
-        rgba(181, 139, 67, .48) 93%,
-        transparent
-      );
+    background: rgba(181, 139, 67, .48);
   }
 
   .nation-mobile-timeline-spacer {
@@ -265,6 +211,7 @@
 
   .nation-mobile-section-track button {
     position: relative;
+    z-index: 1;
     flex: 0 0 13px;
     width: 13px;
     height: 13px;

@@ -34,13 +34,13 @@ body:has(.nation-lore-page) {
   height: 100%;
   overflow: hidden;
   overscroll-behavior: none;
-  background-color: #f2eadb;
+  background-color: #f6eee1;
   background-image: none;
 }
 
 html:has(.nation-lore-page.is-atlas-active),
 body:has(.nation-lore-page.is-atlas-active) {
-  background-color: #f2eadb;
+  background-color: #f6eee1;
 }
 
 body:has(.nation-lore-page) {
