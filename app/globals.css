@@ -55,36 +55,6 @@ body:has(.nation-lore-page) {
   }
 }
 
-/*
- * Edge-to-edge mobile: tutti gli antenati della pagina nazionale devono usare
- * la large viewport. Impostarla soltanto su .nation-lore-page non basta,
- * perché body e .article-page a 100dvh ne taglierebbero la parte inferiore.
- *
- * Il body resta non scrollabile: lo scroll continua ad appartenere al testo,
- * quindi non cambiano inerzia, Swiper e navigazione fra sottocapitoli.
- */
-@media (max-width: 767px) and (pointer: coarse) {
-  html:has(.nation-lore-page),
-  body:has(.nation-lore-page) {
-    height: 100vh;
-    min-height: 100vh;
-    height: 100lvh;
-    min-height: 100lvh;
-  }
-
-  body:has(.nation-lore-page) {
-    position: relative;
-    inset: auto;
-  }
-
-  body:has(.nation-lore-page) .article-page {
-    height: 100vh !important;
-    min-height: 100vh;
-    height: 100lvh !important;
-    min-height: 100lvh;
-  }
-}
-
 body {
   margin: 0;
   background: var(--paper);
@@ -101,15 +71,6 @@ body::before {
   z-index: 100;
   pointer-events: none;
   box-shadow: inset 0 0 70px rgba(63, 42, 25, .08);
-}
-
-/*
- * La voce nazionale possiede già la propria vignettatura. Evitiamo che il
- * vecchio overlay globale fixed venga interpretato da Safari come superficie
- * da usare per la tinta della toolbar Liquid Glass.
- */
-body:has(.nation-lore-page)::before {
-  display: none;
 }
 
 a {
