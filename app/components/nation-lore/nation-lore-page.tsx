@@ -35,11 +35,15 @@ export default function NationLorePage({
   const rootRef = useRef<HTMLElement>(null);
   const [infoOpen, setInfoOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [infoPinnedClosed, setInfoPinnedClosed] = useState(false);
+  const [menuPinnedClosed, setMenuPinnedClosed] = useState(false);
   const desktopLayout = useDesktopLayout();
 
   const closeTransientMenu = useCallback(() => setMenuOpen(false), []);
   const leaveAtlas = useCallback(() => {
     setInfoOpen(false);
+    setInfoPinnedClosed(false);
+    setMenuPinnedClosed(false);
     rootRef.current?.dispatchEvent(new CustomEvent("nation-map-reset-static"));
   }, []);
   const {
@@ -60,8 +64,38 @@ export default function NationLorePage({
 
   const menuPinned = desktopLayout.pinMenu && !atlasActive;
   const infoPinned = desktopLayout.pinInfo && !atlasActive;
-  const menuVisible = menuPinned || menuOpen;
-  const infoVisible = infoPinned || infoOpen;
+
+  /*
+   * Il pinning decide l’apertura predefinita su desktop, non rende il pannello
+   * obbligatorio. Lo stesso CircleControl apre e chiude la sidebar e resta
+   * montato sopra di essa in entrambi gli stati.
+   */
+  const menuVisible = menuPinned ? !menuPinnedClosed : menuOpen;
+  const infoVisible = infoPinned ? !infoPinnedClosed : infoOpen;
+
+  const toggleMenu = useCallback(() => {
+    if (menuPinned) {
+      setMenuPinnedClosed((closed) => !closed);
+      return;
+    }
+    setMenuOpen((open) => !open);
+  }, [menuPinned]);
+
+  const closeMenu = useCallback(() => {
+    if (menuPinned) {
+      setMenuPinnedClosed(true);
+      return;
+    }
+    setMenuOpen(false);
+  }, [menuPinned]);
+
+  const setInfoVisible = useCallback((open: boolean) => {
+    if (infoPinned) {
+      setInfoPinnedClosed(!open);
+      return;
+    }
+    setInfoOpen(open);
+  }, [infoPinned]);
   const rootClasses = [
     "nation-lore-page",
     atlasActive && "is-atlas-active",
@@ -110,7 +144,7 @@ export default function NationLorePage({
         showAtlasLore={atlasActive}
         showPrevious={!atlasActive}
         showNext={!atlasActive && showNext}
-        onMenuToggle={() => setMenuOpen((current) => !current)}
+        onMenuToggle={toggleMenu}
         onOpenLore={openLore}
         onPrevious={() => navigateLore("previous")}
         onNext={() => navigateLore("next")}
@@ -119,16 +153,12 @@ export default function NationLorePage({
       <EncyclopediaDrawer
         navigation={navigation}
         open={menuVisible}
-        onClose={() => {
-          if (!menuPinned) setMenuOpen(false);
-        }}
+        onClose={closeMenu}
       />
       <NationAtlasInfo
         atlas={atlas}
         open={infoVisible}
-        onOpenChange={(open) => {
-          if (!infoPinned) setInfoOpen(open);
-        }}
+        onOpenChange={setInfoVisible}
       />
 
       <NationMobileNavigation

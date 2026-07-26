@@ -34,15 +34,10 @@
   border-radius: 50%;
   color: var(--circle-icon, var(--nation-ivory));
   background:
-    conic-gradient(
-      from -90deg,
-      var(--circle-track, color-mix(in srgb, var(--nation-gold) 32%, transparent))
-        0 var(--circle-tail),
-      var(--circle-ring, var(--nation-gold-bright))
-        var(--circle-tail) var(--circle-progress),
-      var(--circle-track, color-mix(in srgb, var(--nation-gold) 32%, transparent))
-        var(--circle-progress) 100%
-    );
+    conic-gradient(from -90deg,
+      transparent 0 var(--circle-tail),
+      var(--circle-ring, var(--nation-gold-bright)) var(--circle-tail) var(--circle-progress),
+      transparent var(--circle-progress) 100%);
   box-shadow: none;
   cursor: pointer;
   isolation: isolate;
@@ -52,16 +47,11 @@
     color var(--nation-motion-fast, .24s) ease,
     filter var(--nation-motion-fast, .24s) ease,
     opacity .28s ease,
-    transform var(--nation-motion-standard, .48s)
-      var(--nation-ease-standard, ease),
-    top var(--nation-motion-standard, .48s)
-      var(--nation-ease-standard, ease),
-    right var(--nation-motion-standard, .48s)
-      var(--nation-ease-standard, ease),
-    bottom var(--nation-motion-standard, .48s)
-      var(--nation-ease-standard, ease),
-    left var(--nation-motion-standard, .48s)
-      var(--nation-ease-standard, ease);
+    transform var(--nation-motion-standard, .48s) var(--nation-ease-standard, ease),
+    top var(--nation-motion-standard, .48s) var(--nation-ease-standard, ease),
+    right var(--nation-motion-standard, .48s) var(--nation-ease-standard, ease),
+    bottom var(--nation-motion-standard, .48s) var(--nation-ease-standard, ease),
+    left var(--nation-motion-standard, .48s) var(--nation-ease-standard, ease);
 }
 
 .nation-circle-control::after {
@@ -86,9 +76,7 @@
 .nation-circle-control:hover {
   --circle-progress: 25%;
   color: var(--circle-icon-hover, var(--nation-gold-bright));
-  filter: drop-shadow(
-    0 0 7px color-mix(in srgb, var(--circle-ring) 30%, transparent)
-  );
+  filter: drop-shadow(0 0 7px color-mix(in srgb, var(--circle-ring) 30%, transparent));
 }
 
 .nation-circle-control:active,
@@ -99,6 +87,7 @@
 }
 
 @keyframes nation-control-forward-reset {
+
   0%,
   24% {
     --circle-progress: 100%;
@@ -115,7 +104,7 @@
   animation: nation-control-forward-reset 820ms linear both;
 }
 
-.nation-circle-control > svg {
+.nation-circle-control>svg {
   position: relative;
   z-index: 1;
   width: 20px;
@@ -132,16 +121,12 @@
     transform .3s var(--nation-ease-standard, ease);
 }
 
-.nation-circle-control:is(
-  :hover,
+.nation-circle-control:is( :hover,
   :active,
   .is-control-hold,
-  .is-control-active
-) > svg {
+  .is-control-active)>svg {
   color: currentColor;
-  filter: drop-shadow(
-    0 0 5px color-mix(in srgb, var(--circle-ring) 52%, transparent)
-  );
+  filter: drop-shadow(0 0 5px color-mix(in srgb, var(--circle-ring) 52%, transparent));
   transform: scale(1.14);
 }
 
@@ -163,8 +148,9 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   .nation-circle-control,
-  .nation-circle-control > svg {
+  .nation-circle-control>svg {
     transition-duration: .01ms;
   }
 }

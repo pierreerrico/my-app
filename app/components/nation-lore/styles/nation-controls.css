@@ -8,6 +8,10 @@
   display: block;
 }
 
+.nation-lore-page.is-menu-open .nation-global-controls {
+  z-index: 221;
+}
+
 .nation-menu-control {
   position: relative;
   inset: auto;
@@ -79,6 +83,19 @@
   opacity: 1;
   visibility: visible;
   pointer-events: auto;
+}
+
+/*
+ * I trigger delle sidebar appartengono esclusivamente alla slide Atlante.
+ * Restano montati per consentire la transizione, ma svaniscono appena si
+ * entra nelle slide di lore e non intercettano più gli eventi del puntatore.
+ */
+.nation-lore-page:not(.is-atlas-active) .nation-menu-control,
+.nation-lore-page:not(.is-atlas-active) .nation-atlas-toggle {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: scale(.82);
 }
 
 

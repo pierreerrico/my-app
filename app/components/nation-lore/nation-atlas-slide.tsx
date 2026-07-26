@@ -33,6 +33,7 @@ export function NationAtlasInfo({
         type="button"
         icon="info"
         active={open}
+        aria-controls="nation-atlas-info"
         aria-expanded={open}
         aria-label={open ? "Chiudi la scheda nazionale" : "Apri la scheda nazionale"}
         onClick={() => onOpenChange(!open)}

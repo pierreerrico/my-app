@@ -54,6 +54,17 @@
   --sidebar-border-right: 0;
 }
 
+/*
+ * I trigger esterni sono anche i controlli di chiusura. Eventuali close
+ * legacy presenti nel markup della Sidebar non devono generare un secondo
+ * pulsante né una seconda variante visiva.
+ */
+.nation-lore-page .nation-panel-close,
+.nation-lore-page .nation-drawer-close,
+.nation-lore-page .nation-atlas-sidebar-close {
+  display: none !important;
+}
+
 /* Shared panel content. */
 .nation-lore-page .sidebar-panel header {
   position: relative;

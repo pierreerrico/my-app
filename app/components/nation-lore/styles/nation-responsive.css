@@ -20,7 +20,8 @@
 /* --------------------------------------------------------------------------
    Atlas: viewport compatta
    -------------------------------------------------------------------------- */
-@media (max-width: 767px), (max-height: 600px) and (pointer: coarse) {
+@media (max-width: 767px),
+(max-height: 600px) and (pointer: coarse) {
   @supports (height: 100svh) {
     .nation-atlas {
       height: 100svh;
@@ -43,15 +44,15 @@
    -------------------------------------------------------------------------- */
 @media (min-width: 1281px) {
 
-  .nation-lore-page.is-menu-pinned .sidebar-panel--left,
-  .nation-lore-page.is-info-pinned .nation-atlas-sidebar {
+  .nation-lore-page.is-menu-pinned.is-menu-open .sidebar-panel--left,
+  .nation-lore-page.is-info-pinned.is-info-open .nation-atlas-sidebar {
     z-index: 20;
     visibility: visible;
     transform: translateX(0);
     pointer-events: auto;
   }
 
-  .nation-lore-page.is-info-pinned .nation-atlas-sidebar-content {
+  .nation-lore-page.is-info-pinned.is-info-open .nation-atlas-sidebar-content {
     opacity: 1;
   }
 
@@ -81,27 +82,21 @@
     height: min(68vh, 620px);
   }
 
-  .nation-lore-page.is-menu-pinned .nation-menu-control,
-  .nation-lore-page.is-menu-pinned .nation-drawer-close,
   .nation-lore-page.is-menu-pinned .sidebar-scrim--menu,
-  .nation-lore-page.is-info-pinned .nation-atlas-toggle,
-  .nation-lore-page.is-info-pinned .nation-atlas-sidebar-close,
   .nation-lore-page.is-info-pinned .sidebar-scrim--info {
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
   }
 
-  /* The active Info control is an X and has stronger open-state rules. */
-  .nation-lore-page.is-info-pinned .nation-atlas-toggle {
-    display: none !important;
-  }
 }
+
 @media (min-width: 1600px) {
   .nation-lore-page.is-lore-geometry-active .nation-chapter {
     padding-left: var(--nation-side-column-width);
   }
 }
+
 @media (max-width: 600px) {
   .nation-lore-page .sidebar-panel {
     --sidebar-speed: var(--nation-motion-standard);
@@ -113,10 +108,7 @@
     height: 100dvh;
     min-height: 0;
     padding:
-      calc(72px + env(safe-area-inset-top))
-      max(24px, env(safe-area-inset-right))
-      calc(34px + env(safe-area-inset-bottom))
-      max(24px, env(safe-area-inset-left));
+      calc(72px + env(safe-area-inset-top)) max(24px, env(safe-area-inset-right)) calc(34px + env(safe-area-inset-bottom)) max(24px, env(safe-area-inset-left));
     border: none;
   }
 
@@ -176,8 +168,7 @@
     height: max(1px, env(safe-area-inset-bottom));
     display: block;
     pointer-events: none;
-    border-top: 1px solid
-      color-mix(in srgb, var(--nation-gold) 24%, var(--nation-ivory));
+    border-top: 1px solid color-mix(in srgb, var(--nation-gold) 24%, var(--nation-ivory));
     background: var(--nation-ivory);
     box-shadow:
       0 -10px 24px rgba(4, 18, 20, .34),
@@ -186,8 +177,7 @@
     transition: opacity .32s ease;
   }
 
-  .nation-lore-page.is-atlas-active
-    .nation-mobile-browser-blend {
+  .nation-lore-page.is-atlas-active .nation-mobile-browser-blend {
     opacity: 0;
   }
 
@@ -200,29 +190,23 @@
     left: 4px;
     display: block;
     pointer-events: none;
-    border: 1px solid
-      color-mix(in srgb, var(--nation-gold-bright) 74%, transparent);
+    border: 1px solid color-mix(in srgb, var(--nation-gold-bright) 74%, transparent);
     border-radius: 2px;
     box-shadow:
-      inset 0 0 0 1px
-        color-mix(in srgb, var(--nation-green-deep) 70%, transparent),
-      0 0 18px
-        color-mix(in srgb, var(--nation-gold) 12%, transparent);
+      inset 0 0 0 1px color-mix(in srgb, var(--nation-green-deep) 70%, transparent),
+      0 0 18px color-mix(in srgb, var(--nation-gold) 12%, transparent);
     visibility: visible;
     transform: translateY(0);
     transition:
-      transform var(--nation-swiper-speed)
-        var(--nation-mobile-masthead-ease),
+      transform var(--nation-swiper-speed) var(--nation-mobile-masthead-ease),
       visibility 0s;
   }
 
-  .nation-lore-page.is-atlas-active
-    .nation-mobile-reading-frame {
+  .nation-lore-page.is-atlas-active .nation-mobile-reading-frame {
     visibility: hidden;
     transform: translateY(100svh);
     transition:
-      transform var(--nation-swiper-speed)
-        var(--nation-mobile-masthead-ease),
+      transform var(--nation-swiper-speed) var(--nation-mobile-masthead-ease),
       visibility 0s;
   }
 
@@ -241,8 +225,7 @@
     background: var(--nation-ivory);
     box-shadow: none;
     transform: translateY(0);
-    transition: transform var(--nation-mobile-masthead-speed)
-      var(--nation-mobile-masthead-ease);
+    transition: transform var(--nation-mobile-masthead-speed) var(--nation-mobile-masthead-ease);
   }
 
   .nation-lore-page.is-atlas-active::before {
@@ -250,28 +233,26 @@
   }
 
   .nation-lore-swiper,
-  .nation-lore-swiper > .swiper-wrapper,
-  .nation-lore-swiper > .swiper-wrapper > .swiper-slide,
+  .nation-lore-swiper>.swiper-wrapper,
+  .nation-lore-swiper>.swiper-wrapper>.swiper-slide,
   .nation-subchapter-swiper,
-  .nation-subchapter-swiper > .swiper-wrapper,
-  .nation-subchapter-swiper > .swiper-wrapper > .swiper-slide {
+  .nation-subchapter-swiper>.swiper-wrapper,
+  .nation-subchapter-swiper>.swiper-wrapper>.swiper-slide {
     min-height: 100%;
     height: 100% !important;
   }
 
-  .nation-lore-swiper > .swiper-wrapper {
+  .nation-lore-swiper>.swiper-wrapper {
     transition-timing-function: var(--nation-ease-out) !important;
   }
 
-  .nation-lore-swiper > .swiper-wrapper > .swiper-slide,
-  .nation-subchapter-swiper > .swiper-wrapper > .swiper-slide {
+  .nation-lore-swiper>.swiper-wrapper>.swiper-slide,
+  .nation-subchapter-swiper>.swiper-wrapper>.swiper-slide {
     flex: 0 0 100%;
     overflow: hidden;
   }
 
-  .nation-lore-swiper
-    > .swiper-wrapper
-    > .swiper-slide:first-child {
+  .nation-lore-swiper>.swiper-wrapper>.swiper-slide:first-child {
     position: relative;
     z-index: 2;
     background: var(--nation-ivory);
@@ -306,19 +287,15 @@
     scroll-behavior: smooth;
     mask-image: none;
     background:
-      linear-gradient(
-        to right,
+      linear-gradient(to right,
         transparent,
         rgba(181, 139, 67, .48) 8%,
         rgba(181, 139, 67, .48) 92%,
-        transparent
-      )
-      center 12px / 100% 1px no-repeat;
+        transparent) center 12px / 100% 1px no-repeat;
     visibility: visible;
     transform: translateY(0);
     transition:
-      transform var(--nation-mobile-masthead-speed)
-        var(--nation-mobile-masthead-ease),
+      transform var(--nation-mobile-masthead-speed) var(--nation-mobile-masthead-ease),
       visibility 0s;
   }
 
@@ -331,8 +308,7 @@
     transform: translateY(calc(-96px - env(safe-area-inset-top)));
     pointer-events: none;
     transition:
-      transform var(--nation-mobile-masthead-speed)
-        var(--nation-mobile-masthead-ease),
+      transform var(--nation-mobile-masthead-speed) var(--nation-mobile-masthead-ease),
       visibility 0s linear var(--nation-mobile-masthead-speed);
   }
 
@@ -371,7 +347,7 @@
     scroll-snap-align: center;
   }
 
-  .nation-mobile-section-track button > span {
+  .nation-mobile-section-track button>span {
     position: relative;
     z-index: 1;
     width: 7px;
@@ -386,19 +362,19 @@
       transform .3s cubic-bezier(.22, .8, .2, 1);
   }
 
-  .nation-mobile-section-track button:is(:hover, :focus-visible) > span {
+  .nation-mobile-section-track button:is(:hover, :focus-visible)>span {
     border-color: var(--nation-gold-bright);
     transform: scale(1.22);
   }
 
-  .nation-mobile-section-track button.is-active > span {
+  .nation-mobile-section-track button.is-active>span {
     border-color: var(--nation-burgundy);
     background: var(--nation-burgundy);
     box-shadow: 0 0 0 4px color-mix(in srgb, var(--nation-burgundy) 11%, transparent);
     transform: scale(1.12);
   }
 
-  .nation-mobile-section-track button.is-preview:not(.is-active) > span {
+  .nation-mobile-section-track button.is-preview:not(.is-active)>span {
     border-color: var(--nation-burgundy);
     background: var(--nation-paper);
     box-shadow: 0 0 0 3px color-mix(in srgb, var(--nation-burgundy) 8%, transparent);
@@ -491,7 +467,7 @@
     box-shadow: none;
   }
 
-  .nation-mobile-quote-action > span {
+  .nation-mobile-quote-action>span {
     max-width: 105px;
     color: var(--nation-gold-bright);
     font: 600 10px/1.15 Georgia, "Times New Roman", serif;
@@ -505,7 +481,7 @@
     backdrop-filter: none;
   }
 
-  .nation-mobile-quote-overlay > div {
+  .nation-mobile-quote-overlay>div {
     width: min(calc(100vw - 36px), 390px);
     padding: 46px 26px 30px;
     overflow: visible;
@@ -520,7 +496,7 @@
       0 24px 70px rgba(0, 0, 0, .32);
   }
 
-  .nation-mobile-quote-overlay > div::after {
+  .nation-mobile-quote-overlay>div::after {
     content: "";
     position: absolute;
     right: 38px;
@@ -533,7 +509,7 @@
     transform: skewY(-34deg) rotate(22deg);
   }
 
-  .nation-mobile-quote-overlay > div > button {
+  .nation-mobile-quote-overlay>div>button {
     z-index: 2;
     color: var(--nation-burgundy);
   }
@@ -549,7 +525,9 @@
     font-weight: 600;
   }
 }
-@media (max-width: 600px), (max-height: 600px) and (pointer: coarse) {
+
+@media (max-width: 600px),
+(max-height: 600px) and (pointer: coarse) {
   .nation-slide-arrow.is-next {
     display: none;
   }
@@ -562,6 +540,7 @@
     display: block;
   }
 }
+
 @media (max-width: 600px) and (orientation: portrait) {
   .nation-subchapter {
     padding-top: calc(116px + env(safe-area-inset-top));
@@ -592,6 +571,7 @@
  * nation-mobile-tools.css replaces the complete labelled desktop rail.
  */
 @media (max-width: 767px) {
+
   .nation-lore-divider,
   .nation-section-navigation {
     display: none;
@@ -694,10 +674,8 @@
  */
 @media (min-width: 768px) and (max-width: 1280px) {
   .nation-subchapter {
-    width: min(
-      650px,
-      calc(100% - var(--nation-pagination-rail-width) - 96px)
-    );
+    width: min(650px,
+        calc(100% - var(--nation-pagination-rail-width) - 96px));
     transform: translateX(calc(var(--nation-pagination-rail-width) / -2));
   }
 }
@@ -733,16 +711,9 @@
     max-height: 100%;
     margin: auto;
     padding:
-      calc(116px + env(safe-area-inset-top))
-      16px
-      4px;
+      calc(116px + env(safe-area-inset-top)) 16px 4px;
     clip-path:
-      inset(
-        calc(100px + env(safe-area-inset-top))
-        4px
-        max(4px, env(safe-area-inset-bottom))
-        4px
-      );
+      inset(calc(100px + env(safe-area-inset-top)) 4px max(4px, env(safe-area-inset-bottom)) 4px);
   }
 
   .nation-subchapter header {
@@ -867,7 +838,7 @@
   }
 
   .nation-lore-page .sidebar-panel nav a,
-  .nation-lore-page .sidebar-panel .nation-facts > div {
+  .nation-lore-page .sidebar-panel .nation-facts>div {
     min-height: 34px;
     padding-block: 5px;
   }
@@ -892,15 +863,13 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .nation-subchapter-pagination > button.is-active {
+  .nation-subchapter-pagination>button.is-active {
     opacity: 1;
   }
 }
 
-/* CircleControls resting on the compact ivory masthead use burgundy. */
+/* The previous-slide control resting on the compact ivory masthead uses burgundy. */
 @media (max-width: 767px) {
-  .nation-lore-page:not(.is-atlas-active) .nation-menu-control,
-  .nation-lore-page:not(.is-atlas-active) .nation-atlas-toggle,
   .nation-lore-page:not(.is-atlas-active) .nation-slide-arrow.is-previous {
     --circle-background: var(--nation-burgundy);
     --circle-icon: var(--nation-ivory);

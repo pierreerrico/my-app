@@ -32,6 +32,7 @@ export function NationPageControls({
           icon="menu"
           active={menuOpen}
           aria-label={menuOpen ? "Chiudi l’indice" : "Apri l’indice"}
+          aria-controls="nation-encyclopedia-menu"
           aria-expanded={menuOpen}
           onClick={onMenuToggle}
         />
