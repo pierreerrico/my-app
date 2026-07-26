@@ -1,15 +1,580 @@
 /*
- * Cross-module responsive geometry
+ * Responsive-only rules.
  *
- * Common component styling lives at the beginning of each feature module.
- * This file only coordinates the pieces whose position depends on the whole
- * viewport. Tiers are intentionally explicit:
- *   mobile  <= 600px portrait, or a short landscape viewport
- *   tablet  601px..1280px (portrait and landscape)
- *   desktop >= 1281px (portrait and landscape)
+ * Base styles, transitions and component effects live in their responsibility
+ * modules. This file contains only viewport width, height and orientation
+ * adaptations.
  */
 
-/* Shared tablet geometry. */
+/* --------------------------------------------------------------------------
+   Sidebar generica: larghezza mobile
+   -------------------------------------------------------------------------- */
+@media (max-width: 600px) {
+  .sidebar-panel {
+    --sidebar-size-min: 100vw;
+    --sidebar-size-ideal: 100vw;
+    --sidebar-size-max: 100vw;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Atlas: viewport compatta
+   -------------------------------------------------------------------------- */
+@media (max-width: 767px), (max-height: 600px) and (pointer: coarse) {
+  @supports (height: 100svh) {
+    .nation-atlas {
+      height: 100svh;
+      max-height: 100%;
+    }
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Paginazione: viewport compatta
+   -------------------------------------------------------------------------- */
+@media (max-width: 760px) {
+  .nation-section-navigation {
+    display: none;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Sidebar: desktop, widescreen e mobile
+   -------------------------------------------------------------------------- */
+@media (min-width: 1281px) {
+
+  .nation-lore-page.is-menu-pinned .sidebar-panel--left,
+  .nation-lore-page.is-info-pinned .nation-atlas-sidebar {
+    z-index: 20;
+    visibility: visible;
+    transform: translateX(0);
+    pointer-events: auto;
+  }
+
+  .nation-lore-page.is-info-pinned .nation-atlas-sidebar-content {
+    opacity: 1;
+  }
+
+  /*
+   * The atlas remains a full, non-flex slide. Every lore chapter carries its
+   * final desktop geometry from the start of the transition:
+   * menu | reading viewport | separator | pagination | info.
+   */
+  .nation-lore-page.is-lore-geometry-active .nation-chapter {
+    box-sizing: border-box;
+    display: flex;
+    padding-right: calc(var(--nation-side-column-width) * 2 + 4px);
+  }
+
+  .nation-lore-page.is-lore-geometry-active .nation-subchapter-swiper {
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+
+  .nation-lore-page.is-lore-geometry-active .nation-lore-divider {
+    right: calc(var(--nation-side-column-width) * 2);
+  }
+
+  .nation-lore-page.is-lore-geometry-active .nation-section-navigation {
+    right: var(--nation-side-column-width);
+    width: var(--nation-side-column-width);
+    height: min(68vh, 620px);
+  }
+
+  .nation-lore-page.is-menu-pinned .nation-menu-control,
+  .nation-lore-page.is-menu-pinned .nation-drawer-close,
+  .nation-lore-page.is-menu-pinned .sidebar-scrim--menu,
+  .nation-lore-page.is-info-pinned .nation-atlas-toggle,
+  .nation-lore-page.is-info-pinned .nation-atlas-sidebar-close,
+  .nation-lore-page.is-info-pinned .sidebar-scrim--info {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  /* The active Info control is an X and has stronger open-state rules. */
+  .nation-lore-page.is-info-pinned .nation-atlas-toggle {
+    display: none !important;
+  }
+}
+@media (min-width: 1600px) {
+  .nation-lore-page.is-lore-geometry-active .nation-chapter {
+    padding-left: var(--nation-side-column-width);
+  }
+}
+@media (max-width: 600px) {
+  .nation-lore-page .sidebar-panel {
+    --sidebar-speed: var(--nation-motion-standard);
+    --sidebar-ease: var(--nation-ease-standard);
+    inset: 0;
+    width: auto;
+    min-width: 0;
+    max-width: none;
+    height: 100dvh;
+    min-height: 0;
+    padding:
+      calc(72px + env(safe-area-inset-top))
+      max(24px, env(safe-area-inset-right))
+      calc(34px + env(safe-area-inset-bottom))
+      max(24px, env(safe-area-inset-left));
+    border: none;
+  }
+
+  .nation-lore-page .sidebar-panel--left {
+    right: 0;
+    transform: translate3d(-100%, 0, 0);
+  }
+
+  .nation-lore-page .sidebar-panel--right {
+    left: 0;
+    transform: translate3d(100%, 0, 0);
+  }
+
+  .nation-lore-page .sidebar-panel[data-open="true"] {
+    transform: translate3d(0, 0, 0);
+  }
+
+  .nation-lore-page .sidebar-scrim {
+    transition:
+      opacity var(--sidebar-speed) ease,
+      visibility 0s linear var(--sidebar-speed);
+  }
+
+  .nation-lore-page .sidebar-scrim[data-open="true"] {
+    transition:
+      opacity var(--sidebar-speed) ease,
+      visibility 0s;
+  }
+
+  .nation-lore-page .sidebar-panel .nation-atlas-sidebar-content {
+    width: 100%;
+    min-height: 100%;
+    overflow: visible;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Strumenti mobile
+   -------------------------------------------------------------------------- */
+@media (max-width: 767px) {
+  .nation-lore-page {
+    --nation-mobile-masthead-speed: var(--nation-motion-standard);
+    --nation-mobile-masthead-ease: var(--nation-ease-out);
+    overflow: hidden;
+  }
+
+  .nation-page-vignette {
+    display: none;
+  }
+
+  .nation-mobile-browser-blend {
+    position: fixed;
+    z-index: 83;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    height: max(1px, env(safe-area-inset-bottom));
+    display: block;
+    pointer-events: none;
+    border-top: 1px solid
+      color-mix(in srgb, var(--nation-gold) 24%, var(--nation-ivory));
+    background: var(--nation-ivory);
+    box-shadow:
+      0 -10px 24px rgba(4, 18, 20, .34),
+      0 -2px 7px rgba(4, 18, 20, .22);
+    opacity: 1;
+    transition: opacity .32s ease;
+  }
+
+  .nation-lore-page.is-atlas-active
+    .nation-mobile-browser-blend {
+    opacity: 0;
+  }
+
+  .nation-mobile-reading-frame {
+    position: fixed;
+    z-index: 1;
+    top: calc(100px + env(safe-area-inset-top));
+    right: 4px;
+    bottom: max(4px, env(safe-area-inset-bottom));
+    left: 4px;
+    display: block;
+    pointer-events: none;
+    border: 1px solid
+      color-mix(in srgb, var(--nation-gold-bright) 74%, transparent);
+    border-radius: 2px;
+    box-shadow:
+      inset 0 0 0 1px
+        color-mix(in srgb, var(--nation-green-deep) 70%, transparent),
+      0 0 18px
+        color-mix(in srgb, var(--nation-gold) 12%, transparent);
+    visibility: visible;
+    transform: translateY(0);
+    transition:
+      transform var(--nation-swiper-speed)
+        var(--nation-mobile-masthead-ease),
+      visibility 0s;
+  }
+
+  .nation-lore-page.is-atlas-active
+    .nation-mobile-reading-frame {
+    visibility: hidden;
+    transform: translateY(100svh);
+    transition:
+      transform var(--nation-swiper-speed)
+        var(--nation-mobile-masthead-ease),
+      visibility 0s;
+  }
+
+  /*
+   * Opaque mobile masthead. It masks the scrolling chapter beneath the
+   * controls and timeline instead of allowing lines of text to show through.
+   */
+  .nation-lore-page::before {
+    content: "";
+    position: absolute;
+    z-index: 84;
+    inset: 0 0 auto;
+    height: calc(96px + env(safe-area-inset-top));
+    display: block;
+    pointer-events: none;
+    background: var(--nation-ivory);
+    box-shadow: none;
+    transform: translateY(0);
+    transition: transform var(--nation-mobile-masthead-speed)
+      var(--nation-mobile-masthead-ease);
+  }
+
+  .nation-lore-page.is-atlas-active::before {
+    transform: translateY(-100%);
+  }
+
+  .nation-lore-swiper,
+  .nation-lore-swiper > .swiper-wrapper,
+  .nation-lore-swiper > .swiper-wrapper > .swiper-slide,
+  .nation-subchapter-swiper,
+  .nation-subchapter-swiper > .swiper-wrapper,
+  .nation-subchapter-swiper > .swiper-wrapper > .swiper-slide {
+    min-height: 100%;
+    height: 100% !important;
+  }
+
+  .nation-lore-swiper > .swiper-wrapper {
+    transition-timing-function: var(--nation-ease-out) !important;
+  }
+
+  .nation-lore-swiper > .swiper-wrapper > .swiper-slide,
+  .nation-subchapter-swiper > .swiper-wrapper > .swiper-slide {
+    flex: 0 0 100%;
+    overflow: hidden;
+  }
+
+  .nation-lore-swiper
+    > .swiper-wrapper
+    > .swiper-slide:first-child {
+    position: relative;
+    z-index: 2;
+    background: var(--nation-ivory);
+    isolation: isolate;
+  }
+
+  /*
+   * Indice mobile compatto: sostituisce il filetto sotto al titolo con una
+   * sequenza orizzontale di tap target. La traccia di fondo resta inerte,
+   * quella superiore raggiunge sempre il punto attivo.
+   */
+  .nation-mobile-progress {
+    display: none !important;
+  }
+
+  .nation-mobile-section-timeline {
+    --timeline-gap: clamp(25px, 8vw, 38px);
+    position: fixed;
+    z-index: 89;
+    top: calc(54px + env(safe-area-inset-top));
+    right: 54px;
+    left: 54px;
+    width: auto;
+    height: 50px;
+    margin: 0;
+    display: block;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+    overscroll-behavior-inline: contain;
+    scroll-snap-type: none;
+    scroll-behavior: smooth;
+    mask-image: none;
+    background:
+      linear-gradient(
+        to right,
+        transparent,
+        rgba(181, 139, 67, .48) 8%,
+        rgba(181, 139, 67, .48) 92%,
+        transparent
+      )
+      center 12px / 100% 1px no-repeat;
+    visibility: visible;
+    transform: translateY(0);
+    transition:
+      transform var(--nation-mobile-masthead-speed)
+        var(--nation-mobile-masthead-ease),
+      visibility 0s;
+  }
+
+  .nation-mobile-section-timeline::-webkit-scrollbar {
+    display: none;
+  }
+
+  .is-atlas-active .nation-mobile-section-timeline {
+    visibility: hidden;
+    transform: translateY(calc(-96px - env(safe-area-inset-top)));
+    pointer-events: none;
+    transition:
+      transform var(--nation-mobile-masthead-speed)
+        var(--nation-mobile-masthead-ease),
+      visibility 0s linear var(--nation-mobile-masthead-speed);
+  }
+
+  .nation-mobile-section-track {
+    position: relative;
+    isolation: isolate;
+    width: max-content;
+    min-width: 0;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: var(--timeline-gap);
+    padding-inline: 0;
+  }
+
+  .nation-mobile-timeline-spacer {
+    flex: 0 0 calc((100vw - 108px) / 2 - 6.5px - var(--timeline-gap));
+    height: 1px;
+    pointer-events: none;
+  }
+
+  .nation-mobile-section-track button {
+    position: relative;
+    z-index: 1;
+    flex: 0 0 13px;
+    width: 13px;
+    height: 13px;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    cursor: pointer;
+    scroll-snap-align: center;
+  }
+
+  .nation-mobile-section-track button > span {
+    position: relative;
+    z-index: 1;
+    width: 7px;
+    height: 7px;
+    border: 1px solid var(--nation-gold-strong);
+    border-radius: 50%;
+    background: var(--nation-paper);
+    transition:
+      background-color .3s ease,
+      border-color .3s ease,
+      box-shadow .3s ease,
+      transform .3s cubic-bezier(.22, .8, .2, 1);
+  }
+
+  .nation-mobile-section-track button:is(:hover, :focus-visible) > span {
+    border-color: var(--nation-gold-bright);
+    transform: scale(1.22);
+  }
+
+  .nation-mobile-section-track button.is-active > span {
+    border-color: var(--nation-burgundy);
+    background: var(--nation-burgundy);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--nation-burgundy) 11%, transparent);
+    transform: scale(1.12);
+  }
+
+  .nation-mobile-section-track button.is-preview:not(.is-active) > span {
+    border-color: var(--nation-burgundy);
+    background: var(--nation-paper);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--nation-burgundy) 8%, transparent);
+    transform: scale(1.1);
+  }
+
+  .nation-mobile-section-timeline output {
+    position: sticky;
+    left: 50%;
+    width: max-content;
+    max-width: calc(100vw - 130px);
+    display: block;
+    margin-top: 1px;
+    color: var(--nation-ink);
+    font: 600 10px/1.15 Georgia, "Times New Roman", serif;
+    letter-spacing: .025em;
+    text-align: center;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    transform: translateX(-50%);
+    transition: color .28s ease, text-shadow .28s ease;
+  }
+
+  .nation-mobile-section-timeline output.is-selected {
+    color: var(--nation-burgundy);
+    text-shadow: 0 0 8px color-mix(in srgb, var(--nation-burgundy) 12%, transparent);
+  }
+
+  .nation-subchapter header {
+    border-bottom-color: rgba(185, 154, 92, .38);
+  }
+
+  /*
+   * Su mobile il controllo che ha aperto il pannello rimane sopra di esso:
+   * l'icona Motion riceve `active` e diventa la X di chiusura, come desktop.
+   */
+  .is-menu-open .nation-global-controls {
+    z-index: 221;
+  }
+
+  .is-menu-open .nation-menu-control,
+  .is-info-open .nation-atlas-toggle {
+    z-index: 221;
+    opacity: 1 !important;
+    transform: none !important;
+    pointer-events: auto !important;
+  }
+
+  .is-info-open .nation-atlas-toggle {
+    right: var(--nation-control-edge);
+    bottom: auto;
+    left: auto;
+  }
+
+  .sidebar-panel .nation-panel-close {
+    display: none !important;
+  }
+
+  .nation-mobile-quotes {
+    position: static;
+    height: 0;
+    display: block;
+  }
+
+  .nation-mobile-quote-triggers {
+    position: fixed;
+    z-index: 96;
+    top: auto;
+    right: auto;
+    bottom: var(--nation-control-edge);
+    left: 14px;
+    display: grid;
+    gap: 7px;
+    transform: none;
+  }
+
+  .nation-mobile-quote-action {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+  }
+
+  .nation-mobile-quote-action .nation-circle-control {
+    position: relative;
+    flex: 0 0 var(--circle-size);
+    width: var(--circle-size);
+    height: var(--circle-size);
+    border: 0;
+    box-shadow: none;
+  }
+
+  .nation-mobile-quote-action > span {
+    max-width: 105px;
+    color: var(--nation-gold-bright);
+    font: 600 10px/1.15 Georgia, "Times New Roman", serif;
+    letter-spacing: .03em;
+    text-wrap: balance;
+  }
+
+  .nation-mobile-quote-overlay {
+    z-index: 240;
+    background: rgba(3, 15, 17, .52);
+    backdrop-filter: none;
+  }
+
+  .nation-mobile-quote-overlay > div {
+    width: min(calc(100vw - 36px), 390px);
+    padding: 46px 26px 30px;
+    overflow: visible;
+    color: var(--nation-ink-deep);
+    border: 2px solid var(--nation-ink-deep);
+    border-radius: 24px;
+    background:
+      radial-gradient(circle at 18% 10%, rgba(255, 255, 255, .7), transparent 34%),
+      linear-gradient(145deg, var(--nation-paper), var(--nation-paper-warm));
+    box-shadow:
+      7px 8px 0 rgba(49, 41, 32, .82),
+      0 24px 70px rgba(0, 0, 0, .32);
+  }
+
+  .nation-mobile-quote-overlay > div::after {
+    content: "";
+    position: absolute;
+    right: 38px;
+    bottom: -20px;
+    width: 34px;
+    height: 34px;
+    border-right: 2px solid var(--nation-ink-deep);
+    border-bottom: 2px solid var(--nation-ink-deep);
+    background: var(--nation-paper-warm);
+    transform: skewY(-34deg) rotate(22deg);
+  }
+
+  .nation-mobile-quote-overlay > div > button {
+    z-index: 2;
+    color: var(--nation-burgundy);
+  }
+
+  .nation-mobile-quote-overlay blockquote {
+    position: relative;
+    z-index: 1;
+    max-height: min(62svh, 500px);
+    padding: 0;
+    overflow-y: auto;
+    color: var(--nation-ink-deep);
+    border: 0;
+    font-weight: 600;
+  }
+}
+@media (max-width: 600px), (max-height: 600px) and (pointer: coarse) {
+  .nation-slide-arrow.is-next {
+    display: none;
+  }
+
+  .nation-slide-arrow.is-previous .nation-primary-chevron {
+    transform: translateY(-3px);
+  }
+
+  .nation-mobile-double-chevron {
+    display: block;
+  }
+}
+@media (max-width: 600px) and (orientation: portrait) {
+  .nation-subchapter {
+    padding-top: calc(116px + env(safe-area-inset-top));
+  }
+
+  .nation-subchapter header {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Cross-module responsive geometry
+   -------------------------------------------------------------------------- */
 @media (max-width: 1280px) {
   .nation-lore-page {
     --nation-frame-depth: clamp(30px, 4.8vmin, 44px);
@@ -329,5 +894,19 @@
 @media (prefers-reduced-motion: reduce) {
   .nation-subchapter-pagination > button.is-active {
     opacity: 1;
+  }
+}
+
+/* CircleControls resting on the compact ivory masthead use burgundy. */
+@media (max-width: 767px) {
+  .nation-lore-page:not(.is-atlas-active) .nation-menu-control,
+  .nation-lore-page:not(.is-atlas-active) .nation-atlas-toggle,
+  .nation-lore-page:not(.is-atlas-active) .nation-slide-arrow.is-previous {
+    --circle-background: var(--nation-burgundy);
+    --circle-icon: var(--nation-ivory);
+    --circle-icon-hover: var(--nation-gold-bright);
+    --circle-ring: var(--nation-gold-bright);
+    --circle-track:
+      color-mix(in srgb, var(--nation-burgundy) 48%, var(--nation-gold));
   }
 }

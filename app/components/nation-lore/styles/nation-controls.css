@@ -1,42 +1,11 @@
-/* ==========================================================================
-   Sistema unificato dei controlli e dei pannelli
-   ========================================================================== */
-
-.nation-lore-page {
-  --nation-frame-depth: clamp(38px, 5.4vmin, 58px);
-  --nation-control-size: 42px;
-  --nation-control-edge:
-    calc(var(--nation-frame-depth) - var(--nation-control-size) / 2);
-}
+/* Placement and visibility variants for the shared CircleControl. */
 
 .nation-global-controls {
+  position: fixed;
+  z-index: 96;
   top: var(--nation-control-edge);
   left: var(--nation-control-edge);
   display: block;
-}
-
-.nation-menu-control,
-.nation-atlas-toggle,
-.nation-atlas-lore,
-.nation-slide-arrow {
-  position: fixed;
-  width: var(--nation-control-size);
-  height: var(--nation-control-size);
-  margin: 0;
-  overflow: visible;
-  border: 0;
-  border-radius: 50%;
-  color: var(--nation-gold-bright);
-  background: transparent;
-  box-shadow: none;
-  isolation: isolate;
-  transition:
-    opacity var(--nation-motion-fast) ease,
-    transform var(--nation-motion-standard) var(--nation-ease-standard),
-    top var(--nation-motion-standard) var(--nation-ease-standard),
-    right var(--nation-motion-standard) var(--nation-ease-standard),
-    bottom var(--nation-motion-standard) var(--nation-ease-standard),
-    left var(--nation-motion-standard) var(--nation-ease-standard);
 }
 
 .nation-menu-control {
@@ -44,100 +13,19 @@
   inset: auto;
 }
 
-.nation-menu-control::after,
-.nation-atlas-toggle::after,
-.nation-atlas-lore::after,
-.nation-slide-arrow::after {
-  inset: 1px;
-  z-index: -1;
-  border-radius: 50%;
-  background: color-mix(in srgb, var(--nation-green-deep) 94%, transparent);
-  box-shadow: inset 0 0 0 1px rgba(185, 154, 92, .46);
+.nation-atlas-toggle,
+.nation-atlas-lore,
+.nation-slide-arrow {
+  position: fixed;
+  margin: 0;
 }
 
-.nation-menu-control::before,
-.nation-atlas-toggle::before,
-.nation-atlas-lore::before,
-.nation-slide-arrow::before {
-  content: "";
-  position: absolute;
-  z-index: 2;
-  inset: -1px;
-  border: 1px solid transparent;
-  border-radius: 50%;
-  pointer-events: none;
-  opacity: 0;
-}
-
-@keyframes nation-control-ring {
-  0% {
-    opacity: 0;
-    border-top-color: var(--nation-gold-bright);
-    transform: rotate(-90deg);
-  }
-  28% {
-    opacity: 1;
-    border-top-color: var(--nation-gold-bright);
-    border-right-color: transparent;
-  }
-  55% {
-    border-top-color: var(--nation-gold-bright);
-    border-right-color: var(--nation-gold-bright);
-    border-bottom-color: transparent;
-  }
-  78% {
-    border-top-color: var(--nation-gold-bright);
-    border-right-color: var(--nation-gold-bright);
-    border-bottom-color: var(--nation-gold-bright);
-    border-left-color: transparent;
-  }
-  100% {
-    opacity: 1;
-    border-color: var(--nation-gold-bright);
-    transform: rotate(270deg);
-  }
-}
-
-.nation-menu-control:hover::before,
-.nation-atlas-toggle:hover::before,
-.nation-atlas-lore:hover::before,
-.nation-slide-arrow:hover::before {
-  animation: nation-control-ring .62s cubic-bezier(.3, .7, .2, 1) both;
-}
-
-.nation-menu-control svg,
-.nation-atlas-toggle span,
-.nation-atlas-lore svg,
-.nation-slide-arrow svg {
-  position: relative;
-  z-index: 3;
-  transition:
-    color .24s ease,
-    filter .24s ease,
-    transform .28s cubic-bezier(.22, .8, .2, 1);
-}
-
-.nation-menu-control:hover svg,
-.nation-atlas-toggle:hover span,
-.nation-atlas-lore:hover svg,
-.nation-slide-arrow:hover svg {
-  color: var(--nation-ivory);
-  filter: drop-shadow(0 0 6px rgba(212, 184, 117, .72));
-  transform: scale(1.16);
-}
-
-.nation-atlas-toggle:hover span {
-  transform: scale(1.16);
-}
-
-/* I comandi principali giacciono sul filetto interno della cornice. */
 .nation-atlas-toggle {
   z-index: 97;
   top: var(--nation-control-edge);
   right: var(--nation-control-edge);
   bottom: auto;
   left: auto;
-  transform: none;
 }
 
 .nation-atlas-lore {
@@ -148,19 +36,10 @@
   transform: translateX(-50%);
 }
 
-.nation-atlas-lore.is-unavailable {
-  opacity: 0;
-  transform: translateX(-50%) scale(.82);
-  pointer-events: none;
-}
-
 .nation-slide-arrow {
   z-index: 91;
   left: 50%;
-  width: var(--nation-control-size);
-  height: var(--nation-control-size);
-  border-radius: 50%;
-  transform: translateX(-50%) scale(1);
+  transform: translateX(-50%);
   opacity: 1;
 }
 
@@ -172,18 +51,39 @@
   bottom: var(--nation-control-edge);
 }
 
-.is-atlas-active .nation-slide-arrow,
-.nation-slide-arrow.is-unavailable {
+.nation-atlas-lore.is-unavailable,
+.nation-slide-arrow.is-unavailable,
+.is-atlas-active .nation-slide-arrow {
   opacity: 0;
   transform: translateX(-50%) scale(.82);
   pointer-events: none;
 }
 
-/*
- * Nell'Atlante le frecce di lettura non appartengono alla tavola. Rimuoverle
- * anche dal rendering evita che il bordo del controllo precedente resti
- * ritagliato lungo il margine superiore durante la transizione di Swiper.
- */
 .is-atlas-active .nation-slide-arrow {
   visibility: hidden;
+}
+
+/*
+ * When an ivory panel is open, its trigger automatically adopts the panel
+ * palette. No per-button modifier class is required.
+ */
+.nation-lore-page.is-menu-open .nation-menu-control,
+.nation-lore-page.is-info-open .nation-atlas-toggle {
+  --circle-background: var(--nation-burgundy);
+  --circle-icon: var(--nation-ivory);
+  --circle-icon-hover: var(--nation-gold-bright);
+  --circle-ring: var(--nation-gold-bright);
+  --circle-track:
+    color-mix(in srgb, var(--nation-burgundy) 48%, var(--nation-gold));
+  z-index: 221;
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+
+.nation-slide-arrow.is-next.is-unavailable,
+.is-atlas-active .nation-slide-arrow {
+  opacity: 0;
+  pointer-events: none;
 }

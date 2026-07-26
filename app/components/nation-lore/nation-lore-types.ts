@@ -62,10 +62,18 @@ export interface NationLoreTheme {
   primary: string;
   primaryDeep: string;
   primarySoft: string;
+  burgundy: string;
   accent: string;
+  accentStrong: string;
   accentBright: string;
   text: string;
   mutedText: string;
+  panel: string;
+  panelLight: string;
+  panelWarm: string;
+  panelInk: string;
+  panelMuted: string;
+  readingText: string;
 }
 
 export interface NationLorePageProps {

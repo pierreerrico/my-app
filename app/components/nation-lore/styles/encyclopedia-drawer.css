@@ -1,66 +1,6 @@
-.nation-global-controls {
-  position: fixed;
-  z-index: 96;
-  top: 18px;
-  left: 0;
-  display: grid;
-  gap: 9px;
-}
-
-.nation-home-control,
-.nation-menu-control {
-  display: grid;
-  place-items: center;
-  width: 42px;
-  height: 42px;
-  padding: 0;
-  color: var(--nation-gold-bright);
-  border: 1px solid rgba(185, 154, 92, .58);
-  background: rgba(7, 27, 29, .82);
-  backdrop-filter: blur(12px);
-  cursor: pointer;
-  transition: opacity .28s ease, transform .38s cubic-bezier(.22, .8, .2, 1), left .45s ease;
-}
-
-.nation-home-control {
-  order: 1;
-  border-radius: 50%;
-}
-
-.nation-menu-control {
-  order: 2;
-  width: 46px;
-  height: 92px;
-  border-left: 0;
-  border-radius: 0 48px 48px 0;
-  background: var(--nation-green);
-  transition:
-    color .24s ease,
-    background .24s ease,
-    transform .48s cubic-bezier(.22, .8, .2, 1);
-}
-
-.nation-home-control svg,
-.nation-menu-control svg {
-  width: 20px;
-  height: 20px;
-  transition: color .22s ease, filter .22s ease, transform .22s ease;
-}
-
-.nation-home-control:hover svg {
-  color: var(--nation-ivory);
-  filter: drop-shadow(0 0 5px rgba(212, 184, 117, .55));
-  transform: scale(1.1);
-}
-
-.is-menu-open .nation-home-control {
-  opacity: 0;
-  transform: translateX(-18px);
-  pointer-events: none;
-}
+/* Content specific to the encyclopedia menu. Sidebar mechanics are elsewhere. */
 
 .nation-drawer {
-  /* Posizione, dimensioni e transizione appartengono al componente Sidebar. */
   overflow-y: auto;
 }
 
@@ -68,8 +8,6 @@
   display: flex;
   align-items: center;
   gap: 13px;
-  min-height: 48px;
-  margin: 0 0 34px 54px;
 }
 
 .nation-drawer header strong,
@@ -77,26 +15,13 @@
   display: block;
 }
 
-.nation-drawer header strong {
-  color: var(--nation-gold-bright);
-  font-size: 16px;
-}
-
-.nation-drawer header small {
-  margin-top: 4px;
-  color: var(--nation-muted);
-  font-size: 10px;
-  letter-spacing: .12em;
-  text-transform: uppercase;
-}
-
 .nation-drawer-mark {
   display: grid;
   place-items: center;
   width: 38px;
   height: 38px;
-  color: var(--nation-gold);
-  border: 1px solid rgba(185, 154, 92, .48);
+  flex: 0 0 38px;
+  border: 1px solid color-mix(in srgb, var(--sidebar-rule) 48%, transparent);
 }
 
 .nation-drawer-mark svg,
@@ -111,7 +36,6 @@
 
 .nation-drawer nav p {
   margin: 22px 0 8px;
-  color: var(--nation-gold);
   font-size: 9px;
   letter-spacing: .16em;
   text-transform: uppercase;
@@ -121,18 +45,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  min-height: 40px;
-  padding: 7px 9px;
-  color: var(--nation-muted);
-  border-bottom: 1px solid rgba(185, 154, 92, .09);
   font-size: 13px;
-  transition: color .2s ease, background .2s ease;
-}
-
-.nation-drawer nav a:hover {
-  color: var(--nation-gold-bright);
-  background: rgba(185, 154, 92, .06);
-  transform: translateX(3px);
 }
 
 .nation-drawer-note {
@@ -141,8 +54,7 @@
   gap: 13px;
   margin-top: 28px;
   padding-top: 20px;
-  border-top: 1px solid rgba(185, 154, 92, .3);
-  color: var(--nation-muted);
+  border-top: 1px solid color-mix(in srgb, var(--sidebar-rule) 45%, transparent);
 }
 
 .nation-drawer-note > span {
@@ -151,9 +63,9 @@
   width: 40px;
   height: 40px;
   flex: 0 0 40px;
-  border: 1px solid var(--nation-gold);
+  color: var(--sidebar-accent);
+  border: 1px solid var(--sidebar-rule);
   border-radius: 50%;
-  color: var(--nation-gold-bright);
 }
 
 .nation-drawer-note p {
@@ -164,226 +76,5 @@
 
 .nation-drawer-note strong {
   display: block;
-  color: var(--nation-ivory);
-}
-
-.is-menu-open .nation-menu-control {
-  opacity: 0;
-  transform: translateX(-18px);
-  pointer-events: none;
-}
-
-.nation-atlas-toggle span {
-  margin: 0;
-  font: italic 700 25px/1 Georgia, serif;
-}
-
-.nation-atlas-lore {
-  position: absolute;
-  z-index: 32;
-  left: 50%;
-  bottom: 0;
-  width: 92px;
-  height: 46px;
-  display: grid;
-  place-items: center;
-  padding: 0;
-  transform: translateX(-50%);
-  color: var(--nation-gold-bright);
-  border: 1px solid var(--nation-gold);
-  border-bottom: 0;
-  border-radius: 52px 52px 0 0;
-  background: var(--nation-green);
-  box-shadow: 0 -10px 28px rgba(0, 0, 0, .2);
-  cursor: pointer;
-}
-
-.nation-atlas-lore svg {
-  width: 20px;
-  height: 20px;
-  transition: color .22s ease, filter .22s ease, transform .22s ease;
-}
-
-.nation-atlas-toggle:hover span,
-.nation-menu-control:hover svg,
-.nation-atlas-lore:hover svg,
-.nation-slide-arrow:hover svg {
-  color: var(--nation-ivory);
-  filter: drop-shadow(0 0 5px rgba(212, 184, 117, .55));
-  transform: scale(1.13);
-}
-
-.nation-atlas-toggle:hover span {
-  transform: translateX(-1px) scale(1.13);
-}
-
-/*
- * Modulo comune degli handle. Le regole sono raccolte qui, dopo le varianti,
- * affinché forma e colore non possano divergere tra atlante, menu e slide.
- */
-.nation-menu-control,
-.nation-atlas-toggle,
-.nation-atlas-lore,
-.nation-slide-arrow {
-  box-sizing: border-box;
-  overflow: hidden;
-  color: var(--nation-gold-bright);
-  border: 0;
-  background: rgba(185, 154, 92, .72);
-  box-shadow: none;
-}
-
-.nation-menu-control::after,
-.nation-atlas-toggle::after,
-.nation-atlas-lore::after,
-.nation-slide-arrow::after {
-  content: "";
-  position: absolute;
-  z-index: 0;
-  pointer-events: none;
-  background: var(--nation-green-deep);
-}
-
-.nation-menu-control,
-.nation-atlas-toggle {
-  width: 46px;
-  height: 92px;
-}
-
-.nation-atlas-lore,
-.nation-slide-arrow {
-  width: 92px;
-  height: 46px;
-}
-
-.nation-menu-control {
-  border-radius: 0 46px 46px 0;
-}
-
-.nation-menu-control::after {
-  inset: 1px 1px 1px 0;
-  border-radius: 0 45px 45px 0;
-}
-
-.nation-atlas-toggle {
-  border-radius: 46px 0 0 46px;
-}
-
-.nation-atlas-toggle::after {
-  inset: 1px 0 1px 1px;
-  border-radius: 45px 0 0 45px;
-}
-
-.nation-atlas-lore,
-.nation-slide-arrow.is-next {
-  border-radius: 46px 46px 0 0;
-}
-
-.nation-atlas-lore::after,
-.nation-slide-arrow.is-next::after {
-  inset: 1px 1px 0;
-  border-radius: 45px 45px 0 0;
-}
-
-.nation-slide-arrow.is-previous {
-  border-radius: 0 0 46px 46px;
-}
-
-.nation-slide-arrow.is-previous::after {
-  inset: 0 1px 1px;
-  border-radius: 0 0 45px 45px;
-}
-
-.nation-menu-control svg,
-.nation-atlas-toggle span,
-.nation-atlas-lore svg,
-.nation-slide-arrow svg {
-  position: relative;
-  z-index: 1;
-}
-.nation-atlas-sidebar::before,
-.nation-drawer::after {
-  content: "";
-  position: absolute;
-  z-index: 1;
-  top: 0;
-  bottom: 0;
-  width: 1px;
-  pointer-events: none;
-  background: rgba(185, 154, 92, .72);
-  transition: opacity .4s ease .15s;
-}
-
-/* Modulo circolare condiviso su desktop, tablet e mobile. */
-.nation-menu-control,
-.nation-atlas-toggle,
-.nation-atlas-lore,
-.nation-slide-arrow {
-  width: 42px;
-  height: 42px;
-  border-radius: 50%;
-}
-
-.nation-menu-control::after,
-.nation-atlas-toggle::after,
-.nation-atlas-lore::after,
-.nation-slide-arrow::after {
-  inset: 1px;
-  border-radius: 50%;
-}
-
-.nation-atlas-toggle {
-  left: -56px;
-  bottom: 14px;
-}
-
-.nation-atlas-lore {
-  bottom: 14px;
-}
-
-.nation-slide-arrow.is-previous {
-  top: 14px;
-  border-radius: 50%;
-}
-
-.nation-slide-arrow.is-next {
-  bottom: 14px;
-  border-radius: 50%;
-}
-
-.nation-home-control {
-  color: var(--nation-gold-bright);
-  border-color: rgba(185, 154, 92, .72);
-  background: var(--nation-green-deep);
-}
-
-/* Un pannello aperto sostituisce il proprio comando: l’handle non resta
- * sovrapposto al contenuto, su desktop come su mobile. */
-.nation-atlas.is-open .nation-atlas-toggle {
-  opacity: 0;
-  transform: translateX(18px);
-  pointer-events: none;
-}
-
-.nation-atlas-sidebar::before {
-  left: 0;
-}
-
-.nation-drawer::after {
-  right: 0;
-  opacity: 0;
-  transition-duration: .18s;
-  transition-delay: 0s;
-}
-
-.is-menu-open .nation-drawer::after {
-  opacity: 1;
-  transition-duration: .4s;
-  transition-delay: .15s;
-}
-
-.nation-atlas:not(.is-open) .nation-atlas-sidebar::before {
-  opacity: 0;
-  transition-duration: .18s;
-  transition-delay: 0s;
+  color: var(--sidebar-ink);
 }

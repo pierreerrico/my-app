@@ -11,17 +11,18 @@
 }
 
 /*
- * Base unica dei controlli circolari.
- * Il gradiente disegna la traccia; il punto segue la medesima circonferenza
- * tramite offset-path. Hover = metà percorso, click/stato aperto = giro intero.
+ * Unico stile visivo di CircleControl.
+ *
+ * Dimensioni, transizioni, ring e SVG sono comuni a ogni istanza. Il contesto
+ * decide la palette ereditando --circle-background, --circle-icon,
+ * --circle-icon-hover, --circle-ring e --circle-track.
  */
 .nation-circle-control {
-  --circle-size: 42px;
+  --circle-size: var(--nation-control-size, 42px);
   --circle-progress: 0%;
   --circle-tail: 0%;
-  --circle-gold: var(--nation-gold-bright);
-  --circle-secondary: var(--nation-gold-bright);
-  position: fixed;
+
+  position: relative;
   box-sizing: border-box;
   width: var(--circle-size);
   height: var(--circle-size);
@@ -31,27 +32,36 @@
   overflow: visible;
   border: 0;
   border-radius: 50%;
-  color: var(--circle-gold);
+  color: var(--circle-icon, var(--nation-ivory));
   background:
     conic-gradient(
       from -90deg,
-      rgba(185, 154, 92, .32) 0 var(--circle-tail),
-      var(--circle-secondary) var(--circle-tail) var(--circle-progress),
-      rgba(185, 154, 92, .32) var(--circle-progress) 100%
+      var(--circle-track, color-mix(in srgb, var(--nation-gold) 32%, transparent))
+        0 var(--circle-tail),
+      var(--circle-ring, var(--nation-gold-bright))
+        var(--circle-tail) var(--circle-progress),
+      var(--circle-track, color-mix(in srgb, var(--nation-gold) 32%, transparent))
+        var(--circle-progress) 100%
     );
+  box-shadow: none;
   cursor: pointer;
   isolation: isolate;
   transition:
-    --circle-progress .52s cubic-bezier(.22, .8, .2, 1),
+    --circle-progress .52s var(--nation-ease-standard, ease),
     --circle-tail .52s linear,
-    color .25s ease,
-    filter .25s ease,
+    color var(--nation-motion-fast, .24s) ease,
+    filter var(--nation-motion-fast, .24s) ease,
     opacity .28s ease,
-    transform .42s cubic-bezier(.22, .8, .2, 1),
-    top .52s cubic-bezier(.22, .8, .2, 1),
-    right .52s cubic-bezier(.22, .8, .2, 1),
-    bottom .52s cubic-bezier(.22, .8, .2, 1),
-    left .52s cubic-bezier(.22, .8, .2, 1);
+    transform var(--nation-motion-standard, .48s)
+      var(--nation-ease-standard, ease),
+    top var(--nation-motion-standard, .48s)
+      var(--nation-ease-standard, ease),
+    right var(--nation-motion-standard, .48s)
+      var(--nation-ease-standard, ease),
+    bottom var(--nation-motion-standard, .48s)
+      var(--nation-ease-standard, ease),
+    left var(--nation-motion-standard, .48s)
+      var(--nation-ease-standard, ease);
 }
 
 .nation-circle-control::after {
@@ -60,65 +70,54 @@
   z-index: -1;
   inset: 2px;
   border-radius: inherit;
-  background: color-mix(in srgb, var(--nation-green-deep) 94%, transparent);
-  box-shadow: inset 0 0 12px rgba(212, 184, 117, .035);
-}
-
-/* Le varianti direzionali descrivono soltanto posizione e icona.
-   Non possono alterare la geometria circolare del controllo condiviso. */
-.nation-circle-control.nation-slide-arrow.is-previous,
-.nation-circle-control.nation-slide-arrow.is-next {
-  overflow: visible;
-  border-radius: 50%;
-}
-
-.nation-circle-control.nation-slide-arrow.is-previous::after,
-.nation-circle-control.nation-slide-arrow.is-next::after {
-  inset: 2px;
-  border-radius: inherit;
+  background: var(--circle-background, var(--nation-green-deep));
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--circle-ring) 26%, transparent),
+    inset 0 0 12px color-mix(in srgb, var(--circle-icon) 4%, transparent);
+  transition:
+    background-color var(--nation-motion-fast, .24s) ease,
+    box-shadow var(--nation-motion-fast, .24s) ease;
 }
 
 .nation-circle-control::before {
-  content: none !important;
-  display: none !important;
+  content: none;
 }
 
 .nation-circle-control:hover {
   --circle-progress: 25%;
+  color: var(--circle-icon-hover, var(--nation-gold-bright));
+  filter: drop-shadow(
+    0 0 7px color-mix(in srgb, var(--circle-ring) 30%, transparent)
+  );
 }
 
 .nation-circle-control:active,
-.nation-circle-control.is-control-hold {
+.nation-circle-control.is-control-hold,
+.nation-circle-control.is-control-active {
   --circle-progress: 100%;
-  color: var(--nation-ivory);
-  filter: drop-shadow(0 0 7px rgba(212, 184, 117, .34));
+  color: var(--circle-icon-hover, var(--nation-gold-bright));
 }
 
 @keyframes nation-control-forward-reset {
-  0% {
-    --circle-progress: 100%;
-    --circle-tail: 0%;
-  }
+  0%,
   24% {
-    /* La testa prosegue idealmente per il primo quarto del nuovo giro. */
     --circle-progress: 100%;
     --circle-tail: 0%;
   }
+
   100% {
-    /* La coda segue lo stesso verso e ripulisce l’intera circonferenza. */
     --circle-progress: 100%;
     --circle-tail: 100%;
   }
 }
 
 .nation-circle-control.is-control-hold {
-  filter: none;
   animation: nation-control-forward-reset 820ms linear both;
 }
 
 .nation-circle-control > svg {
   position: relative;
-  z-index: 3;
+  z-index: 1;
   width: 20px;
   height: 20px;
   overflow: visible;
@@ -128,64 +127,39 @@
   stroke-linecap: round;
   stroke-linejoin: round;
   transition:
-    color .24s ease,
-    filter .24s ease,
-    transform .3s cubic-bezier(.22, .8, .2, 1);
+    color var(--nation-motion-fast, .24s) ease,
+    filter var(--nation-motion-fast, .24s) ease,
+    transform .3s var(--nation-ease-standard, ease);
 }
 
-.nation-circle-control:hover > svg,
-.nation-circle-control:active > svg,
-.nation-circle-control.is-control-hold > svg {
-  color: var(--nation-ivory);
-  filter: drop-shadow(0 0 5px rgba(212, 184, 117, .66));
+.nation-circle-control:is(
+  :hover,
+  :active,
+  .is-control-hold,
+  .is-control-active
+) > svg {
+  color: currentColor;
+  filter: drop-shadow(
+    0 0 5px color-mix(in srgb, var(--circle-ring) 52%, transparent)
+  );
   transform: scale(1.14);
 }
 
+
+.nation-circle-control svg path {
+  transition:
+    opacity .2s ease,
+    transform .32s ease;
+}
+
 .nation-circle-control:focus-visible {
-  outline: 2px solid var(--nation-ivory);
+  outline: 2px solid var(--circle-focus, var(--nation-gold-bright));
   outline-offset: 3px;
 }
 
-/*
- * I comandi dei pannelli condividono la palette principale quando sono
- * chiusi. Soltanto lo stato aperto adotta avorio e rosso del pannello.
- */
-.nation-menu-control,
-.nation-atlas-toggle {
-  --circle-gold: var(--nation-gold-bright);
-  --circle-secondary: var(--nation-gold-bright);
-  color: var(--nation-gold-bright);
-}
-
-.nation-menu-control::after,
-.nation-atlas-toggle::after {
-  background: color-mix(in srgb, var(--nation-green-deep) 94%, transparent);
-  box-shadow: inset 0 0 12px rgba(212, 184, 117, .035);
-}
-
-.is-menu-open .nation-menu-control,
-.is-info-open .nation-atlas-toggle {
-  --circle-gold: #b58b43;
-  --circle-secondary: #762d2a;
-  color: #762d2a;
-}
-
-.is-menu-open .nation-menu-control::after,
-.is-info-open .nation-atlas-toggle::after {
-  background: var(--ivory);
-  box-shadow: inset 0 0 12px rgba(118, 45, 42, .05);
-}
-
-.is-menu-open .nation-menu-control:is(:hover, :active, .is-control-hold),
-.is-info-open .nation-atlas-toggle:is(:hover, :active, .is-control-hold) {
-  color: #762d2a;
-  filter: drop-shadow(0 0 7px rgba(181, 139, 67, .34));
-}
-
-.is-menu-open .nation-menu-control:is(:hover, :active, .is-control-hold) > svg,
-.is-info-open .nation-atlas-toggle:is(:hover, :active, .is-control-hold) > svg {
-  color: #762d2a;
-  filter: drop-shadow(0 0 5px rgba(181, 139, 67, .55));
+.nation-circle-control:disabled,
+.nation-circle-control[aria-disabled="true"] {
+  cursor: default;
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -20,31 +20,58 @@ import {
 - `atlas`: titolo, sottotitolo, fatti, testo d’atmosfera e mappa;
 - `children`: capitoli MDX;
 - `navigation`: indice globale opzionale;
-- `theme`: colori opzionali. In assenza di configurazione usa il tema verde e
-  oro predefinito.
+- `theme`: override semantici opzionali della palette.
 
-## Struttura
+## Responsabilità CSS
 
-- `components/`: elementi di presentazione e layout;
-- `content/`: trasformazione dei contenuti MDX in capitoli e sottocapitoli;
-- `config/`: configurazioni predefinite sostituibili;
-- `hooks/`: stato responsive e ciclo di vita di Swiper;
-- `navigation/`: funzioni pure che leggono e comandano gli Swiper;
-- `styles/`: CSS diviso per responsabilità;
-- `nation-lore-types.ts`: contratto dati pubblico;
-- `index.ts`: unico punto di esportazione.
+- `app/globals.css`: palette principale condivisa dall’intera applicazione.
+- `styles/nation-page-shell.css`: token semantici, viewport, livelli Swiper,
+  cornice, scrollbar ed effetti comuni.
+- `circle-control.css`: unica implementazione visiva di tutti i circle button,
+  comprese transizioni, ring, SVG, hover, active e focus.
+- `styles/nation-controls.css`: soltanto posizione e visibilità dei diversi
+  tipi di circle button.
+- `sidebar/sidebar.css`: meccanica generica di apertura, chiusura, lato e scrim.
+- `styles/nation-sidebars.css`: unica skin Nation Lore delle sidebar; sinistra
+  e destra cambiano solo tramite variabili di lato.
+- `styles/encyclopedia-drawer.css`: contenuto specifico dell’indice.
+- `styles/nation-atlas.css`: mappa e contenuto informativo dell’Atlante.
+- `styles/nation-lore-slides.css`: tipografia e scorrimento dei capitoli.
+- `styles/nation-pagination.css`: navigazione tra sezioni e sottosezioni.
+- `styles/nation-mobile-tools.css`: stato base degli strumenti esclusivamente
+  mobili.
+- `styles/nation-responsive.css`: unico posto in cui sono ammessi breakpoint
+  basati su larghezza, altezza o orientamento della finestra.
+
+## Circle button adattivi
+
+`CircleControl` non riceve classi di tema. La palette è ereditata dal contesto
+tramite:
+
+```css
+--circle-background;
+--circle-icon;
+--circle-icon-hover;
+--circle-ring;
+--circle-track;
+```
+
+Il telaio verde fornisce automaticamente fondo verde scuro, icona avorio e
+hover dorato. Le sidebar avorio e la testata mobile avorio forniscono
+automaticamente fondo burgundy, icona avorio e hover dorato.
 
 ## Regole di manutenzione
 
-1. Una nazione nuova deve aggiungere dati e contenuto, non duplicare componenti.
-2. I pannelli laterali usano sempre `LateralPanel`.
+1. Una nazione nuova aggiunge dati e contenuto, non duplica componenti.
+2. I pannelli laterali usano sempre `Sidebar`.
 3. I controlli circolari usano sempre `CircleControl`.
-4. I capitoli MDX usano `NationLoreChapter` (esposto in MDX come
-   `ArticleChapter` per compatibilità).
-5. Ogni foglio di stile dichiara prima le regole comuni del proprio modulo e
-   poi, nello stesso file, le sue varianti responsive. `nation-responsive.css`
-   coordina soltanto la geometria che coinvolge piÃ¹ moduli.
-6. Le viste supportate sono mobile portrait/landscape, tablet
-   portrait/landscape e desktop portrait/landscape. I tablet combinano la
-   scheda di lettura desktop con controlli e sidebar a comparsa.
-7. I colori della nazione passano da `theme`, non da nuove regole hardcoded.
+4. I capitoli MDX usano `NationLoreChapter`.
+5. Un modulo definisce il proprio stile comune una sola volta.
+6. Le differenze tra tipi di controllo riguardano posizione e stato, non la
+   loro implementazione visiva.
+7. Le differenze tra sidebar sinistra e destra riguardano lato, direzione,
+   ombra e origine del radial gradient.
+8. Ogni regola dipendente dalla dimensione della viewport vive in
+   `nation-responsive.css`.
+9. I colori principali non vengono inseriti come valori esadecimali nei
+   moduli: provengono dai token globali e dai relativi alias `--nation-*`.

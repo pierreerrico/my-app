@@ -8,12 +8,25 @@
   --line: #d8d0c2;
   --red: #7e302d;
   --red-dark: #5f201f;
+  --burgundy: #762d2a;
   --gold: #a58549;
   --sidebar: 238px;
   --topbar: 72px;
   --font-display: Georgia, "Times New Roman", serif;
   --font-body: "Palatino Linotype", Palatino, Georgia, serif;
   --ivory: #f2eadb;
+
+  /* Shared worldbuilding palette. */
+  --green: #102f30;
+  --green-deep: #091f23;
+  --green-soft: #183c3a;
+  --gold-strong: #b58b43;
+  --gold-bright: #d4b875;
+  --paper-warm: #eadcc4;
+  --paper-shadow: #e4d4ba;
+  --ink-deep: #312920;
+  --muted-light: #b9c0b4;
+  --reading-text: #d5d8cf;
 }
 
 * {

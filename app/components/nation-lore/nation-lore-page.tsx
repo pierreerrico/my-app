@@ -77,10 +77,18 @@ export default function NationLorePage({
     "--nation-green": theme?.primary,
     "--nation-green-deep": theme?.primaryDeep,
     "--nation-green-soft": theme?.primarySoft,
+    "--nation-burgundy": theme?.burgundy,
     "--nation-gold": theme?.accent,
+    "--nation-gold-strong": theme?.accentStrong,
     "--nation-gold-bright": theme?.accentBright,
     "--nation-ivory": theme?.text,
     "--nation-muted": theme?.mutedText,
+    "--nation-paper": theme?.panel,
+    "--nation-paper-light": theme?.panelLight,
+    "--nation-paper-warm": theme?.panelWarm,
+    "--nation-ink": theme?.panelInk,
+    "--nation-panel-muted": theme?.panelMuted,
+    "--nation-reading-text": theme?.readingText,
   } as CSSProperties;
 
   return (

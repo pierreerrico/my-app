@@ -1,99 +1,99 @@
-/* NationLorePage integration for the generic Sidebar component. */
-
+/*
+ * Nation Lore skin for the generic Sidebar.
+ *
+ * Shared mechanics live in sidebar/sidebar.css. This module owns one visual
+ * sidebar system; left and right panels differ only through side variables.
+ */
 .nation-lore-page .sidebar-panel {
-  --sidebar-bg-start: #fffdf7;
-  --sidebar-bg-end: #e4d4ba;
-  --sidebar-ink: #342a22;
-  --sidebar-muted: #66584a;
-  --sidebar-accent: #762d2a;
-  --sidebar-rule: #b58b43;
+  --sidebar-bg: var(--nation-ivory);
+  --sidebar-glow: var(--nation-paper-light);
+  --sidebar-ink: var(--nation-ink);
+  --sidebar-muted: var(--nation-panel-muted);
+  --sidebar-accent: var(--nation-burgundy);
+  --sidebar-rule: var(--nation-gold-strong);
+  --sidebar-radial-x: 0%;
+  --sidebar-shadow-x: 20px;
+  --sidebar-border-left: 0;
+  --sidebar-border-right: 1px;
+
+  /* CircleControls nested in an ivory panel adapt automatically. */
+  --circle-background: var(--nation-burgundy);
+  --circle-icon: var(--nation-ivory);
+  --circle-icon-hover: var(--nation-gold-bright);
+  --circle-ring: var(--nation-gold-bright);
+  --circle-track:
+    color-mix(in srgb, var(--nation-burgundy) 48%, var(--nation-gold));
 
   padding: 76px 34px 28px;
   color: var(--sidebar-ink);
+  border-style: solid;
   border-color: var(--sidebar-rule);
+  border-width:
+    0 var(--sidebar-border-right) 0 var(--sidebar-border-left);
   background:
-    radial-gradient(circle at 16% 8%, color-mix(in srgb, var(--sidebar-accent) 16%, transparent), transparent 36%),
-    linear-gradient(155deg, var(--sidebar-bg-start), var(--sidebar-bg-end));
-  box-shadow: 20px 0 48px rgba(20, 12, 10, .24);
+    radial-gradient(
+      ellipse at var(--sidebar-radial-x) 50%,
+      color-mix(in srgb, var(--sidebar-glow) 70%, transparent) 0%,
+      transparent 65%
+    ),
+    var(--sidebar-bg);
+  box-shadow: var(--sidebar-shadow-x) 0 48px rgba(20, 12, 10, .24);
 }
 
 .nation-lore-page .sidebar-panel--left {
-  border-width: 0 1px 0 0;
+  --sidebar-radial-x: 0%;
+  --sidebar-shadow-x: 20px;
+  --sidebar-border-left: 0;
+  --sidebar-border-right: 1px;
 }
 
 .nation-lore-page .sidebar-panel--right {
-  border-width: 0 0 0 1px;
-  box-shadow: -20px 0 48px rgba(2, 12, 14, .28);
-  transition:
-    transform var(--sidebar-speed) var(--sidebar-ease),
-    visibility 0s linear var(--sidebar-speed);
+  --sidebar-radial-x: 100%;
+  --sidebar-shadow-x: -20px;
+  --sidebar-border-left: 1px;
+  --sidebar-border-right: 0;
 }
 
-.nation-lore-page .sidebar-panel--right[data-open="true"] {
-  transition:
-    transform var(--sidebar-speed) var(--sidebar-ease),
-    visibility 0s;
+/* Shared panel content. */
+.nation-lore-page .sidebar-panel header {
+  position: relative;
+  min-height: 64px;
+  margin: 0 0 26px;
+  padding: 0 0 20px;
 }
 
-/*
- * Le schede dei luoghi riusano la sidebar destra, ma quando sono aperte
- * sostituiscono temporaneamente sia la scheda Info sia il relativo comando.
- */
-.nation-lore-page .sidebar-panel--right.sidebar-panel--feature,
-.nation-lore-page.is-info-pinned .sidebar-panel--right.sidebar-panel--feature {
-  z-index: 300;
+.nation-lore-page .sidebar-panel header::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 1px;
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      color-mix(in srgb, var(--sidebar-rule) 72%, transparent) 16% 43%,
+      var(--sidebar-rule) 50%,
+      color-mix(in srgb, var(--sidebar-rule) 72%, transparent) 57% 84%,
+      transparent
+    );
 }
 
-.nation-lore-page .sidebar-scrim--feature {
-  z-index: 299;
+.nation-lore-page .sidebar-panel header strong,
+.nation-lore-page .sidebar-panel header h1 {
+  margin: 0;
+  color: var(--sidebar-accent);
+  font: 600 30px/1.05 Georgia, "Times New Roman", serif;
 }
 
-.nation-lore-page .sidebar-panel--feature .map-feature-sidebar-content {
-  min-height: 100%;
-  opacity: 1;
-}
-
-.nation-lore-page .sidebar-panel--feature .map-feature-sidebar-close {
-  top: var(--nation-control-edge);
-  right: var(--nation-control-edge);
-  width: var(--nation-control-size);
-  height: var(--nation-control-size);
-}
-
-.nation-lore-page .sidebar-panel--feature .map-feature-sidebar-close {
-  --circle-gold: #b58b43;
-  --circle-secondary: #762d2a;
-  z-index: 301;
-  color: #762d2a;
-}
-
-.nation-lore-page .sidebar-panel--feature .map-feature-sidebar-close::after {
-  background: var(--ivory);
-  box-shadow: inset 0 0 12px rgba(118, 45, 42, .05);
-}
-
-.nation-lore-page .sidebar-panel--feature .map-feature-sidebar-close:is(:hover, :active, .is-control-hold) {
-  color: #762d2a;
-  filter: drop-shadow(0 0 7px rgba(181, 139, 67, .34));
-}
-
-.nation-lore-page .sidebar-panel--feature .map-feature-sidebar-close:is(:hover, :active, .is-control-hold)>svg {
-  color: #762d2a;
-  filter: drop-shadow(0 0 5px rgba(181, 139, 67, .55));
-}
-
-.nation-lore-page:not(.is-menu-pinned).is-menu-open .nation-global-controls,
-.nation-lore-page:not(.is-menu-pinned).is-menu-open .nation-menu-control,
-.nation-lore-page.is-info-open .nation-atlas-toggle {
-  z-index: 221;
-}
-
-.nation-lore-page:not(.is-menu-pinned).is-menu-open .nation-menu-control,
-.nation-lore-page.is-info-open .nation-atlas-toggle {
-  opacity: 1 !important;
-  visibility: visible !important;
-  transform: none !important;
-  pointer-events: auto !important;
+.nation-lore-page .sidebar-panel header small,
+.nation-lore-page .sidebar-panel header p {
+  margin: 6px 0 0;
+  color: var(--sidebar-muted);
+  font: italic 14px/1.25 Georgia, "Times New Roman", serif;
+  letter-spacing: 0;
+  text-transform: none;
 }
 
 .nation-lore-page .sidebar-panel header strong,
@@ -119,53 +119,8 @@
   color: var(--sidebar-ink);
 }
 
-.nation-lore-page .sidebar-panel .nation-atlas-sidebar-content {
-  width: 100%;
-  height: auto;
-  padding: 0;
-  overflow: visible;
-}
-
-.nation-lore-page .sidebar-panel header {
-  position: relative;
-  min-height: 64px;
-  margin: 0 0 26px;
-  padding: 0 0 20px;
-}
-
-.nation-lore-page .sidebar-panel header::after {
-  content: "";
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  height: 1px;
-  background: linear-gradient(90deg,
-      transparent,
-      color-mix(in srgb, var(--sidebar-rule) 72%, transparent) 16% 43%,
-      var(--sidebar-rule) 50%,
-      color-mix(in srgb, var(--sidebar-rule) 72%, transparent) 57% 84%,
-      transparent);
-}
-
-.nation-lore-page .sidebar-panel header strong,
-.nation-lore-page .sidebar-panel header h1 {
-  margin: 0;
-  color: var(--sidebar-accent);
-  font: 600 30px/1.05 Georgia, "Times New Roman", serif;
-}
-
-.nation-lore-page .sidebar-panel header small,
-.nation-lore-page .sidebar-panel header p {
-  margin: 6px 0 0;
-  color: var(--sidebar-muted);
-  font: italic 14px/1.25 Georgia, "Times New Roman", serif;
-  letter-spacing: 0;
-  text-transform: none;
-}
-
 .nation-lore-page .sidebar-panel nav a,
-.nation-lore-page .sidebar-panel .nation-facts>div {
+.nation-lore-page .sidebar-panel .nation-facts > div {
   box-sizing: border-box;
   min-height: 42px;
   padding: 8px 9px;
@@ -177,10 +132,18 @@
 }
 
 .nation-lore-page .sidebar-panel nav a:hover,
-.nation-lore-page .sidebar-panel .nation-facts>div:hover {
+.nation-lore-page .sidebar-panel .nation-facts > div:hover {
   color: var(--sidebar-accent);
   background: color-mix(in srgb, var(--sidebar-accent) 9%, transparent);
   transform: translateX(3px);
+}
+
+.nation-lore-page .sidebar-panel .nation-atlas-sidebar-content {
+  width: 100%;
+  height: auto;
+  padding: 0;
+  overflow: visible;
+  opacity: 1;
 }
 
 .nation-lore-page .sidebar-panel .nation-separator {
@@ -204,187 +167,48 @@
   border-top-color: color-mix(in srgb, var(--sidebar-rule) 45%, transparent);
 }
 
-.nation-lore-rail-layer {
+/* Decorative inner border follows the side, not the panel type. */
+.nation-lore-page .sidebar-panel::after {
+  content: "";
   position: absolute;
   z-index: 1;
-  inset: 0;
+  top: 0;
+  bottom: 0;
+  width: 1px;
   pointer-events: none;
+  background: color-mix(in srgb, var(--sidebar-rule) 72%, transparent);
 }
 
-.nation-lore-rail-layer>* {
-  pointer-events: auto;
+.nation-lore-page .sidebar-panel--left::after {
+  right: 0;
 }
 
-.nation-lore-swiper {
-  position: relative;
-  z-index: 2;
-  pointer-events: none;
+.nation-lore-page .sidebar-panel--right::after {
+  left: 0;
 }
 
-.nation-lore-layout {
-  isolation: isolate;
+/* Map feature panels are the same right sidebar with a higher layer. */
+.nation-lore-page .sidebar-panel--feature {
+  z-index: 300;
 }
 
-/*
- * Once a lore slide has settled, lift the fixed rail above the transparent
- * Swiper surface so touch/pointer events can reach it. During every movement
- * it remains below, preserving the atlas masking contract.
- */
-.nation-lore-page:not(.is-atlas-active):not(.is-slide-moving) .nation-lore-rail-layer {
-  z-index: 3;
+.nation-lore-page .sidebar-scrim--feature {
+  z-index: 299;
 }
 
-.nation-atlas-slide {
-  z-index: 3;
-  pointer-events: auto;
-  background: var(--nation-green-deep);
+.nation-lore-page .sidebar-panel--feature .map-feature-sidebar-content {
+  min-height: 100%;
+  opacity: 1;
 }
 
-.nation-chapter {
-  pointer-events: none;
+.nation-lore-page .sidebar-panel--feature .map-feature-sidebar-close {
+  position: absolute;
+  z-index: 301;
+  top: var(--nation-control-edge);
+  right: var(--nation-control-edge);
 }
 
-.nation-chapter .nation-subchapter-swiper {
-  pointer-events: auto;
-}
 
-@media (min-width: 1281px) {
-
-  .nation-lore-page.is-menu-pinned .sidebar-panel--left,
-  .nation-lore-page.is-info-pinned .nation-atlas-sidebar {
-    z-index: 20;
-    visibility: visible;
-    transform: translateX(0);
-    pointer-events: auto;
-  }
-
-  .nation-lore-page.is-info-pinned .nation-atlas-sidebar-content {
-    opacity: 1;
-  }
-
-  /*
-   * The atlas remains a full, non-flex slide. Every lore chapter carries its
-   * final desktop geometry from the start of the transition:
-   * menu | reading viewport | separator | pagination | info.
-   */
-  .nation-lore-page.is-lore-geometry-active .nation-chapter {
-    box-sizing: border-box;
-    display: flex;
-    padding-right: calc(var(--nation-side-column-width) * 2 + 4px);
-  }
-
-  .nation-lore-page.is-lore-geometry-active .nation-subchapter-swiper {
-    min-width: 0;
-    flex: 1 1 auto;
-  }
-
-  .nation-lore-page.is-lore-geometry-active .nation-lore-divider {
-    right: calc(var(--nation-side-column-width) * 2);
-  }
-
-  .nation-lore-page.is-lore-geometry-active .nation-section-navigation {
-    right: var(--nation-side-column-width);
-    width: var(--nation-side-column-width);
-    height: min(68vh, 620px);
-  }
-
-  .nation-lore-page.is-menu-pinned .nation-menu-control,
-  .nation-lore-page.is-menu-pinned .nation-drawer-close,
-  .nation-lore-page.is-menu-pinned .sidebar-scrim--menu,
-  .nation-lore-page.is-info-pinned .nation-atlas-toggle,
-  .nation-lore-page.is-info-pinned .nation-atlas-sidebar-close,
-  .nation-lore-page.is-info-pinned .sidebar-scrim--info {
-    opacity: 0;
-    visibility: hidden;
-    pointer-events: none;
-  }
-
-  /* The active Info control is an X and has stronger open-state rules. */
-  .nation-lore-page.is-info-pinned .nation-atlas-toggle {
-    display: none !important;
-  }
-}
-
-@media (min-width: 1600px) {
-  .nation-lore-page.is-lore-geometry-active .nation-chapter {
-    padding-left: var(--nation-side-column-width);
-  }
-}
-
-@media (max-width: 600px) {
-
-  /*
-   * Contratto mobile unico per menu e informazioni. Queste regole prevalgono
-   * sui vecchi override specifici e mantengono il pannello montato durante
-   * tutta la transizione di chiusura.
-   */
-  .nation-lore-page .sidebar-panel {
-    --sidebar-speed: var(--nation-motion-standard);
-    --sidebar-ease: var(--nation-ease-standard);
-    position: fixed;
-    inset: 0;
-    box-sizing: border-box;
-    width: auto;
-    min-width: 0;
-    max-width: none;
-    height: 100dvh;
-    min-height: 0;
-    padding:
-      calc(72px + env(safe-area-inset-top)) max(24px, env(safe-area-inset-right)) calc(34px + env(safe-area-inset-bottom)) max(24px, env(safe-area-inset-left));
-    overflow-x: hidden;
-    overflow-y: auto;
-    visibility: hidden;
-    pointer-events: none;
-    will-change: transform;
-    transition:
-      transform var(--sidebar-speed) var(--sidebar-ease),
-      visibility 0s linear var(--sidebar-speed);
-  }
-
-  .nation-lore-page .sidebar-panel--left {
-    right: 0;
-    transform: translate3d(-100%, 0, 0);
-    background:
-      radial-gradient(ellipse at 0% 50%,
-        color-mix(in srgb, var(--paper-light) 70%, transparent) 0%,
-        transparent 65%),
-      var(--ivory);
-  }
-
-  .nation-lore-page .sidebar-panel--right {
-    left: 0;
-    transform: translate3d(100%, 0, 0);
-    background:
-      radial-gradient(ellipse at 100% 50%,
-        color-mix(in srgb, var(--paper-light) 70%, transparent) 0%,
-        transparent 65%),
-      var(--ivory);
-  }
-
-  .nation-lore-page .sidebar-panel[data-open="true"] {
-    visibility: visible;
-    transform: translate3d(0, 0, 0);
-    pointer-events: auto;
-    transition:
-      transform var(--sidebar-speed) var(--sidebar-ease),
-      visibility 0s;
-  }
-
-  .nation-lore-page .sidebar-scrim {
-    transition:
-      opacity var(--sidebar-speed) ease,
-      visibility 0s linear var(--sidebar-speed);
-  }
-
-  .nation-lore-page .sidebar-scrim[data-open="true"] {
-    transition:
-      opacity var(--sidebar-speed) ease,
-      visibility 0s;
-  }
-
-  .nation-lore-page .sidebar-panel .nation-atlas-sidebar-content {
-    width: 100%;
-    min-height: 100%;
-    overflow: visible;
-  }
+.nation-lore-page .sidebar-scrim[data-open="true"] {
+  backdrop-filter: blur(2px);
 }
