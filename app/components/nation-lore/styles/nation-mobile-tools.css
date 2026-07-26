@@ -91,7 +91,12 @@
     height: calc(96px + env(safe-area-inset-top));
     display: block;
     pointer-events: none;
-    background: #f2eadb;
+    /*
+     * Safari schiarisce leggermente il theme-color nel materiale della sua
+     * barra. Questo valore compensa quella trasformazione percettiva, così il
+     * bordo della visual viewport non produce una fascia visibile.
+     */
+    background: #f6eee1;
     box-shadow: none;
     opacity: 1;
     transform: translateY(0);
