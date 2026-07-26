@@ -342,7 +342,7 @@
     min-width: 0;
     max-width: none;
     height: 100dvh;
-    min-height: 100svh;
+    min-height: 100vh;
     padding:
       calc(72px + env(safe-area-inset-top))
       max(24px, env(safe-area-inset-right))

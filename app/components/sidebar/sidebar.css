@@ -13,7 +13,7 @@
   bottom: 0;
   box-sizing: border-box;
   width: var(--sidebar-width);
-  height: 100svh;
+  height: 100vh;
   overflow-x: hidden;
   overflow-y: auto;
   visibility: hidden;
