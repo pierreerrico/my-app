@@ -196,7 +196,7 @@
   .nation-subchapter h2 {
     min-width: 0;
     margin: 0;
-    font-size: 7.8vw;
+    font-size: 8.2vw;
     line-height: 1;
     white-space: nowrap;
     text-wrap: wrap;
@@ -208,7 +208,7 @@
     padding-bottom: 32px;
     touch-action: pan-y;
     overscroll-behavior: contain;
-    font-size: 3.9vw;
+    font-size: 4.3vw;
   }
 
   .nation-subchapter-scrollbar {
