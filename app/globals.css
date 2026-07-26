@@ -33,14 +33,10 @@ body:has(.nation-lore-page) {
   width: 100%;
   height: 100%;
   overflow: hidden;
+  overflow: clip;
   overscroll-behavior: none;
   background-color: #102f30;
   background-image: none;
-}
-
-body:has(.nation-lore-page) {
-  position: fixed;
-  inset: 0;
 }
 
 html:has(.nation-lore-page.is-atlas-active),
@@ -48,10 +44,10 @@ body:has(.nation-lore-page.is-atlas-active) {
   background-color: #b5a88f;
 }
 
-@supports (height: 100dvh) {
+@supports (height: 100lvh) {
   html:has(.nation-lore-page),
   body:has(.nation-lore-page) {
-    height: 100dvh;
+    height: 100lvh;
   }
 }
 
@@ -5054,9 +5050,9 @@ footer p {
   overscroll-behavior: none;
 }
 
-@supports (height: 100dvh) {
+@supports (height: 100lvh) {
   .article-page {
-    height: 100dvh;
+    height: 100lvh;
   }
 }
 

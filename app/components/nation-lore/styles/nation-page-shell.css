@@ -33,9 +33,9 @@
   font-family: Georgia, "Times New Roman", serif;
 }
 
-@supports (height: 100dvh) {
+@supports (height: 100lvh) {
   .nation-lore-page {
-    height: 100dvh;
+    height: 100lvh;
   }
 }
 

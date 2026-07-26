@@ -102,7 +102,7 @@ export function NationLoreChapter({
       wheelDirectionRef.current = null;
     }, 500);
 
-    if (wheelBoundaryDistanceRef.current < 170) return;
+    if (wheelBoundaryDistanceRef.current < 140) return;
     wheelLockedRef.current = true;
     wheelBoundaryDistanceRef.current = 0;
     wheelDirectionRef.current = null;
@@ -147,9 +147,9 @@ export function NationLoreChapter({
     const startedAtBottom =
       touchBoundaryRef.current.bottom;
     const direction =
-      delta > 90 && startedAtBottom
+      delta > 72 && startedAtBottom
         ? "next"
-        : delta < -90 && startedAtTop
+        : delta < -72 && startedAtTop
           ? "previous"
           : null;
 

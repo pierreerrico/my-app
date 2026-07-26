@@ -20,8 +20,8 @@ const PRESETS: Record<
   performance: {
     mode: "performance",
     maxDpr: 1,
-    waterRenderTargetSize: 320,
-    terrainSegments: 128,
+    waterRenderTargetSize: 256,
+    terrainSegments: 112,
     shadowMapSize: 0,
     clouds: false,
     pauseWhenHidden: true,
