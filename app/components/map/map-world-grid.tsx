@@ -10,8 +10,10 @@ import {
 } from "react";
 import {
   BufferGeometry,
+  Camera,
   Color,
   LineSegments,
+  Object3D,
   ShaderMaterial,
   Vector2,
   Vector3,
@@ -30,6 +32,17 @@ const GRID_SUBDIVISIONS = 2;
 const GRID_Y = 0.24;
 const GRID_EXTENSION_SPANS = 2;
 const MAX_LABEL_MASKS = 64;
+
+function calculateViewportOverlayPosition(
+  _object: Object3D,
+  _camera: Camera,
+  size: { width: number; height: number },
+) {
+  return [
+    size.width / 2,
+    size.height / 2,
+  ];
+}
 
 const gridVertexShader = /* glsl */ `
   void main() {
@@ -341,6 +354,11 @@ export function MapWorldGrid({
       gl,
       size,
     }) => {
+      // MapControls can move the camera earlier in the same frame. Refresh
+      // its inverse matrix before projecting the grid so every DOM overlay
+      // follows the drag immediately instead of using the previous pose.
+      camera.updateMatrixWorld();
+
       const activeMaterial =
         lineMeshRef.current
           ?.material as
@@ -595,6 +613,8 @@ function ViewportCoordinateBands({
   const projectedEnd = useMemo(() => new Vector3(), []);
 
   useFrame(({ camera, size }) => {
+    camera.updateMatrixWorld();
+
     const horizontalInset = topBandRef.current?.offsetLeft ?? 0;
     const horizontalExtent = topBandRef.current?.clientWidth ?? size.width;
     const verticalInset = leftBandRef.current?.offsetTop ?? 0;
@@ -708,7 +728,12 @@ function ViewportCoordinateBands({
   );
 
   return (
-    <Html fullscreen zIndexRange={[6, 6]} style={{ pointerEvents: "none" }}>
+    <Html
+      fullscreen
+      calculatePosition={calculateViewportOverlayPosition}
+      zIndexRange={[6, 6]}
+      style={{ pointerEvents: "none" }}
+    >
       <div className="map-coordinate-bands" aria-hidden="true">
         {longitudeBand("top", topBandsRef, topBandRef)}
         {longitudeBand("bottom", bottomBandsRef, bottomBandRef)}
@@ -750,6 +775,8 @@ function ViewportCoordinateLabel({
       const element =
         labelRef.current;
       if (!element) return;
+
+      camera.updateMatrixWorld();
 
       projected
         .set(...worldPosition)
@@ -910,6 +937,7 @@ function ViewportCoordinateLabel({
   return (
     <Html
       fullscreen
+      calculatePosition={calculateViewportOverlayPosition}
       zIndexRange={[7, 7]}
       style={{
         pointerEvents: "none",

@@ -76,20 +76,17 @@ function ControlIcon({ icon, active }: { icon: CircleIcon; active: boolean }) {
   if (icon === "menu") {
     return (
       <motion.svg viewBox="0 0 24 24" aria-hidden="true">
-        <motion.path
+        <path
           d={active ? "M6 6 18 18" : "M5 7 19 7"}
-          animate={{ d: active ? "M6 6 18 18" : "M5 7 19 7" }}
-          transition={iconTransition}
         />
         <motion.path
           d="M5 12 19 12"
+          initial={{ opacity: 1, pathLength: 1 }}
           animate={{ opacity: active ? 0 : 1, pathLength: active ? 0 : 1 }}
           transition={{ duration: 0.2 }}
         />
-        <motion.path
+        <path
           d={active ? "M18 6 6 18" : "M5 17 19 17"}
-          animate={{ d: active ? "M18 6 6 18" : "M5 17 19 17" }}
-          transition={iconTransition}
         />
       </motion.svg>
     );
@@ -98,15 +95,11 @@ function ControlIcon({ icon, active }: { icon: CircleIcon; active: boolean }) {
   if (icon === "info") {
     return (
       <motion.svg viewBox="0 0 24 24" aria-hidden="true">
-        <motion.path
+        <path
           d={active ? "M6 6 18 18" : "M12 10 12 18"}
-          animate={{ d: active ? "M6 6 18 18" : "M12 10 12 18" }}
-          transition={iconTransition}
         />
-        <motion.path
+        <path
           d={active ? "M18 6 6 18" : "M12 6 12.01 6"}
-          animate={{ d: active ? "M18 6 6 18" : "M12 6 12.01 6" }}
-          transition={iconTransition}
         />
       </motion.svg>
     );

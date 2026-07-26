@@ -1,9 +1,19 @@
 "use client";
 
 import { Html } from "@react-three/drei";
-import { useLoader } from "@react-three/fiber";
-import { useMemo } from "react";
-import { TextureLoader } from "three";
+import {
+  useFrame,
+  useLoader,
+} from "@react-three/fiber";
+import {
+  useMemo,
+  useRef,
+} from "react";
+import {
+  MathUtils,
+  TextureLoader,
+  Vector3,
+} from "three";
 
 import {
   geographicPointToPlane,
@@ -34,6 +44,10 @@ export function MapFeatureMarker({
   staticMode: boolean;
   onSelect: (feature: MapFeature) => void;
 }) {
+  const markerRef =
+    useRef<HTMLButtonElement>(null);
+  const projectedPosition =
+    useMemo(() => new Vector3(), []);
   const [x, , z] =
     geographicPointToPlane(
       feature.position,
@@ -77,12 +91,45 @@ export function MapFeatureMarker({
       MARKER_GROUND_OFFSET_KM /
       geometry.kmPerPlaneUnit
     ) * exaggeration;
+  const worldY =
+    terrainElevation + groundOffset;
+
+  useFrame(({ camera, size }) => {
+    const marker = markerRef.current;
+    if (!marker) return;
+
+    camera.updateMatrixWorld();
+    projectedPosition
+      .set(x, worldY, z)
+      .project(camera);
+
+    const screenX =
+      (projectedPosition.x * 0.5 + 0.5) *
+      size.width;
+    const screenY =
+      (-projectedPosition.y * 0.5 + 0.5) *
+      size.height;
+    const frameDepth = MathUtils.clamp(
+      Math.min(size.width, size.height) * 0.054,
+      38,
+      58,
+    );
+    const atlasInset = frameDepth + 10;
+
+    marker.hidden =
+      screenX < atlasInset ||
+      screenX > size.width - atlasInset ||
+      screenY < atlasInset ||
+      screenY > size.height - atlasInset ||
+      projectedPosition.z < -1 ||
+      projectedPosition.z > 1;
+  });
 
   return (
     <group
       position={[
         x,
-        terrainElevation + groundOffset,
+        worldY,
         z,
       ]}
     >
@@ -90,9 +137,10 @@ export function MapFeatureMarker({
         center
         distanceFactor={7}
         transform={false}
-        zIndexRange={[30, 20]}
+        zIndexRange={[5, 5]}
       >
         <button
+          ref={markerRef}
           className={
             `map-feature-marker-control is-${feature.kind}${staticMode ? " is-static" : " is-pin"}${selected ? " is-selected" : ""}`
           }

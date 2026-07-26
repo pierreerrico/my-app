@@ -267,11 +267,15 @@
 
 @media (min-width: 1281px) {
   .nation-lore-page.is-menu-pinned .sidebar-panel--left,
-  .nation-lore-page.is-info-pinned .sidebar-panel--right {
+  .nation-lore-page.is-info-pinned .nation-atlas-sidebar {
     z-index: 20;
     visibility: visible;
     transform: translateX(0);
     pointer-events: auto;
+  }
+
+  .nation-lore-page.is-info-pinned .nation-atlas-sidebar-content {
+    opacity: 1;
   }
 
   /*

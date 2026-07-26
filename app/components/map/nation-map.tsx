@@ -7,9 +7,8 @@ import {
   useRef,
   useState,
   type TouchEvent,
-  type WheelEvent,
 } from "react";
-import { PCFSoftShadowMap } from "three";
+import { PCFShadowMap } from "three";
 import type {
   MapFeature,
   NationMapConfig,
@@ -33,7 +32,6 @@ export default function NationMap({ config }: { config: NationMapConfig }) {
   const geometry = useMemo(() => deriveMapGeometry(config), [config]);
   const [zoomLevel, setZoomLevel] = useState(0);
   const [azimuth, setAzimuth] = useState(0);
-  const [staticViewAligned, setStaticViewAligned] = useState(true);
   const [projectedMapRect, setProjectedMapRect] =
     useState<ProjectedMapRect>({
       left: 0,
@@ -58,6 +56,7 @@ export default function NationMap({ config }: { config: NationMapConfig }) {
   const mapRef = useRef<HTMLDivElement>(null);
   const pinchDistanceRef = useRef<number | null>(null);
   const zoomLevelRef = useRef(0);
+  const staticViewAlignedRef = useRef(true);
 
   function commitZoomLevel(level: number) {
     const nextLevel = Math.min(2, Math.max(0, level));
@@ -169,7 +168,7 @@ export default function NationMap({ config }: { config: NationMapConfig }) {
     }
 
     if (
-      !staticViewAligned &&
+      !staticViewAlignedRef.current &&
       nextLevel <= FREE_VIEW_MIN_ZOOM
     ) {
       commitZoomLevel(FREE_VIEW_MIN_ZOOM);
@@ -180,11 +179,63 @@ export default function NationMap({ config }: { config: NationMapConfig }) {
     commitZoomLevel(nextLevel);
   }
 
-  function handleWheel(event: WheelEvent<HTMLDivElement>) {
-    event.preventDefault();
-    const unit = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? 120 : 1;
-    changeZoom(-event.deltaY * unit * 0.0025);
-  }
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+
+    const handleWheel = (
+      event: globalThis.WheelEvent,
+    ) => {
+      event.preventDefault();
+
+      const unit =
+        event.deltaMode === 1
+          ? 16
+          : event.deltaMode === 2
+            ? 120
+            : 1;
+      const amount =
+        -event.deltaY * unit * 0.0025;
+      const currentLevel =
+        zoomLevelRef.current;
+      const nextLevel = Math.min(
+        2,
+        Math.max(
+          0,
+          currentLevel + amount,
+        ),
+      );
+
+      if (
+        amount < 0 &&
+        !staticViewAlignedRef.current &&
+        nextLevel <= FREE_VIEW_MIN_ZOOM
+      ) {
+        commitZoomLevel(
+          FREE_VIEW_MIN_ZOOM,
+        );
+        setNorthStepSignal(
+          (value) => value + 1,
+        );
+        return;
+      }
+
+      commitZoomLevel(nextLevel);
+    };
+
+    map.addEventListener(
+      "wheel",
+      handleWheel,
+      { passive: false },
+    );
+
+    return () => {
+      map.removeEventListener(
+        "wheel",
+        handleWheel,
+      );
+    };
+  }, []);
 
   function handleTouchStart(event: TouchEvent<HTMLDivElement>) {
     pinchDistanceRef.current =
@@ -205,7 +256,6 @@ export default function NationMap({ config }: { config: NationMapConfig }) {
     <div
       ref={mapRef}
       className={`interactive-map zoom-level-${visualZoomLevel}`}
-      onWheel={handleWheel}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={() => {
@@ -221,7 +271,7 @@ export default function NationMap({ config }: { config: NationMapConfig }) {
           shadows={
             performance.shadowMapSize > 0
               ? {
-                  type: PCFSoftShadowMap,
+                  type: PCFShadowMap,
                 }
               : false
           }
@@ -249,7 +299,12 @@ export default function NationMap({ config }: { config: NationMapConfig }) {
             geometry={geometry}
             zoomLevel={zoomLevel}
             onAzimuthChange={setAzimuth}
-            onStaticAlignmentChange={setStaticViewAligned}
+            onStaticAlignmentChange={(
+              aligned,
+            ) => {
+              staticViewAlignedRef.current =
+                aligned;
+            }}
             resetNorthSignal={resetNorthSignal}
             northStepSignal={northStepSignal}
             performance={performance}
