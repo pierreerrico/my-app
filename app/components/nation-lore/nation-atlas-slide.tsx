@@ -46,6 +46,7 @@ export function NationAtlasInfo({
         variant="info"
         label="la scheda nazionale"
         className="nation-atlas-sidebar"
+        scrollbarClassName="scrollbar-burgundy-gold"
         onClose={() => onOpenChange(false)}
       >
         <div className="nation-atlas-sidebar-content">

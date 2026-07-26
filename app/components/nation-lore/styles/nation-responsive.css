@@ -107,9 +107,19 @@
     max-width: none;
     height: 100dvh;
     min-height: 0;
+    padding: 0;
+    border: none;
+  }
+
+  .nation-lore-page .sidebar-panel .sidebar-scroll-area {
+    --scrollbar-track-top: calc(72px + env(safe-area-inset-top));
+    --scrollbar-track-bottom: calc(34px + env(safe-area-inset-bottom));
+    --scrollbar-track-inline-end: max(10px, env(safe-area-inset-right));
+  }
+
+  .nation-lore-page .sidebar-panel .sidebar-scroll-viewport {
     padding:
       calc(72px + env(safe-area-inset-top)) max(24px, env(safe-area-inset-right)) calc(34px + env(safe-area-inset-bottom)) max(24px, env(safe-area-inset-left));
-    border: none;
   }
 
   .nation-lore-page .sidebar-panel--left {
@@ -633,6 +643,15 @@
   .nation-lore-page .sidebar-panel {
     width: min(52vw, 420px);
     max-width: 420px;
+  }
+
+  .nation-lore-page .sidebar-panel .sidebar-scroll-area {
+    --scrollbar-track-top: 68px;
+    --scrollbar-track-bottom: 28px;
+    --scrollbar-track-inline-end: 10px;
+  }
+
+  .nation-lore-page .sidebar-panel .sidebar-scroll-viewport {
     padding: 68px 28px 28px;
   }
 }
@@ -656,14 +675,23 @@
     line-height: 1.62;
   }
 
-  .nation-subchapter-scrollbar {
-    top: 18px;
-    bottom: 64px;
+  .nation-subchapter-scroll-region {
+    --scrollbar-track-top: 18px;
+    --scrollbar-track-bottom: 64px;
   }
 
   .nation-lore-page .sidebar-panel {
     width: min(38vw, 400px);
     max-width: 400px;
+  }
+
+  .nation-lore-page .sidebar-panel .sidebar-scroll-area {
+    --scrollbar-track-top: 58px;
+    --scrollbar-track-bottom: 24px;
+    --scrollbar-track-inline-end: 10px;
+  }
+
+  .nation-lore-page .sidebar-panel .sidebar-scroll-viewport {
     padding: 58px 28px 24px;
   }
 }
@@ -747,9 +775,9 @@
     font-size: 4.3vw;
   }
 
-  .nation-subchapter-scrollbar {
-    right: -5px;
-    bottom: 12px;
+  .nation-subchapter-scroll-region {
+    --scrollbar-track-inline-end: -5px;
+    --scrollbar-track-bottom: 12px;
   }
 
   /*
@@ -808,16 +836,24 @@
     line-height: 1.52;
   }
 
-  .nation-subchapter-scrollbar {
-    top: 14px;
-    bottom: 50px;
+  .nation-subchapter-scroll-region {
+    --scrollbar-track-top: 14px;
+    --scrollbar-track-bottom: 50px;
   }
 
   .nation-lore-page .sidebar-panel {
     width: min(58vw, 430px);
     max-width: 430px;
+  }
+
+  .nation-lore-page .sidebar-panel .sidebar-scroll-area {
+    --scrollbar-track-top: 48px;
+    --scrollbar-track-bottom: 18px;
+    --scrollbar-track-inline-end: 8px;
+  }
+
+  .nation-lore-page .sidebar-panel .sidebar-scroll-viewport {
     padding: 48px 24px 18px;
-    overflow-y: auto;
   }
 
   .nation-lore-page .sidebar-panel header {

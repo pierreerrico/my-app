@@ -27,6 +27,7 @@ export function EncyclopediaDrawer({
       variant="menu"
       label="l’indice dell’enciclopedia"
       className="nation-drawer"
+      scrollbarClassName="scrollbar-burgundy-gold"
       onClose={onClose}
     >
         <header>

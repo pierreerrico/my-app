@@ -1,0 +1,145 @@
+/* Shared custom scroll area. Native scrolling remains responsible for input. */
+.scroll-area {
+  --scrollbar-width: 9px;
+  --scrollbar-track-top: 0px;
+  --scrollbar-track-bottom: 0px;
+  --scrollbar-track-inline-end: 0px;
+  --scrollbar-track-color: color-mix(in srgb, var(--gold, #a58549) 36%, transparent);
+  --scrollbar-border-color: var(--gold, #a58549);
+  --scrollbar-dot-color: var(--gold-bright, #d4b875);
+  --scrollbar-thumb-edge: #091f23;
+  --scrollbar-thumb-center: #183c3a;
+  --scrollbar-outline-color: rgba(5, 18, 20, .65);
+
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+}
+
+.scroll-area__viewport {
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.scroll-area__viewport::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+.scroll-area__scrollbar {
+  position: absolute;
+  z-index: 2;
+  top: var(--scrollbar-track-top);
+  right: var(--scrollbar-track-inline-end);
+  bottom: var(--scrollbar-track-bottom);
+  width: var(--scrollbar-width);
+  border-radius: 999px;
+  background:
+    linear-gradient(
+      90deg,
+      transparent calc(50% - .5px),
+      var(--scrollbar-track-color) calc(50% - .5px) calc(50% + .5px),
+      transparent calc(50% + .5px)
+    );
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .25s ease;
+}
+
+.scroll-area__scrollbar.is-visible {
+  opacity: 1;
+}
+
+.scroll-area__thumb {
+  position: absolute;
+  inset: 0 auto auto 0;
+  width: var(--scrollbar-width);
+  min-height: 46px;
+  border: 1px solid var(--scrollbar-border-color);
+  border-radius: 999px;
+  background:
+    radial-gradient(
+      circle at 50% 7px,
+      var(--scrollbar-dot-color) 0 1.2px,
+      transparent 1.8px
+    ),
+    radial-gradient(
+      circle at 50% calc(100% - 7px),
+      var(--scrollbar-dot-color) 0 1.2px,
+      transparent 1.8px
+    ),
+    linear-gradient(
+      90deg,
+      var(--scrollbar-thumb-edge),
+      var(--scrollbar-thumb-center),
+      var(--scrollbar-thumb-edge)
+    );
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--scrollbar-dot-color) 14%, transparent),
+    0 0 0 1px var(--scrollbar-outline-color);
+  will-change: transform;
+}
+
+/* Dark green thumb with gold details: articles and dark reading surfaces. */
+.scrollbar-green-gold {
+  --scrollbar-track-color:
+    color-mix(
+      in srgb,
+      var(--nation-gold, var(--gold, #a58549)) 36%,
+      transparent
+    );
+  --scrollbar-border-color: var(--nation-gold, var(--gold, #a58549));
+  --scrollbar-dot-color:
+    var(--nation-gold-bright, var(--gold-bright, #d4b875));
+  --scrollbar-thumb-edge:
+    var(--nation-green-deep, var(--green-deep, #091f23));
+  --scrollbar-thumb-center:
+    var(--nation-green-soft, var(--green-soft, #183c3a));
+  --scrollbar-outline-color:
+    color-mix(
+      in srgb,
+      var(--nation-green-deep, var(--green-deep, #091f23)) 72%,
+      transparent
+    );
+}
+
+/* Burgundy thumb with gold details: ivory drawers and information panels. */
+.scrollbar-burgundy-gold {
+  --scrollbar-track-color:
+    color-mix(
+      in srgb,
+      var(--nation-gold, var(--gold, #a58549)) 42%,
+      transparent
+    );
+  --scrollbar-border-color:
+    var(--nation-gold-strong, var(--gold, #a58549));
+  --scrollbar-dot-color:
+    var(--nation-gold-bright, var(--gold-bright, #d4b875));
+  --scrollbar-thumb-edge:
+    var(--nation-burgundy, var(--burgundy, #762d2a));
+  --scrollbar-thumb-center:
+    color-mix(
+      in srgb,
+      var(--nation-burgundy, var(--burgundy, #762d2a)) 76%,
+      var(--nation-gold, var(--gold, #a58549))
+    );
+  --scrollbar-outline-color:
+    color-mix(
+      in srgb,
+      var(--nation-burgundy, var(--burgundy, #762d2a)) 58%,
+      transparent
+    );
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scroll-area__scrollbar {
+    transition-duration: .01ms;
+  }
+}

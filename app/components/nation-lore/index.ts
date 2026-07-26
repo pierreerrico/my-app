@@ -17,3 +17,6 @@ export type {
   NavigationIconName,
   NavigationItem,
 } from "./nation-lore-types";
+
+export { ScrollArea } from "../scroll-area/scroll-area";
+export type { ScrollAreaProps } from "../scroll-area/scroll-area";

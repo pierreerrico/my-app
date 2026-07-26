@@ -1,9 +1,5 @@
 /* Content specific to the encyclopedia menu. Sidebar mechanics are elsewhere. */
 
-.nation-drawer {
-  overflow-y: auto;
-}
-
 .nation-drawer header {
   display: flex;
   align-items: center;

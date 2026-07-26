@@ -83,6 +83,7 @@ export function MapFeatureSidebar({
           : "le informazioni sul luogo"
       }
       className="map-feature-sidebar"
+      scrollbarClassName="scrollbar-burgundy-gold"
       onClose={onClose}
     >
       {feature && (

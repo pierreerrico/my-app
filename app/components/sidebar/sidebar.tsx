@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { ScrollArea } from "../scroll-area/scroll-area";
 import "./sidebar.css";
 
 export type SidebarSide = "left" | "right";
@@ -12,6 +13,7 @@ export interface SidebarProps {
   label: string;
   variant?: string;
   className?: string;
+  scrollbarClassName?: string;
   children: ReactNode;
   onClose(): void;
 }
@@ -24,6 +26,7 @@ export function Sidebar({
   label,
   variant = "default",
   className = "",
+  scrollbarClassName = "",
   children,
   onClose,
 }: SidebarProps) {
@@ -53,7 +56,14 @@ export function Sidebar({
         aria-label={label}
         aria-hidden={!open}
       >
-        {children}
+        <ScrollArea
+          className={["sidebar-scroll-area", scrollbarClassName]
+            .filter(Boolean)
+            .join(" ")}
+          viewportClassName="sidebar-scroll-viewport"
+        >
+          {children}
+        </ScrollArea>
       </aside>
     </>
   );

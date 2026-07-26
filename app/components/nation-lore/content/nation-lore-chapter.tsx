@@ -3,17 +3,16 @@
 import {
   Children,
   isValidElement,
-  useEffect,
   useRef,
   useState,
   type TouchEvent,
-  type UIEvent,
   type WheelEvent,
   type ReactNode,
 } from "react";
 import type SwiperCore from "swiper";
 import { Keyboard, Mousewheel } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
+import { ScrollArea } from "../../scroll-area/scroll-area";
 
 interface LoreSection {
   title: string;
@@ -233,62 +232,18 @@ function ScrollableSubchapterContent({
   onTouchStart(event: TouchEvent<HTMLDivElement>): void;
   onTouchMove(event: TouchEvent<HTMLDivElement>): void;
 }) {
-  const contentRef = useRef<HTMLDivElement>(null);
-  const [thumb, setThumb] = useState({ top: 0, height: 0, visible: false });
-
-  const syncScrollbar = (content: HTMLDivElement) => {
-    const viewport = content.clientHeight;
-    const scrollable = content.scrollHeight - viewport;
-    const trackHeight =
-      content.parentElement?.querySelector<HTMLElement>(
-        ".nation-subchapter-scrollbar",
-      )?.clientHeight ?? viewport;
-    if (scrollable <= 1) {
-      setThumb({ top: 0, height: trackHeight, visible: false });
-      return;
-    }
-
-    const height = Math.max(
-      46,
-      (trackHeight * viewport) / content.scrollHeight,
-    );
-    const top = (content.scrollTop / scrollable) * (trackHeight - height);
-    setThumb({ top, height, visible: true });
-  };
-
-  useEffect(() => {
-    const content = contentRef.current;
-    if (!content) return;
-    syncScrollbar(content);
-    const observer = new ResizeObserver(() => syncScrollbar(content));
-    observer.observe(content);
-    Array.from(content.children).forEach((child) => observer.observe(child));
-    return () => observer.disconnect();
-  }, []);
-
-  const handleScroll = (event: UIEvent<HTMLDivElement>) => {
-    syncScrollbar(event.currentTarget);
-  };
-
   return (
-    <div className="nation-subchapter-scroll-region">
-      <div
-        ref={contentRef}
-        className="nation-subchapter-content swiper-no-swiping swiper-no-mousewheel"
-        onScroll={handleScroll}
-        onWheel={onWheel}
-        onTouchStart={onTouchStart}
-        onTouchMove={onTouchMove}
-      >
-        {children}
-      </div>
-      <span
-        className={`nation-subchapter-scrollbar${thumb.visible ? " is-visible" : ""}`}
-        aria-hidden="true"
-      >
-        <i style={{ height: thumb.height, transform: `translateY(${thumb.top}px)` }} />
-      </span>
-    </div>
+    <ScrollArea
+      className="nation-subchapter-scroll-region scrollbar-green-gold"
+      viewportClassName="nation-subchapter-content swiper-no-swiping swiper-no-mousewheel"
+      viewportProps={{
+        onWheel,
+        onTouchStart,
+        onTouchMove,
+      }}
+    >
+      {children}
+    </ScrollArea>
   );
 }
 
