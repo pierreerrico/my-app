@@ -1,6 +1,12 @@
 "use client";
 
-import { useCallback, useRef, useState, type CSSProperties } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+} from "react";
 import "swiper/css";
 import "swiper/css/pagination";
 import type { NationLorePageProps } from "./nation-lore-types";
@@ -52,6 +58,18 @@ export default function NationLorePage({
   });
 
   const atlasActive = activeSlide === 0;
+
+  useEffect(() => {
+    const themeColor =
+      atlasActive
+        ? "#b5a88f"
+        : theme?.primary ?? "#102f30";
+    const meta = document.querySelector<HTMLMetaElement>(
+      'meta[name="theme-color"]',
+    );
+    meta?.setAttribute("content", themeColor);
+  }, [atlasActive, theme?.primary]);
+
   const menuPinned = desktopLayout.pinMenu && !atlasActive;
   const infoPinned = desktopLayout.pinInfo && !atlasActive;
   const menuVisible = menuPinned || menuOpen;

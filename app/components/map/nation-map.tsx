@@ -63,7 +63,10 @@ export default function NationMap({ config }: { config: NationMapConfig }) {
   const [atlasActive, setAtlasActive] =
     useState(true);
   const mapRef = useRef<HTMLDivElement>(null);
-  const pinchDistanceRef = useRef<number | null>(null);
+  const pinchRef = useRef<{
+    distance: number;
+    zoom: number;
+  } | null>(null);
   const zoomLevelRef = useRef(0);
   const staticViewAlignedRef = useRef(true);
 
@@ -272,16 +275,35 @@ export default function NationMap({ config }: { config: NationMapConfig }) {
   }, []);
 
   function handleTouchStart(event: TouchEvent<HTMLDivElement>) {
-    pinchDistanceRef.current =
-      event.touches.length === 2 ? touchDistance(event.touches) : null;
+    if (event.touches.length !== 2) {
+      pinchRef.current = null;
+      return;
+    }
+
+    pinchRef.current = {
+      distance: touchDistance(event.touches),
+      zoom: zoomLevelRef.current,
+    };
   }
 
   function handleTouchMove(event: TouchEvent<HTMLDivElement>) {
-    if (event.touches.length !== 2 || pinchDistanceRef.current === null) return;
+    if (
+      event.touches.length !== 2 ||
+      pinchRef.current === null
+    ) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
     const distance = touchDistance(event.touches);
-    const previousDistance = pinchDistanceRef.current;
-    pinchDistanceRef.current = distance;
-    changeZoom((distance - previousDistance) * 0.008);
+    const distanceDelta =
+      distance - pinchRef.current.distance;
+
+    commitZoomLevel(
+      pinchRef.current.zoom +
+        distanceDelta / 140,
+    );
   }
 
   const visualZoomLevel = zoomLevel === 0 ? 0 : zoomLevel < 1.15 ? 1 : 2;
@@ -293,7 +315,10 @@ export default function NationMap({ config }: { config: NationMapConfig }) {
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={() => {
-        pinchDistanceRef.current = null;
+        pinchRef.current = null;
+      }}
+      onTouchCancel={() => {
+        pinchRef.current = null;
       }}
       data-map-id={config.id}
       data-map-width-km={config.geography.mapWidthKm}

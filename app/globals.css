@@ -34,11 +34,18 @@ body:has(.nation-lore-page) {
   height: 100%;
   overflow: hidden;
   overscroll-behavior: none;
+  background-color: #102f30;
+  background-image: none;
 }
 
 body:has(.nation-lore-page) {
   position: fixed;
   inset: 0;
+}
+
+html:has(.nation-lore-page.is-atlas-active),
+body:has(.nation-lore-page.is-atlas-active) {
+  background-color: #b5a88f;
 }
 
 @supports (height: 100dvh) {

@@ -41,6 +41,13 @@ export function NationLoreChapter({
 }: NationLoreChapterProps) {
   const swiperRef = useRef<SwiperCore | null>(null);
   const touchStartYRef = useRef<number | null>(null);
+  const touchBoundaryRef = useRef<{
+    top: boolean;
+    bottom: boolean;
+  }>({
+    top: false,
+    bottom: false,
+  });
   const touchNavigationUsedRef = useRef(false);
   const wheelLockedRef = useRef(false);
   const wheelBoundaryDistanceRef = useRef(0);
@@ -108,6 +115,13 @@ export function NationLoreChapter({
   const handleContentTouchStart = (event: TouchEvent<HTMLDivElement>) => {
     touchStartYRef.current = event.touches[0]?.clientY ?? null;
     touchNavigationUsedRef.current = false;
+    const content = event.currentTarget;
+    touchBoundaryRef.current = {
+      top: content.scrollTop <= 1,
+      bottom:
+        content.scrollTop + content.clientHeight >=
+        content.scrollHeight - 1,
+    };
   };
 
   const handleContentTouchMove = (event: TouchEvent<HTMLDivElement>) => {
@@ -123,13 +137,19 @@ export function NationLoreChapter({
 
     const content = event.currentTarget;
     const delta = startY - currentY;
-    const atTop = content.scrollTop <= 1;
-    const atBottom =
-      content.scrollTop + content.clientHeight >= content.scrollHeight - 1;
+    /*
+     * Cambiamo sezione soltanto se il gesto è iniziato al bordo. Se l'utente
+     * raggiunge il fondo durante uno scroll normale, il medesimo gesto resta
+     * assegnato al testo e non si trasforma improvvisamente in navigazione.
+     */
+    const startedAtTop =
+      touchBoundaryRef.current.top;
+    const startedAtBottom =
+      touchBoundaryRef.current.bottom;
     const direction =
-      delta > 90 && atBottom
+      delta > 90 && startedAtBottom
         ? "next"
-        : delta < -90 && atTop
+        : delta < -90 && startedAtTop
           ? "previous"
           : null;
 
