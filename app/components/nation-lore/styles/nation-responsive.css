@@ -915,3 +915,21 @@
       color-mix(in srgb, var(--nation-burgundy) 48%, var(--nation-gold));
   }
 }
+
+/*
+ * On mobile lore slides the top controls rest on the opaque ivory masthead,
+ * so they inherit the burgundy/ivory palette. The Atlas keeps the default
+ * green-frame palette because its masthead is translated out of view.
+ */
+@media (max-width: 767px) {
+  .nation-lore-page:not(.is-atlas-active) .nation-menu-control,
+  .nation-lore-page:not(.is-atlas-active) .nation-atlas-toggle,
+  .nation-lore-page:not(.is-atlas-active) .nation-slide-arrow.is-previous {
+    --circle-background: var(--nation-burgundy);
+    --circle-icon: var(--nation-ivory);
+    --circle-icon-hover: var(--nation-gold-bright);
+    --circle-ring: var(--nation-gold-bright);
+    --circle-track:
+      color-mix(in srgb, var(--nation-burgundy) 48%, var(--nation-gold));
+  }
+}
