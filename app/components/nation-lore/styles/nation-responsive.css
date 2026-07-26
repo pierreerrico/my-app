@@ -33,11 +33,22 @@
   }
 
   .nation-lore-page {
-    /* fallback */
-    height: 100vh;
+    /*
+     * L'article-page sticky segue la visual viewport, mentre lo scroll del
+     * documento fa ritrarre la toolbar di Safari.
+     */
+    height: 100% !important;
+  }
 
-    /* estensione fino alla viewport massima del telefono */
-    height: 100lvh !important;
+  .nation-subchapter-content {
+    /*
+     * Lo scroll è posseduto dal documento e sincronizzato via scrollTop.
+     * overflow:hidden conserva il clipping senza creare uno scroller mobile
+     * annidato, che impedirebbe a Safari di ritrarre la toolbar.
+     */
+    overflow-y: hidden;
+    overscroll-behavior-y: auto;
+    -webkit-overflow-scrolling: auto;
   }
 }
 
@@ -190,7 +201,7 @@
     padding-right: 18px;
     padding-bottom: calc(104px + env(safe-area-inset-bottom));
     touch-action: pan-y;
-    overscroll-behavior: contain;
+    overscroll-behavior-y: auto;
   }
 
   .nation-subchapter-scrollbar {

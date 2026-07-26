@@ -17,6 +17,7 @@ import { NationMobileNavigation } from "./components/nation-mobile-navigation";
 import { NationSectionNavigation } from "./components/nation-section-navigation";
 import { NationPageControls } from "./components/nation-page-controls";
 import { useDesktopLayout } from "./hooks/use-desktop-layout";
+import { useMobileDocumentScroll } from "./hooks/use-mobile-document-scroll";
 import { useNationLoreSwiper } from "./hooks/use-nation-lore-swiper";
 import "./nation-lore-page.css";
 
@@ -37,6 +38,7 @@ export default function NationLorePage({
   const [infoOpen, setInfoOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const desktopLayout = useDesktopLayout();
+  useMobileDocumentScroll(rootRef);
 
   const closeTransientMenu = useCallback(() => setMenuOpen(false), []);
   const leaveAtlas = useCallback(() => {

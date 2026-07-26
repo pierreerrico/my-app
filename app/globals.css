@@ -55,6 +55,42 @@ body:has(.nation-lore-page) {
   }
 }
 
+/*
+ * Safari ritrae la toolbar soltanto quando scorre il documento principale.
+ * Su telefono l'articolo resta sticky nella visual viewport, mentre il body
+ * espone una distanza di scroll pari al testo della sottosezione attiva.
+ */
+@media (max-width: 767px) and (pointer: coarse) {
+  html:has(.nation-lore-page),
+  body:has(.nation-lore-page) {
+    height: auto;
+    min-height: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior-x: none;
+    overscroll-behavior-y: auto;
+  }
+
+  body:has(.nation-lore-page) {
+    position: relative;
+    inset: auto;
+    min-height:
+      calc(
+        100lvh +
+        var(--nation-document-scroll-range, 0px) +
+        1px
+      );
+  }
+
+  body:has(.nation-lore-page) .article-page {
+    position: sticky;
+    top: 0;
+    height: 100dvh;
+    overflow: hidden;
+    overscroll-behavior: none;
+  }
+}
+
 body {
   margin: 0;
   background: var(--paper);
