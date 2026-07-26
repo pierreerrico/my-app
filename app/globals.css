@@ -25,9 +25,8 @@ html {
 
 /*
  * Le voci nazionali sono applicazioni a viewport singola: su iOS una
- * superficie alta 100lvh può estendersi dietro la toolbar di Safari, ma non
- * deve per questo rendere scrollabile il documento. Lo scroll appartiene
- * esclusivamente ai pannelli di contenuto interni.
+ * superficie a viewport piena non deve rendere scrollabile il documento.
+ * Lo scroll appartiene esclusivamente ai pannelli di contenuto interni.
  */
 html:has(.nation-lore-page),
 body:has(.nation-lore-page) {
@@ -42,10 +41,10 @@ body:has(.nation-lore-page) {
   inset: 0;
 }
 
-@supports (height: 100lvh) {
+@supports (height: 100dvh) {
   html:has(.nation-lore-page),
   body:has(.nation-lore-page) {
-    height: 100lvh;
+    height: 100dvh;
   }
 }
 
@@ -5048,9 +5047,9 @@ footer p {
   overscroll-behavior: none;
 }
 
-@supports (height: 100lvh) {
+@supports (height: 100dvh) {
   .article-page {
-    height: 100lvh;
+    height: 100dvh;
   }
 }
 

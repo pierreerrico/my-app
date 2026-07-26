@@ -60,6 +60,8 @@ export default function NationMap({ config }: { config: NationMapConfig }) {
   );
   const [pageVisible, setPageVisible] =
     useState(true);
+  const [atlasActive, setAtlasActive] =
+    useState(true);
   const mapRef = useRef<HTMLDivElement>(null);
   const pinchDistanceRef = useRef<number | null>(null);
   const zoomLevelRef = useRef(0);
@@ -112,7 +114,13 @@ export default function NationMap({ config }: { config: NationMapConfig }) {
 
     if (!lorePage) return;
 
-    const closeWhenAtlasInfoOpens = () => {
+    const syncLorePageState = () => {
+      setAtlasActive(
+        lorePage.classList.contains(
+          "is-atlas-active",
+        ),
+      );
+
       if (
         lorePage.classList.contains(
           "is-info-open",
@@ -122,7 +130,7 @@ export default function NationMap({ config }: { config: NationMapConfig }) {
       }
     };
     const observer = new MutationObserver(
-      closeWhenAtlasInfoOpens,
+      syncLorePageState,
     );
 
     observer.observe(lorePage, {
@@ -306,8 +314,11 @@ export default function NationMap({ config }: { config: NationMapConfig }) {
             performance.maxDpr,
           ]}
           frameloop={
-            performance.pauseWhenHidden &&
-            !pageVisible
+            (
+              performance.pauseWhenHidden &&
+              !pageVisible
+            ) ||
+            !atlasActive
               ? "never"
               : "always"
           }
