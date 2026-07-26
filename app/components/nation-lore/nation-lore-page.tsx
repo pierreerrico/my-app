@@ -2,7 +2,6 @@
 
 import {
   useCallback,
-  useEffect,
   useRef,
   useState,
   type CSSProperties,
@@ -17,7 +16,6 @@ import { NationMobileNavigation } from "./components/nation-mobile-navigation";
 import { NationSectionNavigation } from "./components/nation-section-navigation";
 import { NationPageControls } from "./components/nation-page-controls";
 import { useDesktopLayout } from "./hooks/use-desktop-layout";
-import { useMobileDocumentScroll } from "./hooks/use-mobile-document-scroll";
 import { useNationLoreSwiper } from "./hooks/use-nation-lore-swiper";
 import "./nation-lore-page.css";
 
@@ -38,7 +36,6 @@ export default function NationLorePage({
   const [infoOpen, setInfoOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const desktopLayout = useDesktopLayout();
-  useMobileDocumentScroll(rootRef);
 
   const closeTransientMenu = useCallback(() => setMenuOpen(false), []);
   const leaveAtlas = useCallback(() => {
@@ -60,17 +57,6 @@ export default function NationLorePage({
   });
 
   const atlasActive = activeSlide === 0;
-
-  useEffect(() => {
-    const themeColor =
-      atlasActive
-        ? "#b5a88f"
-        : theme?.primary ?? "#102f30";
-    const meta = document.querySelector<HTMLMetaElement>(
-      'meta[name="theme-color"]',
-    );
-    meta?.setAttribute("content", themeColor);
-  }, [atlasActive, theme?.primary]);
 
   const menuPinned = desktopLayout.pinMenu && !atlasActive;
   const infoPinned = desktopLayout.pinInfo && !atlasActive;

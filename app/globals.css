@@ -56,38 +56,32 @@ body:has(.nation-lore-page) {
 }
 
 /*
- * Safari ritrae la toolbar soltanto quando scorre il documento principale.
- * Su telefono l'articolo resta sticky nella visual viewport, mentre il body
- * espone una distanza di scroll pari al testo della sottosezione attiva.
+ * Edge-to-edge mobile: tutti gli antenati della pagina nazionale devono usare
+ * la large viewport. Impostarla soltanto su .nation-lore-page non basta,
+ * perché body e .article-page a 100dvh ne taglierebbero la parte inferiore.
+ *
+ * Il body resta non scrollabile: lo scroll continua ad appartenere al testo,
+ * quindi non cambiano inerzia, Swiper e navigazione fra sottocapitoli.
  */
 @media (max-width: 767px) and (pointer: coarse) {
   html:has(.nation-lore-page),
   body:has(.nation-lore-page) {
-    height: auto;
-    min-height: 100%;
-    overflow-x: hidden;
-    overflow-y: auto;
-    overscroll-behavior-x: none;
-    overscroll-behavior-y: auto;
+    height: 100vh;
+    min-height: 100vh;
+    height: 100lvh;
+    min-height: 100lvh;
   }
 
   body:has(.nation-lore-page) {
     position: relative;
     inset: auto;
-    min-height:
-      calc(
-        100lvh +
-        var(--nation-document-scroll-range, 0px) +
-        1px
-      );
   }
 
   body:has(.nation-lore-page) .article-page {
-    position: sticky;
-    top: 0;
-    height: 100dvh;
-    overflow: hidden;
-    overscroll-behavior: none;
+    height: 100vh !important;
+    min-height: 100vh;
+    height: 100lvh !important;
+    min-height: 100lvh;
   }
 }
 
@@ -107,6 +101,15 @@ body::before {
   z-index: 100;
   pointer-events: none;
   box-shadow: inset 0 0 70px rgba(63, 42, 25, .08);
+}
+
+/*
+ * La voce nazionale possiede già la propria vignettatura. Evitiamo che il
+ * vecchio overlay globale fixed venga interpretato da Safari come superficie
+ * da usare per la tinta della toolbar Liquid Glass.
+ */
+body:has(.nation-lore-page)::before {
+  display: none;
 }
 
 a {
