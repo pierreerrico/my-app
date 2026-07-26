@@ -167,6 +167,13 @@
       calc(116px + env(safe-area-inset-top))
       16px
       38px;
+    clip-path:
+      inset(
+        calc(100px + env(safe-area-inset-top))
+        4px
+        max(4px, env(safe-area-inset-bottom))
+        4px
+      );
   }
 
   .nation-subchapter header {
@@ -194,14 +201,14 @@
   .nation-subchapter-content {
     padding-right: 26px;
     padding-left: 10px;
-    padding-bottom: calc(104px + env(safe-area-inset-bottom));
+    padding-bottom: 0;
     touch-action: pan-y;
     overscroll-behavior: contain;
   }
 
   .nation-subchapter-scrollbar {
-    right: -8px;
-    bottom: calc(104px + env(safe-area-inset-bottom));
+    right: -5px;
+    bottom: 0;
   }
 
   /*
