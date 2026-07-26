@@ -111,6 +111,41 @@ export function MapFeatureMarker({
               {feature.name}
             </span>
           )}
+          {!staticMode && (
+            <svg
+              className="map-feature-pin-shape"
+              viewBox="0 0 30 38"
+              aria-hidden="true"
+            >
+              <defs>
+                <linearGradient
+                  id={`map-pin-ivory-${feature.id}`}
+                  x1="7"
+                  y1="4"
+                  x2="23"
+                  y2="34"
+                  gradientUnits="userSpaceOnUse"
+                >
+                  <stop
+                    offset="0"
+                    stopColor="#fffdf8"
+                  />
+                  <stop
+                    offset=".58"
+                    stopColor="#eee2c9"
+                  />
+                  <stop
+                    offset="1"
+                    stopColor="#d9c39d"
+                  />
+                </linearGradient>
+              </defs>
+              <path
+                fill={`url(#map-pin-ivory-${feature.id})`}
+                d="M15 37C12.9 32.8 3 23.1 3 15A12 12 0 0 1 27 15c0 8.1-9.9 17.8-12 22Z"
+              />
+            </svg>
+          )}
           <MapFeatureIcon
             kind={feature.kind}
           />

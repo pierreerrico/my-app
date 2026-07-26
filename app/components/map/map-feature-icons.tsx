@@ -14,13 +14,12 @@ function BaseIcon({ children, ...props }: IconProps) {
 const icons: Record<MapFeatureKind, (props: IconProps) => ReactNode> = {
   capital: (props) => (
     <BaseIcon {...props}>
-      <path d="M4 26h24M7 24V12l9-7 9 7v12M11 24v-7h10v7M10 11h12M16 5v6" />
-      <circle cx="16" cy="4" r="1.5" />
+      <path d="M3 27h26M6 24h20M8 13h16M6 13 16 5l10 8M10 15v9M14 15v9M18 15v9M22 15v9M16 5V2M16 2l4 1.5L16 5" />
     </BaseIcon>
   ),
   city: (props) => (
     <BaseIcon {...props}>
-      <path d="M3 27h26M6 27V12h7v15M13 27V7h8v20M21 27V15h6v12M9 16h1M9 20h1M16 11h2M16 15h2M16 19h2M24 19h1M24 23h1" />
+      <path d="M3 27h26M5 27V17l5-5 5 5v10M17 27V14l5-4 5 4v13M8 27v-6h4v6M20 18h4M20 22h4M13 13l3-5 3 5M16 8V5" />
     </BaseIcon>
   ),
   town: (props) => (

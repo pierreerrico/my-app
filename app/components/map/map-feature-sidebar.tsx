@@ -1,11 +1,24 @@
 "use client";
 
+import {
+  useEffect,
+  useState,
+} from "react";
+import {
+  createPortal,
+} from "react-dom";
 import type {
   MapFeature,
 } from "../../data/maps/types";
 import {
   MapFeatureIcon,
 } from "./map-feature-icons";
+import {
+  Sidebar,
+} from "../sidebar/sidebar";
+import {
+  CircleControl,
+} from "../nation-lore/circle-control";
 
 const FEATURE_LABELS: Record<
   MapFeature["kind"],
@@ -35,28 +48,53 @@ export function MapFeatureSidebar({
   feature: MapFeature | null;
   onClose: () => void;
 }) {
-  return (
-    <aside
-      className={
-        `map-feature-sidebar${feature ? " is-open" : ""}`
-      }
-      aria-hidden={!feature}
-      aria-label={
+  const [portalTarget, setPortalTarget] =
+    useState<Element | null>(null);
+
+  useEffect(() => {
+    const frame = requestAnimationFrame(
+      () => {
+        setPortalTarget(
+          document.querySelector(
+            ".nation-lore-page",
+          ),
+        );
+      },
+    );
+
+    return () => {
+      cancelAnimationFrame(frame);
+    };
+  }, []);
+
+  if (!portalTarget) {
+    return null;
+  }
+
+  return createPortal(
+    <Sidebar
+      id="map-feature-info"
+      open={Boolean(feature)}
+      side="right"
+      variant="feature"
+      label={
         feature
-          ? `Informazioni su ${feature.name}`
-          : "Informazioni sul luogo"
+          ? `le informazioni su ${feature.name}`
+          : "le informazioni sul luogo"
       }
+      className="map-feature-sidebar"
+      onClose={onClose}
     >
       {feature && (
-        <div className="map-feature-sidebar-content">
-          <button
-            className="nation-panel-close map-feature-sidebar-close"
+        <div className="nation-atlas-sidebar-content map-feature-sidebar-content">
+          <CircleControl
+            className="map-feature-sidebar-close"
             type="button"
+            icon="info"
+            active
             onClick={onClose}
             aria-label="Chiudi le informazioni sul luogo"
-          >
-            ×
-          </button>
+          />
 
           <header>
             <span className="map-feature-sidebar-icon">
@@ -64,10 +102,8 @@ export function MapFeatureSidebar({
                 kind={feature.kind}
               />
             </span>
-            <small>
-              {FEATURE_LABELS[feature.kind]}
-            </small>
-            <h2>{feature.name}</h2>
+            <h1>{feature.name}</h1>
+            <p>{FEATURE_LABELS[feature.kind]}</p>
           </header>
 
           <div
@@ -77,7 +113,7 @@ export function MapFeatureSidebar({
             <span />
           </div>
 
-          <dl>
+          <dl className="nation-facts">
             <div>
               <dt>Latitudine</dt>
               <dd>
@@ -110,7 +146,9 @@ export function MapFeatureSidebar({
           </dl>
 
           {feature.description && (
-            <p>{feature.description}</p>
+            <div className="nation-flavor">
+              {feature.description}
+            </div>
           )}
 
           {feature.href && (
@@ -123,7 +161,8 @@ export function MapFeatureSidebar({
           )}
         </div>
       )}
-    </aside>
+    </Sidebar>,
+    portalTarget,
   );
 }
 

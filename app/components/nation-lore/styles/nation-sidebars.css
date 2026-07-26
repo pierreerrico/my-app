@@ -35,6 +35,67 @@
     visibility 0s;
 }
 
+/*
+ * Le schede dei luoghi riusano la sidebar destra, ma quando sono aperte
+ * sostituiscono temporaneamente sia la scheda Info sia il relativo comando.
+ */
+.nation-lore-page .sidebar-panel--right.sidebar-panel--feature,
+.nation-lore-page.is-info-pinned
+  .sidebar-panel--right.sidebar-panel--feature {
+  z-index: 300;
+}
+
+.nation-lore-page .sidebar-scrim--feature {
+  z-index: 299;
+}
+
+.nation-lore-page
+  .sidebar-panel--feature
+  .map-feature-sidebar-content {
+  min-height: 100%;
+  opacity: 1;
+}
+
+.nation-lore-page
+  .sidebar-panel--feature
+  .map-feature-sidebar-close {
+  top: var(--nation-control-edge);
+  right: var(--nation-control-edge);
+  width: var(--nation-control-size);
+  height: var(--nation-control-size);
+}
+
+.nation-lore-page
+  .sidebar-panel--feature
+  .map-feature-sidebar-close {
+  --circle-gold: #b58b43;
+  --circle-secondary: #762d2a;
+  z-index: 301;
+  color: #762d2a;
+}
+
+.nation-lore-page
+  .sidebar-panel--feature
+  .map-feature-sidebar-close::after {
+  background: #f2eadb;
+  box-shadow: inset 0 0 12px rgba(118, 45, 42, .05);
+}
+
+.nation-lore-page
+  .sidebar-panel--feature
+  .map-feature-sidebar-close:is(:hover, :active, .is-control-hold) {
+  color: #762d2a;
+  filter: drop-shadow(0 0 7px rgba(181, 139, 67, .34));
+}
+
+.nation-lore-page
+  .sidebar-panel--feature
+  .map-feature-sidebar-close:is(:hover, :active, .is-control-hold)
+  > svg {
+  color: #762d2a;
+  filter: drop-shadow(0 0 5px rgba(181, 139, 67, .55));
+}
+
 .nation-lore-page:not(.is-menu-pinned).is-menu-open .nation-global-controls,
 .nation-lore-page:not(.is-menu-pinned).is-menu-open .nation-menu-control,
 .nation-lore-page.is-info-open .nation-atlas-toggle {

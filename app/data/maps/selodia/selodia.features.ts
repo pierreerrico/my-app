@@ -6,10 +6,30 @@ export const selodiaFeatures: MapFeature[] = [
     name: "Arsecori",
     kind: "capital",
     position: {
-      latitude: 39.48,
-      longitude: 0.04,
+      latitude: 39.55,
+      longitude: -0.02,
     },
     description: "Capitale dell’Arcontato di Selodia.",
+  },
+  {
+    id: "cello",
+    name: "Cello",
+    kind: "city",
+    position: {
+      latitude: 39.36,
+      longitude: -0.66,
+    },
+    description: "Città di Selodia.",
+  },
+  {
+    id: "frasseno",
+    name: "Frasseno",
+    kind: "city",
+    position: {
+      latitude: 39.93,
+      longitude: -0.99,
+    },
+    description: "Città di Selodia.",
   },
   {
     id: "monte-nivo",
