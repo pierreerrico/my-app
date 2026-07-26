@@ -55,7 +55,7 @@
 
   .nation-mobile-reading-frame {
     position: fixed;
-    z-index: 82;
+    z-index: 1;
     top: calc(100px + env(safe-area-inset-top));
     right: 4px;
     bottom: max(4px, env(safe-area-inset-bottom));
