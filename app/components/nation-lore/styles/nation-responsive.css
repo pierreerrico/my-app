@@ -31,6 +31,14 @@
   .nation-section-navigation {
     display: none;
   }
+
+  .nation-lore-page {
+    /* fallback */
+    height: 100vh;
+
+    /* estensione fino alla viewport massima del telefono */
+    height: 100lvh !important;
+  }
 }
 
 /* Wide tablet / narrow desktop: full rail, with space reserved beside text. */
