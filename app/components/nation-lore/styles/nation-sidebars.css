@@ -24,7 +24,7 @@
   --circle-track:
     color-mix(in srgb, var(--nation-burgundy) 48%, var(--nation-gold));
 
-  padding: 0;
+  padding: 76px 34px 28px;
   color: var(--sidebar-ink);
   border-style: solid;
   border-color: var(--sidebar-rule);
@@ -38,16 +38,6 @@
     ),
     var(--sidebar-bg);
   box-shadow: var(--sidebar-shadow-x) 0 48px rgba(20, 12, 10, .24);
-}
-
-.nation-lore-page .sidebar-panel .sidebar-scroll-area {
-  --scrollbar-track-top: 76px;
-  --scrollbar-track-bottom: 28px;
-  --scrollbar-track-inline-end: 12px;
-}
-
-.nation-lore-page .sidebar-panel .sidebar-scroll-viewport {
-  padding: 76px 34px 28px;
 }
 
 .nation-lore-page .sidebar-panel--left {
@@ -115,6 +105,33 @@
   font: italic 14px/1.25 Georgia, "Times New Roman", serif;
   letter-spacing: 0;
   text-transform: none;
+}
+
+/*
+ * Scheda nazionale: il separatore con rombo segue direttamente il sottotitolo.
+ * I testi possono andare a capo solo tra parole, senza sillabazioni o spezzature.
+ */
+.nation-lore-page .sidebar-panel.nation-atlas-sidebar header {
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+}
+
+.nation-lore-page .sidebar-panel.nation-atlas-sidebar header::after {
+  content: none;
+}
+
+.nation-lore-page .sidebar-panel.nation-atlas-sidebar header + .nation-separator {
+  margin: 14px 0 8px;
+}
+
+.nation-lore-page .sidebar-panel.nation-atlas-sidebar,
+.nation-lore-page .sidebar-panel.nation-atlas-sidebar .nation-facts dt,
+.nation-lore-page .sidebar-panel.nation-atlas-sidebar .nation-facts dd,
+.nation-lore-page .sidebar-panel.nation-atlas-sidebar .nation-flavor {
+  overflow-wrap: normal;
+  word-break: normal;
+  hyphens: none;
 }
 
 .nation-lore-page .sidebar-panel header strong,

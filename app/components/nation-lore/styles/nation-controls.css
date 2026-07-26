@@ -86,12 +86,13 @@
 }
 
 /*
- * I trigger delle sidebar appartengono esclusivamente alla slide Atlante.
- * Restano montati per consentire la transizione, ma svaniscono appena si
- * entra nelle slide di lore e non intercettano più gli eventi del puntatore.
+ * Dopo l’Atlante un trigger scompare soltanto quando la sua sidebar è già
+ * presente automaticamente come colonna pinned. Alle risoluzioni in cui il
+ * pannello resta chiuso, il relativo pulsante continua invece a essere
+ * disponibile per l’apertura manuale.
  */
-.nation-lore-page:not(.is-atlas-active) .nation-menu-control,
-.nation-lore-page:not(.is-atlas-active) .nation-atlas-toggle {
+.nation-lore-page:not(.is-atlas-active).is-menu-pinned .nation-menu-control,
+.nation-lore-page:not(.is-atlas-active).is-info-pinned .nation-atlas-toggle {
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
