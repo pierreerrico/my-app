@@ -201,7 +201,7 @@
   .nation-subchapter-content {
     padding-right: 26px;
     padding-left: 10px;
-    padding-bottom: 0;
+    padding-bottom: 32px;
     touch-action: pan-y;
     overscroll-behavior: contain;
   }

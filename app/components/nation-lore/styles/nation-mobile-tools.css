@@ -151,8 +151,11 @@
     mask-image: none;
     background:
       linear-gradient(
-        rgba(181, 139, 67, .48),
-        rgba(181, 139, 67, .48)
+        to right,
+        transparent,
+        rgba(181, 139, 67, .48) 8%,
+        rgba(181, 139, 67, .48) 92%,
+        transparent
       )
       center 12px / 100% 1px no-repeat;
     opacity: 1;

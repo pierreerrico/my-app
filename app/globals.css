@@ -40,7 +40,7 @@ body:has(.nation-lore-page) {
 
 html:has(.nation-lore-page.is-atlas-active),
 body:has(.nation-lore-page.is-atlas-active) {
-  background-color: #c4b397;
+  background-color: #f2eadb;
 }
 
 body:has(.nation-lore-page) {
@@ -2794,7 +2794,7 @@ footer p {
   inset: 0;
   display: block;
   padding: var(--frame-depth);
-  background: #c4b397;
+  background: #f2eadb;
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
   mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
