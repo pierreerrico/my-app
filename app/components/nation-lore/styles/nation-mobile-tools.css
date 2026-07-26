@@ -149,6 +149,12 @@
     scroll-snap-type: none;
     scroll-behavior: smooth;
     mask-image: none;
+    background:
+      linear-gradient(
+        rgba(181, 139, 67, .48),
+        rgba(181, 139, 67, .48)
+      )
+      center 12px / 100% 1px no-repeat;
     opacity: 1;
     visibility: visible;
     transform: translateY(0);
@@ -192,7 +198,6 @@
     flex: 0 0 calc((100vw - 108px) / 2 - 6.5px - var(--timeline-gap));
     height: 1px;
     pointer-events: none;
-    background: rgba(181, 139, 67, .48);
   }
 
   .nation-mobile-section-track button {
@@ -209,30 +214,6 @@
     background: transparent;
     cursor: pointer;
     scroll-snap-align: center;
-  }
-
-  .nation-mobile-section-track button::before {
-    content: "";
-    position: absolute;
-    z-index: -1;
-    top: 50%;
-    right: 50%;
-    width: calc(var(--timeline-gap) + 13px);
-    height: 1px;
-    background: rgba(181, 139, 67, .48);
-    transform: translateY(-50%);
-  }
-
-  .nation-mobile-section-track button:last-of-type::after {
-    content: "";
-    position: absolute;
-    z-index: -1;
-    top: 50%;
-    left: 50%;
-    width: calc(var(--timeline-gap) + 6.5px);
-    height: 1px;
-    background: rgba(181, 139, 67, .48);
-    transform: translateY(-50%);
   }
 
   .nation-mobile-section-track button > span {
