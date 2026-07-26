@@ -1,4 +1,9 @@
 .nation-lore-page {
+  --nation-motion-fast: .24s;
+  --nation-motion-standard: .48s;
+  --nation-motion-slow: .55s;
+  --nation-ease-standard: cubic-bezier(.22, .8, .2, 1);
+  --nation-ease-out: cubic-bezier(.16, 1, .3, 1);
   --nation-green: #102f30;
   --nation-green-deep: #091f23;
   --nation-green-soft: #183c3a;
@@ -227,4 +232,17 @@
 .is-atlas-active .nation-return-atlas {
   opacity: 0;
   pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nation-lore-page,
+  .nation-lore-page *,
+  .nation-lore-page *::before,
+  .nation-lore-page *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    transition-delay: 0s !important;
+  }
 }

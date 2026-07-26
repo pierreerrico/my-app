@@ -334,7 +334,8 @@
    * tutta la transizione di chiusura.
    */
   .nation-lore-page .sidebar-panel {
-    --sidebar-speed: .52s;
+    --sidebar-speed: var(--nation-motion-standard);
+    --sidebar-ease: var(--nation-ease-standard);
     position: fixed;
     inset: 0;
     box-sizing: border-box;

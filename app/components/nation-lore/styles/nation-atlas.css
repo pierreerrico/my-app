@@ -27,7 +27,8 @@
   height: 100%;
   overflow: hidden;
   transform-origin: left center;
-  transition: flex-basis .55s cubic-bezier(.22, .8, .2, 1);
+  transition:
+    flex-basis var(--nation-motion-slow) var(--nation-ease-standard);
 }
 
 .nation-atlas-map>* {
@@ -54,15 +55,15 @@
 .nation-lore-pagination,
 .nation-mobile-progress {
   transition:
-    top .48s cubic-bezier(.22, .8, .2, 1),
-    right .48s cubic-bezier(.22, .8, .2, 1),
-    bottom .48s cubic-bezier(.22, .8, .2, 1),
-    left .48s cubic-bezier(.22, .8, .2, 1),
-    width .48s cubic-bezier(.22, .8, .2, 1),
-    height .48s cubic-bezier(.22, .8, .2, 1),
-    margin .48s cubic-bezier(.22, .8, .2, 1),
-    opacity .24s ease,
-    transform .48s cubic-bezier(.22, .8, .2, 1);
+    top var(--nation-motion-standard) var(--nation-ease-standard),
+    right var(--nation-motion-standard) var(--nation-ease-standard),
+    bottom var(--nation-motion-standard) var(--nation-ease-standard),
+    left var(--nation-motion-standard) var(--nation-ease-standard),
+    width var(--nation-motion-standard) var(--nation-ease-standard),
+    height var(--nation-motion-standard) var(--nation-ease-standard),
+    margin var(--nation-motion-standard) var(--nation-ease-standard),
+    opacity var(--nation-motion-fast) ease,
+    transform var(--nation-motion-standard) var(--nation-ease-standard);
 }
 
 .nation-atlas-sidebar {
@@ -78,8 +79,8 @@
     linear-gradient(180deg, var(--nation-green-soft), var(--nation-green-deep));
   box-shadow: -18px 0 44px rgba(0, 0, 0, .22);
   transition:
-    flex-basis .55s cubic-bezier(.22, .8, .2, 1),
-    width .55s cubic-bezier(.22, .8, .2, 1);
+    flex-basis var(--nation-motion-slow) var(--nation-ease-standard),
+    width var(--nation-motion-slow) var(--nation-ease-standard);
 }
 
 .nation-atlas:not(.is-open) .nation-atlas-sidebar {

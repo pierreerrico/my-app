@@ -31,12 +31,12 @@
   box-shadow: none;
   isolation: isolate;
   transition:
-    opacity .28s ease,
-    transform .42s cubic-bezier(.22, .8, .2, 1),
-    top .52s cubic-bezier(.22, .8, .2, 1),
-    right .52s cubic-bezier(.22, .8, .2, 1),
-    bottom .52s cubic-bezier(.22, .8, .2, 1),
-    left .52s cubic-bezier(.22, .8, .2, 1);
+    opacity var(--nation-motion-fast) ease,
+    transform var(--nation-motion-standard) var(--nation-ease-standard),
+    top var(--nation-motion-standard) var(--nation-ease-standard),
+    right var(--nation-motion-standard) var(--nation-ease-standard),
+    bottom var(--nation-motion-standard) var(--nation-ease-standard),
+    left var(--nation-motion-standard) var(--nation-ease-standard);
 }
 
 .nation-menu-control {
