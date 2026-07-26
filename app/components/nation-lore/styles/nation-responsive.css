@@ -139,6 +139,63 @@
 
 /* Portrait mobile: preserve the existing single-column reading experience. */
 @media (max-width: 600px) and (orientation: portrait) {
+  .nation-lore-page {
+    --nation-browser-underlay:
+      max(
+        env(safe-area-inset-bottom),
+        calc(100lvh - 100dvh)
+      );
+  }
+
+  @supports (height: 100lvh) {
+    .nation-lore-page {
+      height: 100lvh;
+    }
+
+    /*
+     * Swiper continua a misurare e traslare slide da 100dvh. Soltanto il
+     * contenuto della slide attiva oltrepassa quel box e raggiunge la large
+     * viewport dietro la toolbar di Safari.
+     */
+    .nation-lore-layout,
+    .nation-lore-swiper,
+    .nation-lore-swiper > .swiper-wrapper,
+    .nation-lore-swiper > .swiper-wrapper > .swiper-slide,
+    .nation-subchapter-swiper,
+    .nation-subchapter-swiper > .swiper-wrapper,
+    .nation-subchapter-swiper > .swiper-wrapper > .swiper-slide {
+      height: 100dvh !important;
+      min-height: 100dvh;
+    }
+
+    .nation-lore-page:not(.is-atlas-active) .nation-lore-layout,
+    .nation-lore-page:not(.is-atlas-active) .nation-lore-swiper,
+    .nation-lore-page:not(.is-atlas-active)
+      .nation-lore-swiper > .swiper-wrapper,
+    .nation-lore-page:not(.is-atlas-active)
+      .nation-lore-swiper > .swiper-wrapper > .swiper-slide-active,
+    .nation-lore-page:not(.is-atlas-active)
+      .nation-subchapter-swiper > .swiper-wrapper > .swiper-slide-active {
+      overflow: visible;
+    }
+
+    .nation-lore-swiper > .swiper-wrapper > .swiper-slide-active,
+    .nation-subchapter-swiper > .swiper-wrapper > .swiper-slide-active {
+      z-index: 2;
+    }
+
+    .nation-subchapter-swiper
+      > .swiper-wrapper
+      > .swiper-slide:not(.swiper-slide-active) {
+      overflow: hidden;
+    }
+
+    .nation-subchapter {
+      height: 100lvh;
+      max-height: 100lvh;
+    }
+  }
+
   .nation-lore-page::after {
     display: none;
   }
@@ -188,13 +245,21 @@
 
   .nation-subchapter-content {
     padding-right: 18px;
-    padding-bottom: calc(104px + env(safe-area-inset-bottom));
+    padding-bottom:
+      calc(
+        104px +
+        var(--nation-browser-underlay)
+      );
     touch-action: pan-y;
     overscroll-behavior: contain;
   }
 
   .nation-subchapter-scrollbar {
-    bottom: calc(104px + env(safe-area-inset-bottom));
+    bottom:
+      calc(
+        104px +
+        var(--nation-browser-underlay)
+      );
   }
 
   /*

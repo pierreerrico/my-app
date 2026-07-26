@@ -55,6 +55,16 @@ body:has(.nation-lore-page) {
   }
 }
 
+@media (max-width: 767px) {
+  @supports (height: 100lvh) {
+    html:has(.nation-lore-page),
+    body:has(.nation-lore-page),
+    .article-page {
+      height: 100lvh;
+    }
+  }
+}
+
 body {
   margin: 0;
   background: var(--paper);
