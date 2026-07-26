@@ -23,6 +23,32 @@ html {
   scroll-behavior: smooth;
 }
 
+/*
+ * Le voci nazionali sono applicazioni a viewport singola: su iOS una
+ * superficie alta 100lvh può estendersi dietro la toolbar di Safari, ma non
+ * deve per questo rendere scrollabile il documento. Lo scroll appartiene
+ * esclusivamente ai pannelli di contenuto interni.
+ */
+html:has(.nation-lore-page),
+body:has(.nation-lore-page) {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+body:has(.nation-lore-page) {
+  position: fixed;
+  inset: 0;
+}
+
+@supports (height: 100lvh) {
+  html:has(.nation-lore-page),
+  body:has(.nation-lore-page) {
+    height: 100lvh;
+  }
+}
+
 body {
   margin: 0;
   background: var(--paper);
@@ -5019,6 +5045,7 @@ footer p {
   width: 100%;
   height: 100vh;
   overflow: hidden;
+  overscroll-behavior: none;
 }
 
 @supports (height: 100lvh) {

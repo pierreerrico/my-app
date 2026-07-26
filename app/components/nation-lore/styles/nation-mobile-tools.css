@@ -413,7 +413,7 @@
 
 @media (max-width: 600px) and (orientation: portrait) {
   .nation-subchapter {
-    padding-top: 116px;
+    padding-top: calc(140px + env(safe-area-inset-top));
   }
 
   .nation-subchapter header {

@@ -25,6 +25,7 @@
   width: 100%;
   height: 100vh;
   overflow: hidden;
+  overscroll-behavior: none;
   color: var(--nation-ivory);
   background:
     radial-gradient(circle at 26% 16%, rgba(54, 91, 81, .42), transparent 42%),
@@ -143,6 +144,7 @@
   flex-direction: row;
   align-items: stretch;
   overflow: hidden;
+  overscroll-behavior: none;
 }
 
 .nation-lore-swiper {

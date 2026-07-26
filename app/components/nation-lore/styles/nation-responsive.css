@@ -181,6 +181,8 @@
   .nation-subchapter-content {
     padding-right: 18px;
     padding-bottom: calc(104px + env(safe-area-inset-bottom));
+    touch-action: pan-y;
+    overscroll-behavior: contain;
   }
 
   .nation-subchapter-scrollbar {
