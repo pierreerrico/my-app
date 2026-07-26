@@ -11,6 +11,7 @@ import {
   type WheelEvent,
   type ReactNode,
 } from "react";
+import { createPortal } from "react-dom";
 import type SwiperCore from "swiper";
 import { Keyboard, Mousewheel } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
@@ -40,6 +41,8 @@ export function NationLoreChapter({
   children,
 }: NationLoreChapterProps) {
   const swiperRef = useRef<SwiperCore | null>(null);
+  const chapterRef =
+    useRef<HTMLElement>(null);
   const touchStartYRef = useRef<number | null>(null);
   const touchBoundaryRef = useRef<{
     top: boolean;
@@ -54,7 +57,58 @@ export function NationLoreChapter({
   const wheelDirectionRef = useRef<"previous" | "next" | null>(null);
   const wheelResetTimerRef = useRef<number | null>(null);
   const [activeSection, setActiveSection] = useState(0);
+  const [outerActive, setOuterActive] =
+    useState(false);
+  const [contentLayer, setContentLayer] =
+    useState<HTMLElement | null>(null);
   const sections = groupContentByHeading(title, children);
+
+  useEffect(() => {
+    const chapter = chapterRef.current;
+    const root =
+      chapter?.closest<HTMLElement>(
+        ".nation-lore-page",
+      );
+    const layer =
+      root?.querySelector<HTMLElement>(
+        "#nation-lore-content-layer",
+      ) ?? null;
+    const frame = window.requestAnimationFrame(
+      () => {
+        setContentLayer(layer);
+        setOuterActive(
+          chapter?.classList.contains(
+            "swiper-slide-active",
+          ) ?? false,
+        );
+      },
+    );
+
+    if (!chapter) {
+      return () => {
+        window.cancelAnimationFrame(frame);
+      };
+    }
+
+    const observer = new MutationObserver(
+      () => {
+        setOuterActive(
+          chapter.classList.contains(
+            "swiper-slide-active",
+          ),
+        );
+      },
+    );
+    observer.observe(chapter, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+      observer.disconnect();
+    };
+  }, []);
 
   const requestBoundaryNavigation = (
     target: HTMLElement,
@@ -160,6 +214,7 @@ export function NationLoreChapter({
 
   return (
     <section
+      ref={chapterRef}
       className={`swiper-slide nation-chapter${
         activeSection === sections.length - 1 ? " is-final-subchapter" : ""
       }`}
@@ -195,21 +250,41 @@ export function NationLoreChapter({
       >
         {sections.map((section, index) => (
           <SwiperSlide key={`${id}-${index}`}>
-            <article className="nation-subchapter">
+            <span
+              className="nation-subchapter-slide-anchor"
+              aria-hidden="true"
+            >
+              <h2>{section.title}</h2>
+            </span>
+          </SwiperSlide>
+        ))}
+      </Swiper>
+
+      {outerActive && contentLayer
+        ? createPortal(
+            <article
+              className="nation-subchapter nation-subchapter--external"
+              data-chapter-id={id}
+              data-section-index={activeSection}
+            >
               <header>
-                <h2>{section.title}</h2>
+                <h2>
+                  {sections[activeSection]?.title ??
+                    title}
+                </h2>
               </header>
               <ScrollableSubchapterContent
+                key={`${id}-${activeSection}`}
                 onWheel={handleContentWheel}
                 onTouchStart={handleContentTouchStart}
                 onTouchMove={handleContentTouchMove}
               >
-                {section.content}
+                {sections[activeSection]?.content}
               </ScrollableSubchapterContent>
-            </article>
-          </SwiperSlide>
-        ))}
-      </Swiper>
+            </article>,
+            contentLayer,
+          )
+        : null}
 
       <ChapterSectionNavigation
         chapterId={id}

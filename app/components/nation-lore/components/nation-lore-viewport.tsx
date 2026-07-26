@@ -31,6 +31,11 @@ export function NationLoreViewport({
         </div>
       </div>
       <div
+        id="nation-lore-content-layer"
+        className="nation-lore-content-layer"
+        aria-live="polite"
+      />
+      <div
         className="nation-swiper-pagination-engine"
         aria-label="Sezioni della voce"
       />
