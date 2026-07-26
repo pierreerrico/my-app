@@ -95,7 +95,8 @@
       ),
       linear-gradient(
         to bottom,
-        #f2eadb 0 62%,
+        #f2eadb 0%,
+        #f2eadb 62%,
         #eee2cf 82%,
         #f2eadb 100%
       );
