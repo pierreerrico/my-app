@@ -92,7 +92,7 @@
     display: block;
     pointer-events: none;
     background: #f2eadb;
-    box-shadow: 0 8px 18px rgba(36, 20, 16, .16);
+    box-shadow: none;
     opacity: 1;
     transform: translateY(0);
     transition:
