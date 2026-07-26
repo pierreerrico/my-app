@@ -39,8 +39,8 @@
     display: block;
     pointer-events: none;
     border-top: 1px solid
-      color-mix(in srgb, var(--nation-gold) 24%, #f6eee1);
-    background: #f6eee1;
+      color-mix(in srgb, var(--nation-gold) 24%, #f2eadb);
+    background: #f2eadb;
     box-shadow:
       0 -10px 24px rgba(4, 18, 20, .34),
       0 -2px 7px rgba(4, 18, 20, .22);
@@ -91,7 +91,7 @@
     height: calc(96px + env(safe-area-inset-top));
     display: block;
     pointer-events: none;
-    background: #f6eee1;
+    background: #f2eadb;
     box-shadow: none;
     opacity: 1;
     transform: translateY(0);
@@ -148,7 +148,7 @@
     overscroll-behavior-inline: contain;
     scroll-snap-type: none;
     scroll-behavior: smooth;
-    mask-image: linear-gradient(to right, transparent, #000 13%, #000 87%, transparent);
+    mask-image: none;
     opacity: 1;
     visibility: visible;
     transform: translateY(0);
