@@ -5021,6 +5021,12 @@ footer p {
   overflow: hidden;
 }
 
+@supports (height: 100lvh) {
+  .article-page {
+    height: 100lvh;
+  }
+}
+
 .lore-swiper-shell {
   position: relative;
   width: 100%;

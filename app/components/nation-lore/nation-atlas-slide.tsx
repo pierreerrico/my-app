@@ -7,17 +7,12 @@ import { Sidebar } from "../sidebar/sidebar";
 
 export function NationAtlasSlide({
   atlas,
-  onDiscover,
 }: {
   atlas: NationAtlas;
-  open?: boolean;
-  onOpenChange?: (open: boolean) => void;
-  onDiscover: () => void;
 }) {
   return (
     <section className="nation-atlas" aria-label={`Atlante di ${atlas.title}`}>
       <div className="nation-atlas-map">{atlas.map}</div>
-      <CircleControl className="nation-atlas-lore" type="button" icon="book" aria-label="Apri la sezione di lore" onClick={onDiscover} />
     </section>
   );
 }

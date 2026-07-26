@@ -6,14 +6,12 @@ interface NationLoreViewportProps {
   atlas: NationAtlas;
   children: ReactNode;
   navigation: ReactNode;
-  onOpenLore(): void;
 }
 
 export function NationLoreViewport({
   atlas,
   children,
   navigation,
-  onOpenLore,
 }: NationLoreViewportProps) {
   return (
     <div className="nation-lore-layout">
@@ -27,7 +25,7 @@ export function NationLoreViewport({
             className="swiper-slide nation-atlas-slide"
             data-hash="atlante"
           >
-            <NationAtlasSlide atlas={atlas} onDiscover={onOpenLore} />
+            <NationAtlasSlide atlas={atlas} />
           </div>
           {children}
         </div>

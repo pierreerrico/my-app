@@ -32,6 +32,12 @@
   font-family: Georgia, "Times New Roman", serif;
 }
 
+@supports (height: 100lvh) {
+  .nation-lore-page {
+    height: 100lvh;
+  }
+}
+
 .nation-page-vignette {
   position: absolute;
   z-index: 70;

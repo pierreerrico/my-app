@@ -234,6 +234,11 @@ export type NationMapPerformance = {
   shadowMapSize?: 0 | 512 | 1024 | 2048;
   clouds?: boolean;
   pauseWhenHidden?: boolean;
+  /**
+   * Texture alternative con un budget GPU ridotto. Vengono usate dal
+   * profilo `performance`, tipicamente su telefoni e tablet compatti.
+   */
+  textures?: Partial<NationMapTextures>;
 };
 
 export type NationMapPalette = {

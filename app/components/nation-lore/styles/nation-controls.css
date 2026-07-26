@@ -148,6 +148,12 @@
   transform: translateX(-50%);
 }
 
+.nation-atlas-lore.is-unavailable {
+  opacity: 0;
+  transform: translateX(-50%) scale(.82);
+  pointer-events: none;
+}
+
 .nation-slide-arrow {
   z-index: 91;
   left: 50%;

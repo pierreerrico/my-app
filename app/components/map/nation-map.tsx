@@ -23,6 +23,7 @@ import { MapFeatureSidebar } from "./map-feature-sidebar";
 import { resolveStaticMapFit } from "./map-camera-fit";
 import {
   resolveMapPerformance,
+  resolvePerformanceMapConfig,
   type ResolvedMapPerformance,
 } from "./map-performance";
 
@@ -43,20 +44,45 @@ export default function NationMap({ config }: { config: NationMapConfig }) {
   const [northStepSignal, setNorthStepSignal] = useState(0);
   const [selectedFeature, setSelectedFeature] =
     useState<MapFeature | null>(null);
-  const performance =
-    useMemo<ResolvedMapPerformance>(
-      () =>
-        resolveMapPerformance(
-          config,
-        ),
-      [config],
+  const [performance, setPerformance] =
+    useState<ResolvedMapPerformance | null>(
+      null,
     );
+  const runtimeConfig = useMemo(
+    () =>
+      performance
+        ? resolvePerformanceMapConfig(
+            config,
+            performance,
+          )
+        : config,
+    [config, performance],
+  );
   const [pageVisible, setPageVisible] =
     useState(true);
   const mapRef = useRef<HTMLDivElement>(null);
   const pinchDistanceRef = useRef<number | null>(null);
   const zoomLevelRef = useRef(0);
   const staticViewAlignedRef = useRef(true);
+
+  useEffect(() => {
+    /*
+     * La modalità automatica dipende da viewport, DPR e capacità hardware.
+     * Deciderla durante SSR produrrebbe un canvas "balanced" sul server e uno
+     * "performance" al primo render mobile, con doppie allocazioni WebGL.
+     */
+    const frame = window.requestAnimationFrame(
+      () => {
+        setPerformance(
+          resolveMapPerformance(config),
+        );
+      },
+    );
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+    };
+  }, [config]);
 
   function commitZoomLevel(level: number) {
     const nextLevel = Math.min(2, Math.max(0, level));
@@ -267,7 +293,7 @@ export default function NationMap({ config }: { config: NationMapConfig }) {
       data-territory-area-km2={geometry.territoryAreaKm2}
     >
       <div className="cartographic-sheet">
-        <Canvas
+        {performance ? <Canvas
           shadows={
             performance.shadowMapSize > 0
               ? {
@@ -295,7 +321,7 @@ export default function NationMap({ config }: { config: NationMapConfig }) {
           resize={{ debounce: { scroll: 0, resize: 0 } }}
         >
           <MapScene
-            config={config}
+            config={runtimeConfig}
             geometry={geometry}
             zoomLevel={zoomLevel}
             onAzimuthChange={setAzimuth}
@@ -315,7 +341,13 @@ export default function NationMap({ config }: { config: NationMapConfig }) {
               setSelectedFeature
             }
           />
-        </Canvas>
+        </Canvas> : (
+          <div
+            className="map-canvas-loading"
+            role="status"
+            aria-label="Caricamento dell’atlante"
+          />
+        )}
 
         <div
           className="map-parchment-overlay"
@@ -338,7 +370,7 @@ export default function NationMap({ config }: { config: NationMapConfig }) {
           onReset={() => setResetNorthSignal((value) => value + 1)}
         />
         <MapScale
-          config={config}
+          config={runtimeConfig}
           projectedMapWidth={projectedMapRect.width}
         />
       </div>

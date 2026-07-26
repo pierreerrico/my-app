@@ -194,6 +194,22 @@ export const selodiaMap:
   performance: {
     mode: "auto",
     pauseWhenHidden: true,
+    textures: {
+      diffuse:
+        "/maps/selodia/selodia-atlas-performance.png",
+      heightmap:
+        "/maps/selodia/selodia-heightmap-performance.png",
+      landMask:
+        "/maps/selodia/selodia-land-mask-performance.png",
+      normalMap:
+        "/maps/selodia/selodia-normal-performance.png",
+      coastDistance:
+        "/maps/selodia/selodia-coast-distance-performance.png",
+      bathymetryMap:
+        "/maps/selodia/selodia-bathymetry-performance.png",
+      fogMap:
+        "/maps/selodia/selodia-fog-mask-performance.png",
+    },
   },
 
   features:

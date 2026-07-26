@@ -4,18 +4,22 @@ import { CircleControl } from "../circle-control";
 
 interface NationPageControlsProps {
   menuOpen: boolean;
+  showAtlasLore: boolean;
   showPrevious: boolean;
   showNext: boolean;
   onMenuToggle(): void;
+  onOpenLore(): void;
   onPrevious(): void;
   onNext(): void;
 }
 
 export function NationPageControls({
   menuOpen,
+  showAtlasLore,
   showPrevious,
   showNext,
   onMenuToggle,
+  onOpenLore,
   onPrevious,
   onNext,
 }: NationPageControlsProps) {
@@ -39,6 +43,14 @@ export function NationPageControls({
         icon="up"
         aria-label="Vai alla slide precedente"
         onClick={onPrevious}
+      />
+
+      <CircleControl
+        className={`nation-atlas-lore${showAtlasLore ? "" : " is-unavailable"}`}
+        type="button"
+        icon="book"
+        aria-label="Apri la sezione di lore"
+        onClick={onOpenLore}
       />
 
       <CircleControl

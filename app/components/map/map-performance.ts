@@ -82,6 +82,29 @@ export function resolveMapPerformance(
   };
 }
 
+export function resolvePerformanceMapConfig(
+  config: NationMapConfig,
+  performance: ResolvedMapPerformance,
+): NationMapConfig {
+  const performanceTextures =
+    config.performance?.textures;
+
+  if (
+    performance.mode !== "performance" ||
+    !performanceTextures
+  ) {
+    return config;
+  }
+
+  return {
+    ...config,
+    textures: {
+      ...config.textures,
+      ...performanceTextures,
+    },
+  };
+}
+
 function detectAutomaticMode():
   ResolvedMapPerformance["mode"] {
   if (typeof window === "undefined") {

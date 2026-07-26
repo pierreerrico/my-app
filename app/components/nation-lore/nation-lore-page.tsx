@@ -85,9 +85,11 @@ export default function NationLorePage({
       />
       <NationPageControls
         menuOpen={menuVisible}
+        showAtlasLore={atlasActive}
         showPrevious={!atlasActive}
         showNext={!atlasActive && showNext}
         onMenuToggle={() => setMenuOpen((current) => !current)}
+        onOpenLore={openLore}
         onPrevious={() => navigateLore("previous")}
         onNext={() => navigateLore("next")}
       />
@@ -114,7 +116,6 @@ export default function NationLorePage({
       />
       <NationLoreViewport
         atlas={atlas}
-        onOpenLore={openLore}
         navigation={
           <NationSectionNavigation
             current={flatPosition.index}
