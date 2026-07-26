@@ -25,6 +25,10 @@
     overflow: hidden;
   }
 
+  .nation-page-vignette {
+    display: none;
+  }
+
   .nation-mobile-browser-blend {
     position: fixed;
     z-index: 83;
