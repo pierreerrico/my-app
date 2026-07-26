@@ -1,6 +1,7 @@
 import {
   NationMap,
 } from "../../components/map";
+import type { Viewport } from "next";
 
 import {
   NationLorePage,
@@ -20,6 +21,13 @@ export const metadata = {
 
   description:
     "L’Arcontato di Selodia: geografia, scienza arcana, società, storia e futuro incerto.",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#f2eadb",
 };
 
 const selodiaGeometry =

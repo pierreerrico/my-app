@@ -36,8 +36,8 @@
     /* fallback */
     height: 100vh;
 
-    /* estensione fino alla viewport massima del telefono */
-    height: 100lvh !important;
+    /* area realmente visibile anche con le barre di Safari aperte */
+    height: 100svh !important;
   }
 }
 
@@ -166,7 +166,7 @@
     padding:
       calc(116px + env(safe-area-inset-top))
       16px
-      38px;
+      4px;
     clip-path:
       inset(
         calc(100px + env(safe-area-inset-top))

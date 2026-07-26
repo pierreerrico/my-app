@@ -354,7 +354,7 @@
   }
 
   .is-info-open .nation-atlas-toggle {
-    top: var(--nation-control-edge);
+    top: 0;
     right: var(--nation-control-edge);
     bottom: auto;
     left: auto;
