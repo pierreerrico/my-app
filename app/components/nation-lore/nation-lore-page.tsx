@@ -93,6 +93,10 @@ export default function NationLorePage({
         className="nation-mobile-browser-blend"
         aria-hidden="true"
       />
+      <div
+        className="nation-mobile-reading-frame"
+        aria-hidden="true"
+      />
       <NationPageControls
         menuOpen={menuVisible}
         showAtlasLore={atlasActive}

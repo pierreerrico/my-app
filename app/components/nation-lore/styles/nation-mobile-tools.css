@@ -1,6 +1,7 @@
 .nation-mobile-double-chevron,
 .nation-mobile-section-timeline,
-.nation-mobile-browser-blend {
+.nation-mobile-browser-blend,
+.nation-mobile-reading-frame {
   display: none;
 }
 
@@ -34,8 +35,8 @@
     display: block;
     pointer-events: none;
     border-top: 1px solid
-      color-mix(in srgb, var(--nation-gold) 24%, #f2eadb);
-    background: #f2eadb;
+      color-mix(in srgb, var(--nation-gold) 24%, #b5a88f);
+    background: #b5a88f;
     box-shadow:
       0 -10px 24px rgba(4, 18, 20, .34),
       0 -2px 7px rgba(4, 18, 20, .22);
@@ -45,6 +46,32 @@
 
   .nation-lore-page.is-atlas-active
     .nation-mobile-browser-blend {
+    opacity: 0;
+  }
+
+  .nation-mobile-reading-frame {
+    position: fixed;
+    z-index: 82;
+    top: calc(100px + env(safe-area-inset-top));
+    right: 4px;
+    bottom: max(4px, env(safe-area-inset-bottom));
+    left: 4px;
+    display: block;
+    pointer-events: none;
+    border: 1px solid
+      color-mix(in srgb, var(--nation-gold-bright) 74%, transparent);
+    border-radius: 2px;
+    box-shadow:
+      inset 0 0 0 1px
+        color-mix(in srgb, var(--nation-green-deep) 70%, transparent),
+      0 0 18px
+        color-mix(in srgb, var(--nation-gold) 12%, transparent);
+    opacity: 1;
+    transition: opacity .32s ease;
+  }
+
+  .nation-lore-page.is-atlas-active
+    .nation-mobile-reading-frame {
     opacity: 0;
   }
 
@@ -68,8 +95,8 @@
       ),
       linear-gradient(
         to bottom,
-        #f2eadb 0 62%,
-        #eee2cf 80%,
+        #b5a88f 0 62%,
+        #cdbf9f 80%,
         #e4d4ba 100%
       );
     box-shadow: 0 8px 18px rgba(36, 20, 16, .16);
