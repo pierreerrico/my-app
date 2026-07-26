@@ -2,6 +2,7 @@
   --nation-motion-fast: .24s;
   --nation-motion-standard: .48s;
   --nation-motion-slow: .55s;
+  --nation-swiper-speed: .8s;
   --nation-ease-standard: cubic-bezier(.22, .8, .2, 1);
   --nation-ease-out: cubic-bezier(.16, 1, .3, 1);
   --nation-green: #102f30;

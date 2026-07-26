@@ -153,7 +153,11 @@
   }
 
   .nation-slide-arrow.is-previous {
-    top: 0;
+    top: 6px;
+  }
+
+  .nation-menu-control {
+    top: 6px;
   }
 
   .nation-subchapter {
@@ -222,8 +226,7 @@
   }
 
   .nation-atlas-toggle {
-    top: 0;
-    right: calc(14px + env(safe-area-inset-right));
+    top: 6px;
   }
 }
 

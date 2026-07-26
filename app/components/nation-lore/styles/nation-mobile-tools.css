@@ -70,14 +70,22 @@
         color-mix(in srgb, var(--nation-green-deep) 70%, transparent),
       0 0 18px
         color-mix(in srgb, var(--nation-gold) 12%, transparent);
+    visibility: visible;
     transform: translateY(0);
-    transition: transform var(--nation-mobile-masthead-speed)
-      var(--nation-mobile-masthead-ease);
+    transition:
+      transform var(--nation-swiper-speed)
+        var(--nation-mobile-masthead-ease),
+      visibility 0s;
   }
 
   .nation-lore-page.is-atlas-active
     .nation-mobile-reading-frame {
-    transform: translateY(100%);
+    visibility: hidden;
+    transform: translateY(100svh);
+    transition:
+      transform var(--nation-swiper-speed)
+        var(--nation-mobile-masthead-ease),
+      visibility 0s;
   }
 
   /*
@@ -113,10 +121,23 @@
     height: 100% !important;
   }
 
+  .nation-lore-swiper > .swiper-wrapper {
+    transition-timing-function: var(--nation-ease-out) !important;
+  }
+
   .nation-lore-swiper > .swiper-wrapper > .swiper-slide,
   .nation-subchapter-swiper > .swiper-wrapper > .swiper-slide {
     flex: 0 0 100%;
     overflow: hidden;
+  }
+
+  .nation-lore-swiper
+    > .swiper-wrapper
+    > .swiper-slide:first-child {
+    position: relative;
+    z-index: 2;
+    background: #f2eadb;
+    isolation: isolate;
   }
 
   /*
@@ -290,7 +311,6 @@
   }
 
   .is-info-open .nation-atlas-toggle {
-    top: 0;
     right: var(--nation-control-edge);
     bottom: auto;
     left: auto;
