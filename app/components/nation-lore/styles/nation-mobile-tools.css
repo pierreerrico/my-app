@@ -87,19 +87,7 @@
     height: calc(96px + env(safe-area-inset-top));
     display: block;
     pointer-events: none;
-    background:
-      radial-gradient(
-        circle at 18% 100%,
-        rgba(118, 45, 42, .11),
-        transparent 42%
-      ),
-      linear-gradient(
-        to bottom,
-        #f2eadb 0%,
-        #f2eadb 62%,
-        #eee2cf 82%,
-        #f2eadb 100%
-      );
+    background: #f2eadb;
     box-shadow: 0 8px 18px rgba(36, 20, 16, .16);
     opacity: 1;
     transform: translateY(0);
