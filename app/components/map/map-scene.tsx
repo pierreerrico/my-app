@@ -551,24 +551,17 @@ export function MapScene({
           )
         : null}
 
-      {shouldRenderAtmosphere(
-        config,
-        performance,
-      ) ? (
-        <MapEdgeFog
-          config={config}
-          geometry={geometry}
-          parchment={parchment}
-          performance={performance}
-        />
-      ) : null}
+      <MapEdgeFog
+        config={config}
+        geometry={geometry}
+        parchment={parchment}
+        performance={performance}
+      />
 
-      {parchment ? (
-        <MapWorldGrid
-          geometry={geometry}
-          visible
-        />
-      ) : null}
+      <MapWorldGrid
+        geometry={geometry}
+        visible={parchment}
+      />
 
       <MapControls
         ref={controls}
@@ -608,23 +601,5 @@ export function MapScene({
         ]}
       />
     </>
-  );
-}
-
-function shouldRenderAtmosphere(
-  config: NationMapConfig,
-  performance: ResolvedMapPerformance,
-): boolean {
-  const mistMode =
-    config.worldExtension?.mist?.mode ??
-    config.oceanHorizon?.mist?.mode ??
-    "horizon";
-
-  return (
-    mistMode === "volumetric" ||
-    (
-      mistMode !== "off" &&
-      performance.clouds
-    )
   );
 }

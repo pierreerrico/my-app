@@ -150,8 +150,6 @@ export default function NationMap({ config }: { config: NationMapConfig }) {
     const map = mapRef.current;
     if (!map) return;
 
-    let resizeTimer: number | null =
-      null;
     const updateProjectedMapRect = () => {
       setProjectedMapRect(
         calculateProjectedMapRect(
@@ -162,27 +160,14 @@ export default function NationMap({ config }: { config: NationMapConfig }) {
         ),
       );
     };
-    const scheduleProjectedMapRect = () => {
-      if (resizeTimer !== null) {
-        window.clearTimeout(resizeTimer);
-      }
-      resizeTimer = window.setTimeout(
-        updateProjectedMapRect,
-        120,
-      );
-    };
-
     updateProjectedMapRect();
     const observer = new ResizeObserver(
-      scheduleProjectedMapRect,
+      updateProjectedMapRect,
     );
     observer.observe(map);
 
     return () => {
       observer.disconnect();
-      if (resizeTimer !== null) {
-        window.clearTimeout(resizeTimer);
-      }
     };
   }, [
     geometry.planeHeight,
@@ -368,12 +353,7 @@ export default function NationMap({ config }: { config: NationMapConfig }) {
             far: 100,
           }}
           gl={{ antialias: true }}
-          resize={{
-            debounce: {
-              scroll: 120,
-              resize: 180,
-            },
-          }}
+          resize={{ debounce: { scroll: 0, resize: 0 } }}
         >
           <MapScene
             config={runtimeConfig}

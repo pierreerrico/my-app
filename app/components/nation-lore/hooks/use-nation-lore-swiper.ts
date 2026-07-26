@@ -128,6 +128,7 @@ export function useNationLoreSwiper({
           }
           syncAtlasState(instance);
           onSlideChange();
+          if (instance.activeIndex > 0) onAtlasLeave();
           labelChapterPagination(instance);
           mountSubnavigation(instance);
           window.setTimeout(() => syncPosition(instance), 100);
@@ -138,12 +139,6 @@ export function useNationLoreSwiper({
         slideChangeTransitionEnd(instance) {
           mountSubnavigation(instance);
           setLoreGeometryActive(instance.activeIndex > 0);
-          if (
-            instance.activeIndex > 0 &&
-            instance.previousIndex === 0
-          ) {
-            onAtlasLeave();
-          }
           root.classList.remove("is-atlas-transition");
           window.setTimeout(() => root.classList.remove("is-slide-moving"), 90);
         },

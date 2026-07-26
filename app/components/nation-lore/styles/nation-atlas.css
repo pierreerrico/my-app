@@ -5,14 +5,6 @@
   background: var(--nation-green-deep);
 }
 
-@media (max-width: 767px) {
-  @supports (height: 100dvh) {
-    .nation-atlas {
-      height: 100dvh;
-    }
-  }
-}
-
 .nation-atlas-map {
   position: relative;
   flex: 1 1 auto;
