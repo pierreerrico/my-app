@@ -7,18 +7,25 @@ import {
 import {
   useEffect,
   useMemo,
+  useRef,
 } from "react";
 import {
   ClampToEdgeWrapping,
+  type BufferGeometry,
+  type Camera,
+  type Group,
   LinearFilter,
   LinearMipmapLinearFilter,
   NoColorSpace,
   PlaneGeometry,
   RepeatWrapping,
   ShaderMaterial,
+  type Material,
+  type Scene,
   Texture,
   TextureLoader,
   Vector2,
+  type WebGLRenderer,
 } from "three";
 import { Water as Water2 } from "three/examples/jsm/objects/Water2.js";
 
@@ -27,6 +34,7 @@ import type {
   NationMapConfig,
 } from "../../data/maps/types";
 import { atlasWaterShader } from "./water/shaders/atlas-water-shader";
+import type { ResolvedMapPerformance } from "./map-performance";
 
 const DEFAULT_NORMAL_B =
   "/maps/shared/water-normal-b.jpg";
@@ -110,6 +118,7 @@ export function MapSea({
   currentMap,
   landMask,
   coastDistance,
+  performance,
 }: {
   config: NationMapConfig;
   geometry: DerivedMapGeometry;
@@ -117,7 +126,10 @@ export function MapSea({
   currentMap: Texture;
   landMask: Texture;
   coastDistance: Texture;
+  performance: ResolvedMapPerformance;
 }) {
+  const waterRef =
+    useRef<Water2 | null>(null);
   const sea = config.seaRendering;
 
   if (!sea) {
@@ -206,8 +218,10 @@ export function MapSea({
           sea.deepColor ??
           config.palette.seaDeep,
 
-        textureWidth: 768,
-        textureHeight: 768,
+        textureWidth:
+          performance.waterRenderTargetSize,
+        textureHeight:
+          performance.waterRenderTargetSize,
         clipBias: 0.003,
 
         flowMap,
@@ -248,8 +262,10 @@ export function MapSea({
     material.uniforms
       .refractionTexelSize
       .value.set(
-        1 / 768,
-        1 / 768,
+        1 /
+          performance.waterRenderTargetSize,
+        1 /
+          performance.waterRenderTargetSize,
       );
 
     material.uniforms
@@ -359,6 +375,31 @@ export function MapSea({
       .foamImpactStrength
       .value = 0.34;
 
+    const worldExtension =
+      config.worldExtension ??
+      config.oceanHorizon;
+    material.uniforms
+      .edgeBlendColor
+      .value.set(
+        worldExtension
+          ?.deepWaterColor ??
+          sea.deepColor ??
+          config.palette.seaDeep,
+      );
+    material.uniforms
+      .edgeFadeWidth
+      .value =
+        !config.worldExtension ||
+        config.worldExtension.mode ===
+          "ocean"
+          ? Math.max(
+              0.04,
+              worldExtension
+                ?.transitionWidth ??
+                0.14,
+            )
+          : 0;
+
     instance.name =
       `${config.id}-water-open-source-port`;
 
@@ -375,17 +416,65 @@ export function MapSea({
     instance.frustumCulled = false;
     instance.receiveShadow = false;
 
+    /*
+     * Water2 ridisegna l'intera scena due volte per riflessione e rifrazione.
+     * Nei profili non massimi aggiorniamo quei render target meno spesso,
+     * continuando però ad animare normali, correnti e schiuma ogni frame.
+     */
+    const reflectionStride =
+      performance.mode === "quality"
+        ? 1
+        : performance.mode ===
+            "balanced"
+          ? 2
+          : 3;
+    const renderReflection =
+      instance.onBeforeRender.bind(
+        instance,
+      );
+    let reflectionFrame = 0;
+    instance.onBeforeRender = (
+      renderer: WebGLRenderer,
+      scene: Scene,
+      camera: Camera,
+      geometryToRender:
+        BufferGeometry,
+      materialToRender: Material,
+      group: Group,
+    ) => {
+      reflectionFrame += 1;
+      if (
+        reflectionFrame %
+          reflectionStride !==
+        0
+      ) {
+        return;
+      }
+      renderReflection(
+        renderer,
+        scene,
+        camera,
+        geometryToRender,
+        materialToRender,
+        group,
+      );
+    };
+
     return instance;
   }, [
     coastDistance.image,
     coastDistanceMap,
     config.id,
     config.palette.seaDeep,
+    config.oceanHorizon,
+    config.worldExtension,
     flowMap,
     foamMap,
     landMaskMap,
     normalMap0,
     normalMap1,
+    performance.waterRenderTargetSize,
+    performance.mode,
     sea.deepColor,
     sea.foamColor,
     sea.foamStrength,
@@ -394,19 +483,20 @@ export function MapSea({
   ]);
 
   useFrame((state) => {
+    const activeWater =
+      waterRef.current;
+    if (
+      !activeWater ||
+      !activeWater.visible
+    ) {
+      return;
+    }
     const material =
-      water.material as ShaderMaterial;
+      activeWater.material as ShaderMaterial;
 
     material.uniforms.time.value =
       state.clock.elapsedTime;
   }, -19);
-
-  useEffect(() => {
-    water.visible = !parchment;
-  }, [
-    parchment,
-    water,
-  ]);
 
   useEffect(
     () => () => {
@@ -433,5 +523,11 @@ export function MapSea({
     ],
   );
 
-  return <primitive object={water} />;
+  return (
+    <primitive
+      ref={waterRef}
+      object={water}
+      visible={!parchment}
+    />
+  );
 }

@@ -1,8 +1,21 @@
+import type { CSSProperties } from "react";
 import { chooseScaleDistance } from "../../data/maps/geography";
 import { NationMapConfig } from "../../data/maps/types";
 
-export function MapScale({ config }: { config: NationMapConfig }) {
+export function MapScale({
+  config,
+  projectedMapWidth,
+}: {
+  config: NationMapConfig;
+  projectedMapWidth: number;
+}) {
   const totalKm = chooseScaleDistance(config.geography.mapWidthKm);
+  const renderedWidth = Math.max(
+    72,
+    projectedMapWidth *
+      (totalKm /
+        config.geography.mapWidthKm),
+  );
   const divisions = 4;
   const stepKm = totalKm / divisions;
   const width = 200;
@@ -10,7 +23,16 @@ export function MapScale({ config }: { config: NationMapConfig }) {
   const y = 18;
 
   return (
-    <svg className="map-scale-ornament" viewBox="0 0 220 52" aria-label={`Scala: ${totalKm} chilometri`}>
+    <svg
+      className="map-scale-ornament"
+      viewBox="0 0 220 52"
+      style={
+        {
+          "--map-scale-width": `${renderedWidth}px`,
+        } as CSSProperties
+      }
+      aria-label={`Scala: ${totalKm} chilometri`}
+    >
       <path d={`M${startX} ${y}H${startX + width}`} />
       {Array.from({ length: divisions + 1 }, (_, index) => {
         const x = startX + (width / divisions) * index;

@@ -28,6 +28,7 @@ import type {
   DerivedMapGeometry,
   NationMapConfig,
 } from "../../data/maps/types";
+import type { ResolvedMapPerformance } from "./map-performance";
 
 /*
  * EDGE FOG
@@ -49,9 +50,9 @@ const FOG_TOP_Y = 0.32;
  * Its density fades before reaching the box boundary, so the cloud container
  * itself remains invisible.
  */
-const CLOUD_VOLUME_SCALE = 1.85;
-const CLOUD_BOTTOM_Y = 0.42;
-const CLOUD_TOP_Y = 1.18;
+const CLOUD_VOLUME_SCALE = 1.72;
+const CLOUD_BOTTOM_Y = 0.46;
+const CLOUD_TOP_Y = 1.12;
 
 function cloneScalarMap(
   source: Texture,
@@ -512,7 +513,11 @@ const movingCloudFragmentShader = /* glsl */ `
 
   varying vec3 vLocalPosition;
 
-  #define STEPS 24
+  /*
+   * Sedici campioni sono sufficienti per banchi morbidi osservati dall'alto.
+   * La versione precedente ne usava 24 e valutava quattro FBM per campione.
+   */
+  #define STEPS 16
 
   ${commonVolumeNoise}
 
@@ -558,7 +563,7 @@ const movingCloudFragmentShader = /* glsl */ `
       windSpace.y * 0.62 + drift.y
     );
 
-    float domainWarp = fbm3(
+    float domainWarp = valueNoise3(
       broadPosition * 0.64 +
       vec3(7.3, -2.8, 11.4)
     );
@@ -580,7 +585,7 @@ const movingCloudFragmentShader = /* glsl */ `
       vec3(-4.2, 9.6, 5.7)
     );
 
-    float fineErosion = fbm3(
+    float fineErosion = valueNoise3(
       vec3(
         windSpace.x * 1.62 + uTime * 0.098,
         p.y * 6.2 + uTime * 0.015,
@@ -595,8 +600,8 @@ const movingCloudFragmentShader = /* glsl */ `
 
     /* Sparse banks with distinct rounded lobes rather than full-screen haze. */
     float cloudBody = smoothstep(
-      0.525,
-      0.690,
+      0.555,
+      0.715,
       cloudNoise
     );
 
@@ -610,7 +615,7 @@ const movingCloudFragmentShader = /* glsl */ `
       erodedBody *
       verticalShape *
       containerFade *
-      1.18;
+      0.94;
 
     float luminousEdge =
       smoothstep(0.04, 0.28, density) *
@@ -680,7 +685,7 @@ const movingCloudFragmentShader = /* glsl */ `
 
       float density = cloudSample.x;
       float sampleAlpha = 1.0 - exp(
-        -density * stepSize * 3.10
+        -density * stepSize * 2.72
       );
 
       vec3 sampleColor = mix(
@@ -713,7 +718,7 @@ const movingCloudFragmentShader = /* glsl */ `
 
     gl_FragColor = vec4(
       accumulatedColor / max(accumulatedAlpha, 0.0001),
-      clamp(accumulatedAlpha * 0.72, 0.0, 0.78)
+      clamp(accumulatedAlpha * 0.62, 0.0, 0.66)
     );
   }
 `;
@@ -722,10 +727,12 @@ export function MapEdgeFog({
   config,
   geometry,
   parchment,
+  performance,
 }: {
   config: NationMapConfig;
   geometry: DerivedMapGeometry;
   parchment: boolean;
+  performance: ResolvedMapPerformance;
 }) {
   const fogMeshRef = useRef<Mesh>(null);
   const cloudMeshRef = useRef<Mesh>(null);
@@ -744,12 +751,14 @@ export function MapEdgeFog({
   }
 
   const marineFogMode =
+    config.worldExtension?.mist?.mode ??
     config.oceanHorizon?.mist?.mode ??
     "horizon";
   const showVolumetricMarineFog =
     marineFogMode === "volumetric";
   const showClouds =
-    marineFogMode !== "off";
+    marineFogMode !== "off" &&
+    performance.clouds;
 
   const [
     landMaskSource,
@@ -1002,6 +1011,7 @@ export function MapEdgeFog({
 
     if (
       fogMeshRef.current &&
+      fogMeshRef.current.visible &&
       activeFogMaterial
     ) {
       activeFogMaterial.uniforms.uTime.value =
@@ -1019,6 +1029,7 @@ export function MapEdgeFog({
 
     if (
       cloudMeshRef.current &&
+      cloudMeshRef.current.visible &&
       activeCloudMaterial
     ) {
       activeCloudMaterial.uniforms.uTime.value =

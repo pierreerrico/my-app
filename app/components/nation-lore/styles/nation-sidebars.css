@@ -177,3 +177,72 @@
     pointer-events: none;
   }
 }
+
+@media (max-width: 600px) {
+  /*
+   * Contratto mobile unico per menu e informazioni. Queste regole prevalgono
+   * sui vecchi override specifici e mantengono il pannello montato durante
+   * tutta la transizione di chiusura.
+   */
+  .nation-lore-page .sidebar-panel {
+    --sidebar-speed: .52s;
+    position: fixed;
+    inset: 0;
+    box-sizing: border-box;
+    width: auto;
+    min-width: 0;
+    max-width: none;
+    height: 100dvh;
+    min-height: 100svh;
+    padding:
+      calc(72px + env(safe-area-inset-top))
+      max(24px, env(safe-area-inset-right))
+      calc(34px + env(safe-area-inset-bottom))
+      max(24px, env(safe-area-inset-left));
+    overflow-x: hidden;
+    overflow-y: auto;
+    visibility: hidden;
+    pointer-events: none;
+    will-change: transform;
+    transition:
+      transform var(--sidebar-speed) var(--sidebar-ease),
+      visibility 0s linear var(--sidebar-speed);
+  }
+
+  .nation-lore-page .sidebar-panel--left {
+    right: 0;
+    transform: translate3d(-100%, 0, 0);
+  }
+
+  .nation-lore-page .sidebar-panel--right {
+    left: 0;
+    transform: translate3d(100%, 0, 0);
+  }
+
+  .nation-lore-page .sidebar-panel[data-open="true"] {
+    visibility: visible;
+    transform: translate3d(0, 0, 0);
+    pointer-events: auto;
+    transition:
+      transform var(--sidebar-speed) var(--sidebar-ease),
+      visibility 0s;
+  }
+
+  .nation-lore-page .sidebar-scrim {
+    transition:
+      opacity var(--sidebar-speed) ease,
+      visibility 0s linear var(--sidebar-speed);
+  }
+
+  .nation-lore-page .sidebar-scrim[data-open="true"] {
+    transition:
+      opacity var(--sidebar-speed) ease,
+      visibility 0s;
+  }
+
+  .nation-lore-page .sidebar-panel .nation-atlas-sidebar-content {
+    width: 100%;
+    min-height: 100%;
+    overflow: visible;
+  }
+}

@@ -74,6 +74,10 @@ export default function NationLorePage({
 
   return (
     <section ref={rootRef} className={rootClasses} style={themeVariables}>
+      <div
+        className="nation-page-vignette"
+        aria-hidden="true"
+      />
       <NationPageControls
         menuOpen={menuVisible}
         showPrevious={!atlasActive}

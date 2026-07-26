@@ -175,8 +175,9 @@ export const selodiaMap:
    * correnti e schiuma, mentre l'orizzonte economico impedisce di vedere la
    * fine della carta durante la navigazione prospettica.
    */
-  oceanHorizon: {
-    extensionScale: 6,
+  worldExtension: {
+    mode: "ocean",
+    extensionScale: 30,
     transitionWidth: 0.14,
     seabedDrop: 2.6,
     mist: {
@@ -184,6 +185,15 @@ export const selodiaMap:
       density: 0.44,
       speed: 0.02,
     },
+  },
+
+  /*
+   * `auto` seleziona un profilo in base a viewport, DPR, memoria e core.
+   * I singoli valori restano sovrascrivibili per una mappa particolare.
+   */
+  performance: {
+    mode: "auto",
+    pauseWhenHidden: true,
   },
 
   features:

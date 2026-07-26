@@ -375,7 +375,12 @@
   }
 
   .nation-subchapter-content {
-    padding-right: 3px;
+    padding-right: 18px;
+    padding-bottom: calc(104px + env(safe-area-inset-bottom));
+  }
+
+  .nation-subchapter-scrollbar {
+    bottom: calc(104px + env(safe-area-inset-bottom));
   }
 
   .nation-mobile-quotes {

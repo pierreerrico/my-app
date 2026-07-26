@@ -14,6 +14,7 @@ import type {
   DerivedMapGeometry,
   NationMapConfig,
 } from "../../data/maps/types";
+import type { ResolvedMapPerformance } from "./map-performance";
 
 const DEFAULT_SEABED_SEGMENTS = 256;
 const DEFAULT_SEABED_DEPTH = 0.22;
@@ -29,6 +30,8 @@ type SeabedShaderUniforms = {
   seabedShelfColor: { value: Color };
   seabedOceanColor: { value: Color };
   seabedFarOceanColor: { value: Color };
+  seabedEdgeColor: { value: Color };
+  seabedEdgeFadeWidth: { value: number };
 };
 
 type SeabedMaterial = MeshStandardMaterial & {
@@ -144,6 +147,40 @@ function createSeabedMaterial(
     seabedFarOceanColor: {
       value: colors.farOcean,
     },
+    seabedEdgeColor: {
+      value: new Color(
+        config.worldExtension
+          ?.horizonColor ??
+          config.palette.background ??
+          config.palette.seaDeep,
+      )
+        .lerp(
+          new Color(
+            config.worldExtension
+              ?.deepWaterColor ??
+              config.seaRendering
+                ?.deepColor ??
+              config.palette.seaDeep,
+          ),
+          0.46,
+        )
+        .multiplyScalar(0.42),
+    },
+    seabedEdgeFadeWidth: {
+      value:
+        !config.worldExtension ||
+        config.worldExtension.mode ===
+          "ocean"
+          ? Math.max(
+              0.04,
+              config.worldExtension
+                ?.transitionWidth ??
+                config.oceanHorizon
+                  ?.transitionWidth ??
+                0.14,
+            )
+          : 0,
+    },
   };
 
   material.userData.seabedUniforms = uniforms;
@@ -159,6 +196,10 @@ function createSeabedMaterial(
       uniforms.seabedOceanColor;
     shader.uniforms.seabedFarOceanColor =
       uniforms.seabedFarOceanColor;
+    shader.uniforms.seabedEdgeColor =
+      uniforms.seabedEdgeColor;
+    shader.uniforms.seabedEdgeFadeWidth =
+      uniforms.seabedEdgeFadeWidth;
 
     shader.vertexShader = shader.vertexShader
       .replace(
@@ -189,6 +230,8 @@ function createSeabedMaterial(
           uniform vec3 seabedShelfColor;
           uniform vec3 seabedOceanColor;
           uniform vec3 seabedFarOceanColor;
+          uniform vec3 seabedEdgeColor;
+          uniform float seabedEdgeFadeWidth;
 
           varying vec2 vSeabedUv;
 
@@ -270,6 +313,31 @@ function createSeabedMaterial(
               coastDistanceSample
             );
 
+          vec2 seabedEdgeCoordinates =
+            abs(vSeabedUv - 0.5) * 2.0;
+          float seabedEdgeDistance = max(
+            seabedEdgeCoordinates.x,
+            seabedEdgeCoordinates.y
+          );
+          float seabedEdgeBlend = smoothstep(
+            1.0 - max(
+              seabedEdgeFadeWidth,
+              0.001
+            ),
+            1.0,
+            seabedEdgeDistance
+          );
+          seabedColor = mix(
+            seabedColor,
+            seabedEdgeColor,
+            seabedEdgeBlend *
+              seabedEdgeBlend *
+              step(
+                0.001,
+                seabedEdgeFadeWidth
+              )
+          );
+
           vec4 diffuseColor =
             vec4(
               seabedColor,
@@ -280,7 +348,7 @@ function createSeabedMaterial(
   };
 
   material.customProgramCacheKey = () =>
-    `${config.id}-seabed-coast-distance-v2`;
+    `${config.id}-seabed-coast-distance-v3`;
 
   material.needsUpdate = true;
 
@@ -293,12 +361,14 @@ export function MapSeabed({
   parchment,
   bathymetry,
   coastDistance,
+  performance,
 }: {
   config: NationMapConfig;
   geometry: DerivedMapGeometry;
   parchment: boolean;
   bathymetry: Texture;
   coastDistance: Texture;
+  performance: ResolvedMapPerformance;
 }) {
   const bathymetryTexture = useMemo(
     () => cloneDataTexture(bathymetry),
@@ -325,8 +395,11 @@ export function MapSeabed({
   );
 
   const horizontalSegments =
-    config.rendering?.segments ??
-    DEFAULT_SEABED_SEGMENTS;
+    Math.min(
+      config.rendering?.segments ??
+        DEFAULT_SEABED_SEGMENTS,
+      performance.terrainSegments,
+    );
 
   const mapAspectRatio =
     geometry.planeWidth /

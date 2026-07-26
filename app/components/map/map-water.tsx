@@ -9,7 +9,8 @@ import type {
 } from "../../data/maps/types";
 import { MapSea } from "./map-sea";
 import { MapSeabed } from "./map-seabed";
-import { MapOceanHorizon } from "./map-ocean-horizon";
+import { MapWorldExtension } from "./map-world-extension";
+import type { ResolvedMapPerformance } from "./map-performance";
 
 /**
  * Composito oceanico della mappa.
@@ -28,10 +29,12 @@ export function MapWater({
   config,
   geometry,
   parchment,
+  performance,
 }: {
   config: NationMapConfig;
   geometry: DerivedMapGeometry;
   parchment: boolean;
+  performance: ResolvedMapPerformance;
 }) {
   const currentMapPath =
     config.textures.currentMap;
@@ -73,7 +76,7 @@ export function MapWater({
 
   return (
     <>
-      <MapOceanHorizon
+      <MapWorldExtension
         config={config}
         geometry={geometry}
         parchment={parchment}
@@ -85,6 +88,7 @@ export function MapWater({
         parchment={parchment}
         bathymetry={bathymetry}
         coastDistance={coastDistance}
+        performance={performance}
       />
 
       <MapSea
@@ -94,6 +98,7 @@ export function MapWater({
         currentMap={currentMap}
         landMask={landMask}
         coastDistance={coastDistance}
+        performance={performance}
       />
     </>
   );

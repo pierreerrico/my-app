@@ -73,20 +73,17 @@ export function deriveMapGeometry(
   const south = north - latitudeSpanDegrees;
 
   /*
-   * Per calcolare la longitudine usiamo la latitudine centrale.
-   *
-   * La lunghezza di un parallelo diminuisce avvicinandosi ai poli,
-   * quindi un grado di longitudine non rappresenta sempre gli stessi km.
+   * La proiezione rettangolare locale è ancorata all'angolo
+   * nord-occidentale. La scala longitudinale deve quindi essere calcolata
+   * alla latitudine del punto d'origine: dimensioni della carta e coordinata
+   * superiore sinistra determinano così tutta la griglia.
    */
-  const centerLatitude =
-    north - latitudeSpanDegrees / 2;
-
-  const centerLatitudeRadians =
-    centerLatitude * DEG_TO_RAD;
+  const anchorLatitudeRadians =
+    north * DEG_TO_RAD;
 
   const parallelRadius =
     geography.planetRadiusKm *
-    Math.cos(centerLatitudeRadians);
+    Math.cos(anchorLatitudeRadians);
 
   if (Math.abs(parallelRadius) < 1e-8) {
     throw new Error(

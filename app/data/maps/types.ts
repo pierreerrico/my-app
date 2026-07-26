@@ -183,6 +183,13 @@ export type NationMapSeaRendering = {
   foamBreakup?: number;
 };
 
+export type MapWorldExtensionMode =
+  | "ocean"
+  | "coastal"
+  | "land"
+  | "context"
+  | "frame";
+
 export type NationMapOceanHorizon = {
   /** Disattiva soltanto l'estensione procedurale, senza toccare il mare interno. */
   enabled?: boolean;
@@ -201,6 +208,32 @@ export type NationMapOceanHorizon = {
     density?: number;
     speed?: number;
   };
+};
+
+export type NationMapWorldExtension =
+  NationMapOceanHorizon & {
+    mode: MapWorldExtensionMode;
+    /** Bianco = terra, nero = mare per le estensioni costiere. */
+    edgeMask?: string;
+    landColor?: string;
+    contextColor?: string;
+    desaturation?: number;
+  };
+
+export type MapPerformanceMode =
+  | "auto"
+  | "performance"
+  | "balanced"
+  | "quality";
+
+export type NationMapPerformance = {
+  mode?: MapPerformanceMode;
+  maxDpr?: number;
+  waterRenderTargetSize?: number;
+  terrainSegments?: number;
+  shadowMapSize?: 0 | 512 | 1024 | 2048;
+  clouds?: boolean;
+  pauseWhenHidden?: boolean;
 };
 
 export type NationMapPalette = {
@@ -320,7 +353,10 @@ export type NationMapConfig = {
 
   rendering?: NationMapRendering;
   seaRendering?: NationMapSeaRendering;
+  worldExtension?: NationMapWorldExtension;
+  /** @deprecated usare worldExtension. */
   oceanHorizon?: NationMapOceanHorizon;
+  performance?: NationMapPerformance;
 };
 
 export type DerivedMapGeometry = {

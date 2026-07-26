@@ -37,3 +37,12 @@ https://github.com/pmndrs/assets/blob/main/src/textures/cloud.png
 The repository declares its assets under CC0 1.0 Universal.
 
 License: https://github.com/pmndrs/assets/blob/main/LICENSE
+
+## ambientCG — Paper 001
+
+The local file `public/maps/shared/parchment-overlay.jpg` is the color texture
+from the ambientCG Paper 001 2K JPG asset.
+
+Source: https://ambientcg.com/view?id=Paper001
+
+License: CC0 1.0 Universal

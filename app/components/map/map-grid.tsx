@@ -2,23 +2,20 @@ import {
     DerivedMapGeometry,
 } from "../../data/maps/types";
 import {
-    chooseNiceStep,
     formatCoordinate,
     valuesWithinBounds,
 } from "../../data/maps/geography";
 
 export function MapGrid({ geometry }: { geometry: DerivedMapGeometry }) {
-    const longitudeStep = chooseNiceStep(geometry.longitudeSpanDegrees, 5);
-    const latitudeStep = chooseNiceStep(geometry.latitudeSpanDegrees, 5);
     const longitudes = valuesWithinBounds(
         geometry.bounds.west,
         geometry.bounds.east,
-        longitudeStep,
+        1,
     );
     const latitudes = valuesWithinBounds(
         geometry.bounds.south,
         geometry.bounds.north,
-        latitudeStep,
+        1,
     );
 
     const xForLongitude = (longitude: number) =>
@@ -37,6 +34,44 @@ export function MapGrid({ geometry }: { geometry: DerivedMapGeometry }) {
             preserveAspectRatio="none"
             aria-hidden="true"
         >
+            <defs>
+                <filter
+                    id="coordinate-label-halo"
+                    x="-80%"
+                    y="-160%"
+                    width="260%"
+                    height="420%"
+                    colorInterpolationFilters="sRGB"
+                >
+                    <feMorphology
+                        in="SourceAlpha"
+                        operator="dilate"
+                        radius="5"
+                        result="expanded"
+                    />
+                    <feGaussianBlur
+                        in="expanded"
+                        stdDeviation="5"
+                        result="blurred"
+                    />
+                    <feFlood
+                        floodColor="#cdbb98"
+                        floodOpacity=".72"
+                        result="haloColor"
+                    />
+                    <feComposite
+                        in="haloColor"
+                        in2="blurred"
+                        operator="in"
+                        result="halo"
+                    />
+                    <feMerge>
+                        <feMergeNode in="halo" />
+                        <feMergeNode in="SourceGraphic" />
+                    </feMerge>
+                </filter>
+            </defs>
+
             <g className="grid-lines">
                 {longitudes.map((longitude) => {
                     const x = xForLongitude(longitude);
@@ -48,11 +83,14 @@ export function MapGrid({ geometry }: { geometry: DerivedMapGeometry }) {
                 })}
             </g>
 
-            <g className="grid-labels">
+            <g
+                className="grid-labels"
+                filter="url(#coordinate-label-halo)"
+            >
                 {longitudes.map((longitude) => {
                     const x = xForLongitude(longitude);
                     return (
-                        <text x={x} y="582" textAnchor="middle" key={`lon-label-${longitude}`}>
+                        <text x={x} y="608" textAnchor="middle" key={`lon-label-${longitude}`}>
                             {formatCoordinate(longitude, "longitude")}
                         </text>
                     );
@@ -60,7 +98,12 @@ export function MapGrid({ geometry }: { geometry: DerivedMapGeometry }) {
                 {latitudes.map((latitude) => {
                     const y = yForLatitude(latitude);
                     return (
-                        <text x="902" y={y + 4} key={`lat-label-${latitude}`}>
+                        <text
+                            x="985"
+                            y={y + 4}
+                            textAnchor="end"
+                            key={`lat-label-${latitude}`}
+                        >
                             {formatCoordinate(latitude, "latitude")}
                         </text>
                     );

@@ -13,6 +13,7 @@ import type {
   DerivedMapGeometry,
   NationMapConfig,
 } from "../../data/maps/types";
+import { getMapAtmosphereColors } from "./map-atmosphere";
 
 const vertexShader = /* glsl */ `
   varying vec3 vWorldDirection;
@@ -83,21 +84,13 @@ export function MapSkybox({
   );
 
   const material = useMemo(() => {
-    const seaBase = new Color(
-      config.palette.seaDeep,
+    const {
+      horizon,
+      zenith,
+      lower,
+    } = getMapAtmosphereColors(
+      config,
     );
-
-    const horizon = seaBase
-      .clone()
-      .lerp(new Color("#9ed5df"), 0.68);
-
-    const zenith = seaBase
-      .clone()
-      .lerp(new Color("#17384f"), 0.42);
-
-    const lower = seaBase
-      .clone()
-      .multiplyScalar(0.42);
 
     return new ShaderMaterial({
       vertexShader,
@@ -118,7 +111,7 @@ export function MapSkybox({
         uSunStrength: { value: 1.15 },
       },
     });
-  }, [config.palette.seaDeep]);
+  }, [config]);
 
   useEffect(
     () => () => {

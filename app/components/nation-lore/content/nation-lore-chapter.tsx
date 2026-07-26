@@ -3,9 +3,11 @@
 import {
   Children,
   isValidElement,
+  useEffect,
   useRef,
   useState,
   type TouchEvent,
+  type UIEvent,
   type WheelEvent,
   type ReactNode,
 } from "react";
@@ -93,7 +95,7 @@ export function NationLoreChapter({
       wheelDirectionRef.current = null;
     }, 500);
 
-    if (wheelBoundaryDistanceRef.current < 220) return;
+    if (wheelBoundaryDistanceRef.current < 170) return;
     wheelLockedRef.current = true;
     wheelBoundaryDistanceRef.current = 0;
     wheelDirectionRef.current = null;
@@ -125,9 +127,9 @@ export function NationLoreChapter({
     const atBottom =
       content.scrollTop + content.clientHeight >= content.scrollHeight - 1;
     const direction =
-      delta > 120 && atBottom
+      delta > 90 && atBottom
         ? "next"
-        : delta < -120 && atTop
+        : delta < -90 && atTop
           ? "previous"
           : null;
 
@@ -177,14 +179,13 @@ export function NationLoreChapter({
               <header>
                 <h2>{section.title}</h2>
               </header>
-              <div
-                className="nation-subchapter-content swiper-no-swiping swiper-no-mousewheel"
+              <ScrollableSubchapterContent
                 onWheel={handleContentWheel}
                 onTouchStart={handleContentTouchStart}
                 onTouchMove={handleContentTouchMove}
               >
                 {section.content}
-              </div>
+              </ScrollableSubchapterContent>
             </article>
           </SwiperSlide>
         ))}
@@ -198,6 +199,76 @@ export function NationLoreChapter({
         onSelect={(index) => swiperRef.current?.slideTo(index)}
       />
     </section>
+  );
+}
+
+function ScrollableSubchapterContent({
+  children,
+  onWheel,
+  onTouchStart,
+  onTouchMove,
+}: {
+  children: ReactNode;
+  onWheel(event: WheelEvent<HTMLDivElement>): void;
+  onTouchStart(event: TouchEvent<HTMLDivElement>): void;
+  onTouchMove(event: TouchEvent<HTMLDivElement>): void;
+}) {
+  const contentRef = useRef<HTMLDivElement>(null);
+  const [thumb, setThumb] = useState({ top: 0, height: 0, visible: false });
+
+  const syncScrollbar = (content: HTMLDivElement) => {
+    const viewport = content.clientHeight;
+    const scrollable = content.scrollHeight - viewport;
+    const trackHeight =
+      content.parentElement?.querySelector<HTMLElement>(
+        ".nation-subchapter-scrollbar",
+      )?.clientHeight ?? viewport;
+    if (scrollable <= 1) {
+      setThumb({ top: 0, height: trackHeight, visible: false });
+      return;
+    }
+
+    const height = Math.max(
+      46,
+      (trackHeight * viewport) / content.scrollHeight,
+    );
+    const top = (content.scrollTop / scrollable) * (trackHeight - height);
+    setThumb({ top, height, visible: true });
+  };
+
+  useEffect(() => {
+    const content = contentRef.current;
+    if (!content) return;
+    syncScrollbar(content);
+    const observer = new ResizeObserver(() => syncScrollbar(content));
+    observer.observe(content);
+    Array.from(content.children).forEach((child) => observer.observe(child));
+    return () => observer.disconnect();
+  }, []);
+
+  const handleScroll = (event: UIEvent<HTMLDivElement>) => {
+    syncScrollbar(event.currentTarget);
+  };
+
+  return (
+    <div className="nation-subchapter-scroll-region">
+      <div
+        ref={contentRef}
+        className="nation-subchapter-content swiper-no-swiping swiper-no-mousewheel"
+        onScroll={handleScroll}
+        onWheel={onWheel}
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+      >
+        {children}
+      </div>
+      <span
+        className={`nation-subchapter-scrollbar${thumb.visible ? " is-visible" : ""}`}
+        aria-hidden="true"
+      >
+        <i style={{ height: thumb.height, transform: `translateY(${thumb.top}px)` }} />
+      </span>
+    </div>
   );
 }
 

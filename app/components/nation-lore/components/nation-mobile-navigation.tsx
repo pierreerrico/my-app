@@ -14,13 +14,12 @@ export function NationMobileNavigation({
   onNavigate,
 }: NationMobileNavigationProps) {
   const timelineRef = useRef<HTMLDivElement>(null);
-  const recenterTimer = useRef<number | null>(null);
   const [preview, setPreview] = useState(current);
 
   useEffect(() => {
     const timeline = timelineRef.current;
     const selected = timeline?.querySelector<HTMLElement>(
-      `[data-cycle="1"][data-index="${current}"]`,
+      `[data-index="${current}"]`,
     );
     if (!timeline || !selected) return;
 
@@ -33,15 +32,6 @@ export function NationMobileNavigation({
       behavior: "smooth",
     });
   }, [current, labels.length]);
-
-  useEffect(
-    () => () => {
-      if (recenterTimer.current !== null) {
-        window.clearTimeout(recenterTimer.current);
-      }
-    },
-    [],
-  );
 
   const handleScroll = () => {
     const timeline = timelineRef.current;
@@ -65,23 +55,6 @@ export function NationMobileNavigation({
 
     const index = Number(nearest.dataset.index);
     setPreview(index);
-    if (recenterTimer.current !== null) {
-      window.clearTimeout(recenterTimer.current);
-    }
-    recenterTimer.current = window.setTimeout(() => {
-      if (nearest.dataset.cycle === "1") return;
-      const middle = timeline.querySelector<HTMLElement>(
-        `[data-cycle="1"][data-index="${index}"]`,
-      );
-      if (!middle) return;
-      timeline.scrollTo({
-        left:
-          middle.offsetLeft -
-          timeline.clientWidth / 2 +
-          middle.offsetWidth / 2,
-        behavior: "instant",
-      });
-    }, 180);
   };
 
   return (
@@ -105,29 +78,26 @@ export function NationMobileNavigation({
         onScroll={handleScroll}
       >
         <div className="nation-mobile-section-track">
-          {[0, 1, 2].flatMap((cycle) =>
-            labels.map((label, index) => (
-              <button
-                key={`${cycle}-${index}`}
-                type="button"
-                className={[
-                  index === current ? "is-active" : "",
-                  index === preview ? "is-preview" : "",
-                ]
-                  .filter(Boolean)
-                  .join(" ")}
-                data-cycle={cycle}
-                data-index={index}
-                aria-label={`Vai a ${label}`}
-                aria-current={
-                  cycle === 1 && index === current ? "step" : undefined
-                }
-                onClick={() => onNavigate(index)}
-              >
-                <span aria-hidden="true" />
-              </button>
-            )),
-          )}
+          <span className="nation-mobile-timeline-spacer" aria-hidden="true" />
+          {labels.map((label, index) => (
+            <button
+              key={index}
+              type="button"
+              className={[
+                index === current ? "is-active" : "",
+                index === preview ? "is-preview" : "",
+              ]
+                .filter(Boolean)
+                .join(" ")}
+              data-index={index}
+              aria-label={`Vai a ${label}`}
+              aria-current={index === current ? "step" : undefined}
+              onClick={() => onNavigate(index)}
+            >
+              <span aria-hidden="true" />
+            </button>
+          ))}
+          <span className="nation-mobile-timeline-spacer" aria-hidden="true" />
         </div>
         <output
           className={preview === current ? "is-selected" : ""}

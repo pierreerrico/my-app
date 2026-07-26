@@ -32,6 +32,103 @@
   font-family: Georgia, "Times New Roman", serif;
 }
 
+.nation-page-vignette {
+  position: absolute;
+  z-index: 70;
+  inset: 0;
+  pointer-events: none;
+  background: transparent;
+  box-shadow:
+    inset 0 0 clamp(48px, 8vmin, 96px)
+      rgba(12, 10, 8, .56);
+  opacity: 0;
+  transition: opacity .45s ease;
+}
+
+.nation-lore-page.is-atlas-active:has(.interactive-map.zoom-level-0)
+  .nation-page-vignette {
+  opacity: .78;
+}
+
+/* Scrollbar neoclassica condivisa dai pannelli e dal testo della voce. */
+.nation-lore-page,
+.nation-lore-page * {
+  scrollbar-width: thin;
+  scrollbar-color:
+    var(--nation-green-soft)
+    color-mix(in srgb, var(--nation-gold) 12%, transparent);
+}
+
+.nation-lore-page *::-webkit-scrollbar {
+  width: 11px;
+  height: 11px;
+}
+
+.nation-lore-page *::-webkit-scrollbar-track {
+  margin-block: 7px;
+  border: 0;
+  border-radius: 999px;
+  background:
+    linear-gradient(
+      90deg,
+      transparent calc(50% - .5px),
+      color-mix(in srgb, var(--nation-gold) 34%, transparent)
+        calc(50% - .5px) calc(50% + .5px),
+      transparent calc(50% + .5px)
+    );
+}
+
+.nation-lore-page *::-webkit-scrollbar-thumb {
+  min-height: 42px;
+  border: 1px solid var(--nation-gold);
+  border-radius: 999px;
+  background:
+    radial-gradient(
+      circle at 50% 7px,
+      var(--nation-gold-bright) 0 1.25px,
+      transparent 1.75px
+    ),
+    radial-gradient(
+      circle at 50% calc(100% - 7px),
+      var(--nation-gold-bright) 0 1.25px,
+      transparent 1.75px
+    ),
+    linear-gradient(
+      90deg,
+      var(--nation-green-deep),
+      var(--nation-green-soft) 48% 52%,
+      var(--nation-green-deep)
+    );
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--nation-gold) 18%, transparent),
+    0 0 0 1px color-mix(in srgb, var(--nation-green-deep) 72%, transparent);
+}
+
+.nation-lore-page *::-webkit-scrollbar-thumb:hover {
+  background:
+    radial-gradient(
+      circle at 50% 7px,
+      var(--nation-ivory) 0 1.25px,
+      transparent 1.75px
+    ),
+    radial-gradient(
+      circle at 50% calc(100% - 7px),
+      var(--nation-ivory) 0 1.25px,
+      transparent 1.75px
+    ),
+    linear-gradient(
+      90deg,
+      var(--nation-green-deep),
+      color-mix(in srgb, var(--nation-green-soft) 76%, var(--nation-gold)) 50%,
+      var(--nation-green-deep)
+    );
+  border-color: var(--nation-gold-bright);
+}
+
+.nation-lore-page *::-webkit-scrollbar-corner {
+  background: var(--nation-green-deep);
+}
+
 .nation-lore-layout {
   position: relative;
   width: 100%;

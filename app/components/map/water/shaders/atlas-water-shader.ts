@@ -105,6 +105,12 @@ export const atlasWaterShader = {
     foamImpactStrength: {
       value: 0.34,
     },
+    edgeBlendColor: {
+      value: new Color("#123f55"),
+    },
+    edgeFadeWidth: {
+      value: 0.14,
+    },
     tReflectionMap: {
       value: null,
     },
@@ -190,6 +196,8 @@ export const atlasWaterShader = {
     uniform float foamGapSpeed;
     uniform vec3 foamLineWidths;
     uniform float foamImpactStrength;
+    uniform vec3 edgeBlendColor;
+    uniform float edgeFadeWidth;
 
     uniform vec4 config;
 
@@ -1059,6 +1067,33 @@ export const atlasWaterShader = {
         smoothstep(0.76, 0.98, foamCore) *
         foamIntensity *
         0.020;
+
+      /*
+       * Il mare locale conserva tutti i dettagli al centro ma converge verso
+       * lo stesso colore dell'oceano remoto prima di raggiungere il bordo.
+       * Evitiamo la trasparenza: Water2 resta opaco e non introduce costosi
+       * problemi di ordinamento.
+       */
+      vec2 edgeCoordinates =
+        abs(vUv - 0.5) * 2.0;
+      float edgeDistance = max(
+        edgeCoordinates.x,
+        edgeCoordinates.y
+      );
+      float edgeBlend = smoothstep(
+        1.0 - max(edgeFadeWidth, 0.001),
+        1.0,
+        edgeDistance
+      );
+      edgeBlend =
+        edgeBlend *
+        edgeBlend *
+        step(0.001, edgeFadeWidth);
+      surface = mix(
+        surface,
+        edgeBlendColor,
+        edgeBlend
+      );
 
       gl_FragColor = vec4(surface, 1.0);
 

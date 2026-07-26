@@ -13,15 +13,18 @@ import type {
   DerivedMapGeometry,
   NationMapConfig,
 } from "../../data/maps/types";
+import type { ResolvedMapPerformance } from "./map-performance";
 
 export function MapTerrain({
   config,
   geometry,
   parchment,
+  performance,
 }: {
   config: NationMapConfig;
   geometry: DerivedMapGeometry;
   parchment: boolean;
+  performance: ResolvedMapPerformance;
 }) {
   const texturePaths = [
     config.textures.diffuse,
@@ -135,8 +138,11 @@ export function MapTerrain({
     displacementScale;
 
   const horizontalSegments =
-    config.rendering?.segments ??
-    256;
+    Math.min(
+      config.rendering?.segments ??
+        256,
+      performance.terrainSegments,
+    );
 
   const mapAspectRatio =
     geometry.planeWidth /

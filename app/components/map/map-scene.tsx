@@ -22,31 +22,39 @@ import type {
 import { MapEdgeFog } from "./map-edge-fog";
 import { MapFeatureMarker } from "./map-feature-marker";
 import { MapLoadingTerrain } from "./map-loading-terrain";
-import { MapRiver } from "./map-river";
 import { MapWater } from "./map-water";
 import { MapSkybox } from "./map-skybox";
 import { MapTerrain } from "./map-terrain";
+import { MapWorldGrid } from "./map-world-grid";
+import type { ResolvedMapPerformance } from "./map-performance";
+import { resolveStaticMapFit } from "./map-camera-fit";
 
 export function MapScene({
   config,
   geometry,
   zoomLevel,
-  onRotationAvailable,
+  onAzimuthChange,
+  onStaticAlignmentChange,
   resetNorthSignal,
+  northStepSignal,
+  performance,
 }: {
   config: NationMapConfig;
   geometry: DerivedMapGeometry;
   zoomLevel: number;
-  onRotationAvailable: (
-    available: boolean,
-  ) => void;
+  onAzimuthChange: (azimuth: number) => void;
+  onStaticAlignmentChange: (aligned: boolean) => void;
   resetNorthSignal: number;
+  northStepSignal: number;
+  performance: ResolvedMapPerformance;
 }) {
   const controls =
     useRef<MapControlsImpl>(null);
 
-  const rotationAvailable =
-    useRef(false);
+  const reportedAzimuth =
+    useRef(0);
+  const reportedStaticAlignment =
+    useRef(true);
 
   const recentering =
     useRef(false);
@@ -62,21 +70,46 @@ export function MapScene({
     recentering.current = true;
   }, [resetNorthSignal]);
 
+  useEffect(() => {
+    if (!controls.current || northStepSignal === 0) {
+      return;
+    }
+
+    const azimuth = controls.current.getAzimuthalAngle();
+    const turnToNorth = Math.atan2(
+      Math.sin(-azimuth),
+      Math.cos(-azimuth),
+    );
+    const correction = Math.min(
+      Math.abs(turnToNorth),
+      MathUtils.clamp(Math.abs(turnToNorth) * 0.48, 0.04, 0.26),
+    );
+    const nextAzimuth =
+      Math.abs(turnToNorth) <= 0.025
+        ? 0
+        : azimuth + Math.sign(turnToNorth) * correction;
+
+    controls.current.setAzimuthalAngle(nextAzimuth);
+
+    const previousTarget = controls.current.target.clone();
+    if (controls.current.target.length() <= 0.025) {
+      controls.current.target.set(0, 0, 0);
+    } else {
+      controls.current.target.multiplyScalar(0.52);
+    }
+    controls.current.object.position.add(
+      controls.current.target.clone().sub(previousTarget),
+    );
+
+    reportedAzimuth.current = nextAzimuth;
+    onAzimuthChange(nextAzimuth);
+  }, [northStepSignal, onAzimuthChange]);
+
   useFrame(({ camera, size }) => {
     if (!controls.current) {
       return;
     }
     
-
-    const verticalFov =
-      MathUtils.degToRad(45);
-
-    const viewportAspect =
-      Math.max(
-        size.width /
-          Math.max(size.height, 1),
-        0.1,
-      );
 
     const shortSide =
       Math.min(
@@ -108,40 +141,14 @@ export function MapScene({
         size.height * 0.5,
       );
 
-    const usableWidthRatio =
-      usableWidth /
-      Math.max(size.width, 1);
-
-    const usableHeightRatio =
-      usableHeight /
-      Math.max(size.height, 1);
-
-    const fitMapHeight =
-      geometry.planeHeight /
-      (
-        2 *
-        Math.tan(
-          verticalFov / 2,
-        ) *
-        usableHeightRatio
-      );
-
-    const fitMapWidth =
-      geometry.planeWidth /
-      (
-        2 *
-        Math.tan(
-          verticalFov / 2,
-        ) *
-        viewportAspect *
-        usableWidthRatio
-      );
-
-    const staticFitDistance =
-      Math.max(
-        fitMapHeight,
-        fitMapWidth,
-      ) * 1.02;
+    const staticFitDistance = resolveStaticMapFit({
+      viewportWidth: size.width,
+      viewportHeight: size.height,
+      usableWidth,
+      usableHeight,
+      planeWidth: geometry.planeWidth,
+      planeHeight: geometry.planeHeight,
+    }).distance;
 
     const zoom = MathUtils.clamp(zoomLevel, 0, 2);
     const zoomStage = Math.min(Math.floor(zoom), 1);
@@ -208,7 +215,7 @@ export function MapScene({
       .add(offset);
 
     const canRotate =
-      zoom >= 1.85;
+      zoom > 0.02;
 
     controls.current.enableRotate =
       canRotate;
@@ -220,7 +227,7 @@ export function MapScene({
       nextPolar,
     );
 
-    if (!canRotate) {
+    if (zoom === 0) {
       const azimuth =
         controls.current
           .getAzimuthalAngle();
@@ -357,25 +364,54 @@ export function MapScene({
       }
     }
 
-    if (
-      rotationAvailable.current !==
-      canRotate
-    ) {
-      rotationAvailable.current =
-        canRotate;
+    const azimuth =
+      controls.current
+        .getAzimuthalAngle();
 
-      onRotationAvailable(
-        canRotate,
+    const azimuthDelta =
+      Math.atan2(
+        Math.sin(
+          azimuth -
+            reportedAzimuth.current,
+        ),
+        Math.cos(
+          azimuth -
+            reportedAzimuth.current,
+        ),
       );
+
+    if (
+      Math.abs(azimuthDelta) >
+      0.003
+    ) {
+      reportedAzimuth.current =
+        azimuth;
+      onAzimuthChange(azimuth);
+    }
+
+    const staticViewAligned =
+      Math.abs(
+        Math.atan2(
+          Math.sin(azimuth),
+          Math.cos(azimuth),
+        ),
+      ) <= 0.008 &&
+      controls.current.target.length() <= 0.025;
+
+    if (staticViewAligned !== reportedStaticAlignment.current) {
+      reportedStaticAlignment.current = staticViewAligned;
+      onStaticAlignmentChange(staticViewAligned);
     }
   });
 
-  const background =
-    config.palette.background ??
-    config.palette.seaDeep;
-
   const parchment =
     zoomLevel === 0;
+
+  const background =
+    parchment
+      ? "#b5a88f"
+      : config.palette.background ??
+        config.palette.seaDeep;
 
   return (
     <>
@@ -398,10 +434,19 @@ export function MapScene({
       />
 
       <directionalLight
-        castShadow
+        castShadow={
+          performance.shadowMapSize >
+          0
+        }
         shadow-mapSize={[
-          2048,
-          2048,
+          Math.max(
+            performance.shadowMapSize,
+            512,
+          ),
+          Math.max(
+            performance.shadowMapSize,
+            512,
+          ),
         ]}
         shadow-camera-near={0.5}
         shadow-camera-far={30}
@@ -434,6 +479,7 @@ export function MapScene({
           config={config}
           geometry={geometry}
           parchment={parchment}
+          performance={performance}
         />
       </Suspense>
 
@@ -449,6 +495,7 @@ export function MapScene({
           config={config}
           geometry={geometry}
           parchment={parchment}
+          performance={performance}
         />
       </Suspense>
 
@@ -469,13 +516,19 @@ export function MapScene({
         config={config}
         geometry={geometry}
         parchment={parchment}
+        performance={performance}
+      />
+
+      <MapWorldGrid
+        geometry={geometry}
+        visible={parchment}
       />
 
       <MapControls
         ref={controls}
         makeDefault
         enablePan
-        enableRotate={false}
+        enableRotate={zoomLevel > 0.02}
         enableZoom={false}
         minDistance={3.2}
         maxDistance={Math.max(

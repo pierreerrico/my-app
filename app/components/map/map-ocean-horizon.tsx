@@ -15,8 +15,13 @@ import type {
   DerivedMapGeometry,
   NationMapConfig,
 } from "../../data/maps/types";
+import { getMapAtmosphereColors } from "./map-atmosphere";
 
-const DEFAULT_EXTENSION_SCALE = 6;
+/*
+ * Il piano deve superare il far clipping plane in ogni direzione: aumentare
+ * questa misura non aggiunge triangoli né pixel, perché resta un quad.
+ */
+const DEFAULT_EXTENSION_SCALE = 30;
 const DEFAULT_TRANSITION_WIDTH = 0.12;
 const DEFAULT_SEABED_DROP = 2.4;
 
@@ -37,8 +42,11 @@ const oceanFragmentShader = /* glsl */ `
 
   uniform vec3 uDeepColor;
   uniform vec3 uHorizonColor;
+  uniform vec3 uSkyHorizonColor;
   uniform float uTime;
   uniform float uExtensionScale;
+  uniform float uHorizonReach;
+  uniform float uViewPerspective;
 
   varying vec2 vUv;
   varying vec3 vWorldPosition;
@@ -67,9 +75,67 @@ const oceanFragmentShader = /* glsl */ `
     float fineWave =
       hash21(floor(wavePosition * 2.4)) * 0.12;
 
-    vec3 color = mix(uDeepColor, uHorizonColor, distanceBlend * 0.58);
+    vec3 color = mix(
+      uDeepColor,
+      uHorizonColor,
+      distanceBlend * 0.72
+    );
     color += (broadWave * 0.025 + fineWave * 0.018) *
       (1.0 - distanceBlend * 0.55);
+
+    /*
+     * All'estremo prospettico il mare converge esattamente verso il colore
+     * usato dalla skybox. La curva larga evita una linea geometrica leggibile.
+     */
+    vec3 directionToCamera = normalize(
+      cameraPosition - vWorldPosition
+    );
+    float grazingAngle =
+      1.0 -
+      clamp(
+        abs(directionToCamera.y),
+        0.0,
+        1.0
+      );
+    float localGrazing = smoothstep(
+      0.78,
+      0.995,
+      grazingAngle
+    );
+    float cameraDistance = length(
+      cameraPosition.xz -
+      vWorldPosition.xz
+    );
+    float normalizedDistance = clamp(
+      cameraDistance /
+      max(uHorizonReach, 0.001),
+      0.0,
+      1.0
+    );
+    /*
+     * Il raccordo principale segue l'angolo radente del raggio di vista:
+     * coincide quindi con l'orizzonte visibile, indipendentemente dalle
+     * dimensioni della carta. La distanza allarga appena la fascia, senza
+     * decidere se il raccordo debba comparire.
+     */
+    float distantSupport = smoothstep(
+      0.12,
+      0.72,
+      normalizedDistance
+    );
+    float atmosphericBlend =
+      localGrazing *
+      mix(0.72, 1.0, distantSupport) *
+      uViewPerspective;
+    color = mix(
+      color,
+      uSkyHorizonColor,
+      smoothstep(
+        0.0,
+        1.0,
+        atmosphericBlend
+      )
+    );
 
     gl_FragColor = vec4(color, 1.0);
   }
@@ -143,6 +209,14 @@ const mistFragmentShader = /* glsl */ `
       alpha,
       seamBand * mix(0.78, 0.92, shape)
     );
+    float outerEdgeFade =
+      1.0 -
+      smoothstep(
+        0.82,
+        0.995,
+        max(centred.x, centred.y)
+      );
+    alpha *= outerEdgeFade;
 
     if (alpha <= 0.003) discard;
     float paleMist = smoothstep(
@@ -170,7 +244,11 @@ export function MapOceanHorizon({
 }) {
   const oceanMeshRef = useRef<Mesh>(null);
   const mistMeshRef = useRef<Mesh>(null);
-  const horizon = config.oceanHorizon;
+  const horizon =
+    config.worldExtension?.mode ===
+    "ocean"
+      ? config.worldExtension
+      : config.oceanHorizon;
   const enabled = horizon?.enabled ?? true;
   const extensionScale = Math.max(
     2,
@@ -227,6 +305,13 @@ export function MapOceanHorizon({
       horizon?.horizonColor,
     ],
   );
+  const skyHorizonColor = useMemo(
+    () =>
+      getMapAtmosphereColors(
+        config,
+      ).horizon,
+    [config],
+  );
 
   const oceanMaterial = useMemo(
     () =>
@@ -239,11 +324,29 @@ export function MapOceanHorizon({
         uniforms: {
           uDeepColor: { value: deepColor },
           uHorizonColor: { value: horizonColor },
+          uSkyHorizonColor: {
+            value: skyHorizonColor,
+          },
           uTime: { value: 0 },
           uExtensionScale: { value: extensionScale },
+          uHorizonReach: {
+            value:
+              Math.min(
+                geometry.planeWidth,
+                geometry.planeHeight,
+              ) * 3.1,
+          },
+          uViewPerspective: { value: 0 },
         },
       }),
-    [deepColor, extensionScale, horizonColor],
+    [
+      deepColor,
+      extensionScale,
+      horizonColor,
+      skyHorizonColor,
+      geometry.planeWidth,
+      geometry.planeHeight,
+    ],
   );
 
   const mistMaterial = useMemo(
@@ -294,7 +397,7 @@ export function MapOceanHorizon({
     [horizonColor],
   );
 
-  useFrame(({ clock }) => {
+  useFrame(({ clock, camera }) => {
     const time = clock.elapsedTime;
     const activeOceanMaterial =
       oceanMeshRef.current?.material as ShaderMaterial | undefined;
@@ -302,6 +405,29 @@ export function MapOceanHorizon({
       mistMeshRef.current?.material as ShaderMaterial | undefined;
     if (activeOceanMaterial) {
       activeOceanMaterial.uniforms.uTime.value = time;
+      /*
+       * 0 in vista ortografica, 1 nella prospettiva più inclinata.
+       * Usiamo l'altezza relativa della camera: non dipende dalla scala o
+       * dall'estensione della singola mappa.
+       */
+      const cameraDistance = Math.max(
+        camera.position.length(),
+        0.001,
+      );
+      const verticalRatio = Math.min(
+        1,
+        Math.abs(camera.position.y) /
+          cameraDistance,
+      );
+      activeOceanMaterial.uniforms.uViewPerspective.value =
+        Math.min(
+          1,
+          Math.max(
+            0,
+            (0.86 - verticalRatio) /
+              0.34,
+          ),
+        );
     }
     if (activeMistMaterial) {
       activeMistMaterial.uniforms.uTime.value = time;
