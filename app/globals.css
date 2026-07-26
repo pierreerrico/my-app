@@ -34,7 +34,7 @@ body:has(.nation-lore-page) {
   height: 100%;
   overflow: hidden;
   overscroll-behavior: none;
-  background-color: #102f30;
+  background-color: #f2eadb;
   background-image: none;
 }
 
@@ -52,16 +52,6 @@ body:has(.nation-lore-page) {
   html:has(.nation-lore-page),
   body:has(.nation-lore-page) {
     height: 100dvh;
-  }
-}
-
-@media (max-width: 767px) {
-  @supports (height: 100lvh) {
-    html:has(.nation-lore-page),
-    body:has(.nation-lore-page),
-    .article-page {
-      height: 100lvh;
-    }
   }
 }
 

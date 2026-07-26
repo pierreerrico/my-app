@@ -63,12 +63,12 @@ export default function NationLorePage({
     const themeColor =
       atlasActive
         ? "#b5a88f"
-        : theme?.primary ?? "#102f30";
+        : "#f2eadb";
     const meta = document.querySelector<HTMLMetaElement>(
       'meta[name="theme-color"]',
     );
     meta?.setAttribute("content", themeColor);
-  }, [atlasActive, theme?.primary]);
+  }, [atlasActive]);
 
   const menuPinned = desktopLayout.pinMenu && !atlasActive;
   const infoPinned = desktopLayout.pinInfo && !atlasActive;
@@ -99,6 +99,10 @@ export default function NationLorePage({
     <section ref={rootRef} className={rootClasses} style={themeVariables}>
       <div
         className="nation-page-vignette"
+        aria-hidden="true"
+      />
+      <div
+        className="nation-mobile-browser-blend"
         aria-hidden="true"
       />
       <NationPageControls

@@ -1,5 +1,6 @@
 .nation-mobile-double-chevron,
-.nation-mobile-section-timeline {
+.nation-mobile-section-timeline,
+.nation-mobile-browser-blend {
   display: none;
 }
 
@@ -23,6 +24,30 @@
     overflow: hidden;
   }
 
+  .nation-mobile-browser-blend {
+    position: fixed;
+    z-index: 83;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    height: max(1px, env(safe-area-inset-bottom));
+    display: block;
+    pointer-events: none;
+    border-top: 1px solid
+      color-mix(in srgb, var(--nation-gold) 24%, #f2eadb);
+    background: #f2eadb;
+    box-shadow:
+      0 -10px 24px rgba(4, 18, 20, .34),
+      0 -2px 7px rgba(4, 18, 20, .22);
+    opacity: 1;
+    transition: opacity .32s ease;
+  }
+
+  .nation-lore-page.is-atlas-active
+    .nation-mobile-browser-blend {
+    opacity: 0;
+  }
+
   /*
    * Opaque mobile masthead. It masks the scrolling chapter beneath the
    * controls and timeline instead of allowing lines of text to show through.
@@ -32,7 +57,7 @@
     position: absolute;
     z-index: 84;
     inset: 0 0 auto;
-    height: calc(120px + env(safe-area-inset-top));
+    height: calc(108px + env(safe-area-inset-top));
     display: block;
     pointer-events: none;
     background:
@@ -113,7 +138,7 @@
     content: "";
     position: fixed;
     z-index: 1;
-    top: calc(115px + env(safe-area-inset-top));
+    top: calc(103px + env(safe-area-inset-top));
     right: 24px;
     left: 24px;
     height: 1px;
@@ -135,7 +160,7 @@
     content: "";
     position: fixed;
     z-index: 2;
-    top: calc(111.5px + env(safe-area-inset-top));
+    top: calc(99.5px + env(safe-area-inset-top));
     left: 50%;
     width: 7px;
     height: 7px;
@@ -152,7 +177,7 @@
   .is-atlas-active .nation-mobile-section-timeline {
     opacity: 0;
     visibility: hidden;
-    transform: translateY(calc(-120px - env(safe-area-inset-top)));
+    transform: translateY(calc(-108px - env(safe-area-inset-top)));
     pointer-events: none;
     transition:
       opacity var(--nation-mobile-masthead-speed) ease,
@@ -413,7 +438,7 @@
 
 @media (max-width: 600px) and (orientation: portrait) {
   .nation-subchapter {
-    padding-top: calc(140px + env(safe-area-inset-top));
+    padding-top: calc(128px + env(safe-area-inset-top));
   }
 
   .nation-subchapter header {
