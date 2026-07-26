@@ -70,13 +70,14 @@
         color-mix(in srgb, var(--nation-green-deep) 70%, transparent),
       0 0 18px
         color-mix(in srgb, var(--nation-gold) 12%, transparent);
-    opacity: 1;
-    transition: opacity .32s ease;
+    transform: translateY(0);
+    transition: transform var(--nation-mobile-masthead-speed)
+      var(--nation-mobile-masthead-ease);
   }
 
   .nation-lore-page.is-atlas-active
     .nation-mobile-reading-frame {
-    opacity: 0;
+    transform: translateY(100%);
   }
 
   /*
