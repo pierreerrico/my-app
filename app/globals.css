@@ -43,6 +43,17 @@ body:has(.nation-lore-page.is-atlas-active) {
   background-color: #f2eadb;
 }
 
+html:has(
+  .nation-lore-page.is-atlas-active
+    .interactive-map:is(.zoom-level-1, .zoom-level-2)
+),
+body:has(
+  .nation-lore-page.is-atlas-active
+    .interactive-map:is(.zoom-level-1, .zoom-level-2)
+) {
+  background-color: #091f20;
+}
+
 body:has(.nation-lore-page) {
   position: fixed;
   inset: 0;
