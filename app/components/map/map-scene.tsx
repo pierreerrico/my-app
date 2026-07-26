@@ -261,22 +261,7 @@ export function MapScene({
     );
 
     if (zoom === 0) {
-      const azimuth =
-        controls.current
-          .getAzimuthalAngle();
-
-      const shortestTurn =
-        Math.atan2(
-          Math.sin(-azimuth),
-          Math.cos(-azimuth),
-        );
-
-      controls.current
-        .setAzimuthalAngle(
-          azimuth +
-            shortestTurn *
-              0.105,
-        );
+      controls.current.setAzimuthalAngle(0);
     }
 
     if (

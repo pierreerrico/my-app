@@ -20,8 +20,8 @@
  */
 @media (max-width: 767px) {
   .nation-lore-page {
-    --nation-mobile-masthead-speed: .52s;
-    --nation-mobile-masthead-ease: cubic-bezier(.22, .8, .2, 1);
+    --nation-mobile-masthead-speed: .48s;
+    --nation-mobile-masthead-ease: cubic-bezier(.16, 1, .3, 1);
     overflow: hidden;
   }
 
@@ -93,16 +93,12 @@
     pointer-events: none;
     background: #f2eadb;
     box-shadow: none;
-    opacity: 1;
     transform: translateY(0);
-    transition:
-      opacity var(--nation-mobile-masthead-speed) ease,
-      transform var(--nation-mobile-masthead-speed)
-        var(--nation-mobile-masthead-ease);
+    transition: transform var(--nation-mobile-masthead-speed)
+      var(--nation-mobile-masthead-ease);
   }
 
   .nation-lore-page.is-atlas-active::before {
-    opacity: 0;
     transform: translateY(-100%);
   }
 
