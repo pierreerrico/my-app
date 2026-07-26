@@ -2,7 +2,6 @@
 
 import {
   useCallback,
-  useEffect,
   useRef,
   useState,
   type CSSProperties,
@@ -58,17 +57,6 @@ export default function NationLorePage({
   });
 
   const atlasActive = activeSlide === 0;
-
-  useEffect(() => {
-    const themeColor =
-      atlasActive
-        ? "#b5a88f"
-        : "#f2eadb";
-    const meta = document.querySelector<HTMLMetaElement>(
-      'meta[name="theme-color"]',
-    );
-    meta?.setAttribute("content", themeColor);
-  }, [atlasActive]);
 
   const menuPinned = desktopLayout.pinMenu && !atlasActive;
   const infoPinned = desktopLayout.pinInfo && !atlasActive;

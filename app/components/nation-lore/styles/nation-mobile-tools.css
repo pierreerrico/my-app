@@ -57,12 +57,21 @@
     position: absolute;
     z-index: 84;
     inset: 0 0 auto;
-    height: calc(108px + env(safe-area-inset-top));
+    height: calc(96px + env(safe-area-inset-top));
     display: block;
     pointer-events: none;
     background:
-      radial-gradient(circle at 18% 0, rgba(118, 45, 42, .13), transparent 48%),
-      linear-gradient(155deg, #fffdf7 0%, #f2eadb 66%, #e4d4ba 100%);
+      radial-gradient(
+        circle at 18% 100%,
+        rgba(118, 45, 42, .11),
+        transparent 42%
+      ),
+      linear-gradient(
+        to bottom,
+        #f2eadb 0 62%,
+        #eee2cf 80%,
+        #e4d4ba 100%
+      );
     box-shadow: 0 8px 18px rgba(36, 20, 16, .16);
     opacity: 1;
     transform: translateY(0);
@@ -138,7 +147,7 @@
     content: "";
     position: fixed;
     z-index: 1;
-    top: calc(103px + env(safe-area-inset-top));
+    top: calc(91px + env(safe-area-inset-top));
     right: 24px;
     left: 24px;
     height: 1px;
@@ -160,7 +169,7 @@
     content: "";
     position: fixed;
     z-index: 2;
-    top: calc(99.5px + env(safe-area-inset-top));
+    top: calc(87.5px + env(safe-area-inset-top));
     left: 50%;
     width: 7px;
     height: 7px;
@@ -177,7 +186,7 @@
   .is-atlas-active .nation-mobile-section-timeline {
     opacity: 0;
     visibility: hidden;
-    transform: translateY(calc(-108px - env(safe-area-inset-top)));
+    transform: translateY(calc(-96px - env(safe-area-inset-top)));
     pointer-events: none;
     transition:
       opacity var(--nation-mobile-masthead-speed) ease,
@@ -438,7 +447,7 @@
 
 @media (max-width: 600px) and (orientation: portrait) {
   .nation-subchapter {
-    padding-top: calc(128px + env(safe-area-inset-top));
+    padding-top: calc(116px + env(safe-area-inset-top));
   }
 
   .nation-subchapter header {
