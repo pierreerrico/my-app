@@ -172,7 +172,7 @@
 
 .is-menu-open .nation-menu-control::after,
 .is-info-open .nation-atlas-toggle::after {
-  background: #f2eadb;
+  background: var(--ivory);
   box-shadow: inset 0 0 12px rgba(118, 45, 42, .05);
 }
 

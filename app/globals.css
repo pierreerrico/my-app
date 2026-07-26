@@ -13,6 +13,7 @@
   --topbar: 72px;
   --font-display: Georgia, "Times New Roman", serif;
   --font-body: "Palatino Linotype", Palatino, Georgia, serif;
+  --ivory: #f2eadb;
 }
 
 * {
@@ -34,13 +35,13 @@ body:has(.nation-lore-page) {
   height: 100%;
   overflow: hidden;
   overscroll-behavior: none;
-  background-color: #f2eadb;
+  background-color: var(--ivory);
   background-image: none;
 }
 
 html:has(.nation-lore-page.is-atlas-active),
 body:has(.nation-lore-page.is-atlas-active) {
-  background-color: #f2eadb;
+  background-color: var(--ivory);
 }
 
 html:has(
@@ -2805,7 +2806,7 @@ footer p {
   inset: 0;
   display: block;
   padding: var(--frame-depth);
-  background: #f2eadb;
+  background: var(--ivory);
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
   mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
