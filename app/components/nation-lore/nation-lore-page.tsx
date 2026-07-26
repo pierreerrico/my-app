@@ -2,7 +2,6 @@
 
 import {
   useCallback,
-  useEffect,
   useRef,
   useState,
   type CSSProperties,
@@ -58,27 +57,6 @@ export default function NationLorePage({
   });
 
   const atlasActive = activeSlide === 0;
-
-  useEffect(() => {
-    let themeColor = document.querySelector<HTMLMetaElement>(
-      'meta[name="theme-color"]',
-    );
-    const created = !themeColor;
-
-    if (!themeColor) {
-      themeColor = document.createElement("meta");
-      themeColor.name = "theme-color";
-      document.head.appendChild(themeColor);
-    }
-
-    themeColor.content = atlasActive ? "#c4b397" : "#f2eadb";
-
-    return () => {
-      if (created) {
-        themeColor?.remove();
-      }
-    };
-  }, [atlasActive]);
 
   const menuPinned = desktopLayout.pinMenu && !atlasActive;
   const infoPinned = desktopLayout.pinInfo && !atlasActive;
