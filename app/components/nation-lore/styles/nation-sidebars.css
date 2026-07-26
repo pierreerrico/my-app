@@ -24,6 +24,15 @@
 .nation-lore-page .sidebar-panel--right {
   border-width: 0 0 0 1px;
   box-shadow: -20px 0 48px rgba(2, 12, 14, .28);
+  transition:
+    transform var(--sidebar-speed) var(--sidebar-ease),
+    visibility 0s linear var(--sidebar-speed);
+}
+
+.nation-lore-page .sidebar-panel--right[data-open="true"] {
+  transition:
+    transform var(--sidebar-speed) var(--sidebar-ease),
+    visibility 0s;
 }
 
 .nation-lore-page:not(.is-menu-pinned).is-menu-open .nation-global-controls,
@@ -150,8 +159,54 @@
   border-top-color: color-mix(in srgb, var(--sidebar-rule) 45%, transparent);
 }
 
+.nation-lore-rail-layer {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  pointer-events: none;
+}
+
+.nation-lore-rail-layer > * {
+  pointer-events: auto;
+}
+
+.nation-lore-swiper {
+  position: relative;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.nation-lore-layout {
+  isolation: isolate;
+}
+
+/*
+ * Once a lore slide has settled, lift the fixed rail above the transparent
+ * Swiper surface so touch/pointer events can reach it. During every movement
+ * it remains below, preserving the atlas masking contract.
+ */
+.nation-lore-page:not(.is-atlas-active):not(.is-slide-moving)
+  .nation-lore-rail-layer {
+  z-index: 3;
+}
+
+.nation-atlas-slide {
+  z-index: 3;
+  pointer-events: auto;
+  background: var(--nation-green-deep);
+}
+
+.nation-chapter {
+  pointer-events: none;
+}
+
+.nation-chapter .nation-subchapter-swiper {
+  pointer-events: auto;
+}
+
 @media (min-width: 1281px) {
-  .nation-lore-page.is-menu-pinned .sidebar-panel--left {
+  .nation-lore-page.is-menu-pinned .sidebar-panel--left,
+  .nation-lore-page.is-info-pinned .sidebar-panel--right {
     z-index: 20;
     visibility: visible;
     transform: translateX(0);
@@ -159,22 +214,51 @@
   }
 
   /*
-   * Le colonne laterali sono overlay; soltanto il contenuto delle slide lore
-   * riserva il loro spazio. La viewport Swiper resta quindi invariata quando
-   * si lascia l'Atlante.
+   * The atlas remains a full, non-flex slide. Every lore chapter carries its
+   * final desktop geometry from the start of the transition:
+   * menu | reading viewport | separator | pagination | info.
    */
-  .nation-lore-page.is-menu-pinned .nation-chapter {
+  .nation-lore-page.is-lore-geometry-active .nation-chapter {
     box-sizing: border-box;
-    padding-right: var(--nation-side-column-width);
-    padding-left: var(--nation-side-column-width);
+    display: flex;
+    padding-right: calc(var(--nation-side-column-width) * 2 + 4px);
+  }
+
+  .nation-lore-page.is-lore-geometry-active .nation-subchapter-swiper {
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+
+  .nation-lore-page.is-lore-geometry-active .nation-lore-divider {
+    right: calc(var(--nation-side-column-width) * 2);
+  }
+
+  .nation-lore-page.is-lore-geometry-active .nation-section-navigation {
+    right: var(--nation-side-column-width);
+    width: var(--nation-side-column-width);
+    height: min(68vh, 620px);
   }
 
   .nation-lore-page.is-menu-pinned .nation-menu-control,
   .nation-lore-page.is-menu-pinned .nation-drawer-close,
-  .nation-lore-page.is-menu-pinned .sidebar-scrim--menu {
+  .nation-lore-page.is-menu-pinned .sidebar-scrim--menu,
+  .nation-lore-page.is-info-pinned .nation-atlas-toggle,
+  .nation-lore-page.is-info-pinned .nation-atlas-sidebar-close,
+  .nation-lore-page.is-info-pinned .sidebar-scrim--info {
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
+  }
+
+  /* The active Info control is an X and has stronger open-state rules. */
+  .nation-lore-page.is-info-pinned .nation-atlas-toggle {
+    display: none !important;
+  }
+}
+
+@media (min-width: 1600px) {
+  .nation-lore-page.is-lore-geometry-active .nation-chapter {
+    padding-left: var(--nation-side-column-width);
   }
 }
 

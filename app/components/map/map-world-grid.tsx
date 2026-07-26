@@ -505,13 +505,25 @@ export function MapWorldGrid({
 
       {visible
         ? longitudes.map(
-        (longitude) => (
+        (longitude, index) => (
           <ViewportCoordinateLabel
             key={`longitude-${longitude}`}
             axis="longitude"
+            index={index}
             worldPosition={[
               xForLongitude(
                 longitude,
+              ),
+              GRID_Y,
+              0,
+            ]}
+            neighborWorldPosition={[
+              xForLongitude(
+                longitudes[
+                  index < longitudes.length - 1
+                    ? index + 1
+                    : index - 1
+                ],
               ),
               GRID_Y,
               0,
@@ -527,14 +539,26 @@ export function MapWorldGrid({
 
       {visible
         ? latitudes.map(
-        (latitude) => (
+        (latitude, index) => (
           <ViewportCoordinateLabel
             key={`latitude-${latitude}`}
             axis="latitude"
+            index={index}
             worldPosition={[
               0,
               GRID_Y,
               zForLatitude(latitude),
+            ]}
+            neighborWorldPosition={[
+              0,
+              GRID_Y,
+              zForLatitude(
+                latitudes[
+                  index < latitudes.length - 1
+                    ? index + 1
+                    : index - 1
+                ],
+              ),
             ]}
             label={formatCoordinate(
               latitude,
@@ -571,27 +595,10 @@ function ViewportCoordinateBands({
   const projectedEnd = useMemo(() => new Vector3(), []);
 
   useFrame(({ camera, size }) => {
-    const frameInset =
-      Math.min(
-        58,
-        Math.max(
-          38,
-          Math.min(size.width, size.height) * 0.054,
-        ),
-      ) + 3;
-
-    if (topBandRef.current) {
-      topBandRef.current.style.top = `${frameInset}px`;
-    }
-    if (bottomBandRef.current) {
-      bottomBandRef.current.style.bottom = `${frameInset}px`;
-    }
-    if (leftBandRef.current) {
-      leftBandRef.current.style.left = `${frameInset}px`;
-    }
-    if (rightBandRef.current) {
-      rightBandRef.current.style.right = `${frameInset}px`;
-    }
+    const horizontalInset = topBandRef.current?.offsetLeft ?? 0;
+    const horizontalExtent = topBandRef.current?.clientWidth ?? size.width;
+    const verticalInset = leftBandRef.current?.offsetTop ?? 0;
+    const verticalExtent = leftBandRef.current?.clientHeight ?? size.height;
 
     for (let index = 0; index < longitudes.length - 1; index += 1) {
       const elements = [
@@ -608,12 +615,18 @@ function ViewportCoordinateBands({
 
       const start = (projectedStart.x * 0.5 + 0.5) * size.width;
       const end = (projectedEnd.x * 0.5 + 0.5) * size.width;
-      const left = Math.max(0, Math.min(start, end));
-      const right = Math.min(size.width, Math.max(start, end));
+      const left = Math.max(
+        0,
+        Math.min(start, end) - horizontalInset,
+      );
+      const right = Math.min(
+        horizontalExtent,
+        Math.max(start, end) - horizontalInset,
+      );
 
       for (const element of elements) {
         if (!element) continue;
-        element.hidden = right <= 0 || left >= size.width;
+        element.hidden = right <= 0 || left >= horizontalExtent;
         element.style.left = `${left}px`;
         element.style.width = `${Math.max(0, right - left)}px`;
       }
@@ -634,12 +647,18 @@ function ViewportCoordinateBands({
 
       const start = (-projectedStart.y * 0.5 + 0.5) * size.height;
       const end = (-projectedEnd.y * 0.5 + 0.5) * size.height;
-      const top = Math.max(0, Math.min(start, end));
-      const bottom = Math.min(size.height, Math.max(start, end));
+      const top = Math.max(
+        0,
+        Math.min(start, end) - verticalInset,
+      );
+      const bottom = Math.min(
+        verticalExtent,
+        Math.max(start, end) - verticalInset,
+      );
 
       for (const element of elements) {
         if (!element) continue;
-        element.hidden = bottom <= 0 || top >= size.height;
+        element.hidden = bottom <= 0 || top >= verticalExtent;
         element.style.top = `${top}px`;
         element.style.height = `${Math.max(0, bottom - top)}px`;
       }
@@ -702,17 +721,26 @@ function ViewportCoordinateBands({
 
 function ViewportCoordinateLabel({
   axis,
+  index,
   worldPosition,
+  neighborWorldPosition,
   label,
 }: {
   axis: "latitude" | "longitude";
+  index: number;
   worldPosition:
+    [number, number, number];
+  neighborWorldPosition:
     [number, number, number];
   label: string;
 }) {
   const labelRef =
     useRef<HTMLSpanElement>(null);
   const projected = useMemo(
+    () => new Vector3(),
+    [],
+  );
+  const projectedNeighbor = useMemo(
     () => new Vector3(),
     [],
   );
@@ -735,19 +763,98 @@ function ViewportCoordinateLabel({
         (-projected.y * 0.5 +
           0.5) *
         size.height;
+      projectedNeighbor
+        .set(...neighborWorldPosition)
+        .project(camera);
+      const neighborScreenPosition =
+        axis === "longitude"
+          ? (
+              projectedNeighbor.x *
+                0.5 +
+              0.5
+            ) * size.width
+          : (
+              -projectedNeighbor.y *
+                0.5 +
+              0.5
+            ) * size.height;
+      const currentScreenPosition =
+        axis === "longitude"
+          ? screenX
+          : screenY;
+      const projectedSpacing =
+        Math.abs(
+          neighborScreenPosition -
+          currentScreenPosition,
+        );
+      const labelStride =
+        Math.max(
+          1,
+          Math.ceil(
+            52 /
+              Math.max(
+                projectedSpacing,
+                1,
+              ),
+          ),
+        );
+      const map =
+        element.closest(
+          ".interactive-map",
+        );
+      const mapBounds =
+        map?.getBoundingClientRect();
+      const leftBandBounds =
+        map
+          ?.querySelector(
+            ".map-coordinate-band.left-band",
+          )
+          ?.getBoundingClientRect();
+      const rightBandBounds =
+        map
+          ?.querySelector(
+            ".map-coordinate-band.right-band",
+          )
+          ?.getBoundingClientRect();
+      const longitudeLabelHalfWidth =
+        Math.max(
+          22,
+          label.length * 4.5 +
+            12,
+        );
+      const longitudeMinX =
+        mapBounds &&
+        leftBandBounds
+          ? leftBandBounds.right -
+            mapBounds.left +
+            longitudeLabelHalfWidth
+          : 24;
+      const longitudeMaxX =
+        mapBounds &&
+        rightBandBounds
+          ? rightBandBounds.left -
+            mapBounds.left -
+            longitudeLabelHalfWidth
+          : size.width - 24;
       const onScreen =
         axis === "longitude"
-          ? screenX >= 24 &&
+          ? screenX >=
+              longitudeMinX &&
             screenX <=
-              size.width - 24
+              longitudeMaxX
           : screenY >= 24 &&
             screenY <=
               size.height - 24;
 
       element.hidden =
         !onScreen ||
+        index % labelStride !== 0 ||
         projected.z < -1 ||
         projected.z > 1;
+
+      if (element.hidden) {
+        return;
+      }
 
       if (
         axis === "longitude"
@@ -758,6 +865,45 @@ function ViewportCoordinateLabel({
         element.style.top =
           `${screenY}px`;
       }
+
+      const elementBounds =
+        element.getBoundingClientRect();
+      const collisionSelectors = [
+        ".map-navigation-cluster",
+        ".map-title-group",
+        ".nation-global-controls",
+        ".nation-atlas-toggle",
+      ];
+      const collidesWithOverlay =
+        collisionSelectors.some(
+          (selector) => {
+            const overlay =
+              map?.querySelector(
+                selector,
+              );
+            if (!overlay) return false;
+            const bounds =
+              overlay.getBoundingClientRect();
+            const clearance = 6;
+            return !(
+              elementBounds.right <
+                bounds.left -
+                  clearance ||
+              elementBounds.left >
+                bounds.right +
+                  clearance ||
+              elementBounds.bottom <
+                bounds.top -
+                  clearance ||
+              elementBounds.top >
+                bounds.bottom +
+                  clearance
+            );
+          },
+        );
+
+      element.hidden =
+        collidesWithOverlay;
     },
   );
 

@@ -255,13 +255,20 @@ export function valuesWithinBounds(
 export function chooseScaleDistance(
   mapWidthKm: number,
 ): number {
-  const desiredDistance =
-    mapWidthKm * 0.24;
+  const desiredInterval =
+    mapWidthKm * 0.08;
+  const intervalMultiple =
+    mapWidthKm < 250 ? 5 : 10;
+  const interval =
+    Math.max(
+      intervalMultiple,
+      Math.round(
+        desiredInterval /
+          intervalMultiple,
+      ) * intervalMultiple,
+    );
 
-  return chooseNiceStep(
-    desiredDistance,
-    1,
-  );
+  return interval * 3;
 }
 
 /**

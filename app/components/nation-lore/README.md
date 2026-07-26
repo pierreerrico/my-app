@@ -41,6 +41,10 @@ import {
 3. I controlli circolari usano sempre `CircleControl`.
 4. I capitoli MDX usano `NationLoreChapter` (esposto in MDX come
    `ArticleChapter` per compatibilità).
-5. Le modifiche responsive appartengono ai fogli responsive; i componenti non
-   devono conoscere dimensioni dello schermo, eccetto gli hook dedicati.
-6. I colori della nazione passano da `theme`, non da nuove regole hardcoded.
+5. Ogni foglio di stile dichiara prima le regole comuni del proprio modulo e
+   poi, nello stesso file, le sue varianti responsive. `nation-responsive.css`
+   coordina soltanto la geometria che coinvolge piÃ¹ moduli.
+6. Le viste supportate sono mobile portrait/landscape, tablet
+   portrait/landscape e desktop portrait/landscape. I tablet combinano la
+   scheda di lettura desktop con controlli e sidebar a comparsa.
+7. I colori della nazione passano da `theme`, non da nuove regole hardcoded.

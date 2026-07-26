@@ -17,6 +17,7 @@ import type { MapControls as MapControlsImpl } from "three-stdlib";
 
 import type {
   DerivedMapGeometry,
+  MapFeature,
   NationMapConfig,
 } from "../../data/maps/types";
 import { MapEdgeFog } from "./map-edge-fog";
@@ -38,6 +39,8 @@ export function MapScene({
   resetNorthSignal,
   northStepSignal,
   performance,
+  selectedFeatureId,
+  onFeatureSelect,
 }: {
   config: NationMapConfig;
   geometry: DerivedMapGeometry;
@@ -47,6 +50,8 @@ export function MapScene({
   resetNorthSignal: number;
   northStepSignal: number;
   performance: ResolvedMapPerformance;
+  selectedFeatureId: string | null;
+  onFeatureSelect: (feature: MapFeature) => void;
 }) {
   const controls =
     useRef<MapControlsImpl>(null);
@@ -141,14 +146,41 @@ export function MapScene({
         size.height * 0.5,
       );
 
-    const staticFitDistance = resolveStaticMapFit({
+    const staticFit = resolveStaticMapFit({
       viewportWidth: size.width,
       viewportHeight: size.height,
       usableWidth,
       usableHeight,
       planeWidth: geometry.planeWidth,
       planeHeight: geometry.planeHeight,
-    }).distance;
+    });
+    const staticFitDistance =
+      staticFit.distance;
+    const staticVisibleWidth =
+      usableWidth /
+      staticFit.pixelsPerPlaneUnit;
+    const staticVisibleHeight =
+      usableHeight /
+      staticFit.pixelsPerPlaneUnit;
+    const staticPanLimits = {
+      x: Math.max(
+        0,
+        (
+          geometry.planeWidth -
+          staticVisibleWidth
+        ) / 2,
+      ),
+      z: Math.max(
+        0,
+        (
+          geometry.planeHeight -
+          staticVisibleHeight
+        ) / 2,
+      ),
+    };
+    const staticPanEnabled =
+      staticPanLimits.x > 0.01 ||
+      staticPanLimits.z > 0.01;
 
     const zoom = MathUtils.clamp(zoomLevel, 0, 2);
     const zoomStage = Math.min(Math.floor(zoom), 1);
@@ -221,7 +253,8 @@ export function MapScene({
       canRotate;
 
     controls.current.enablePan =
-      zoom > 0.02;
+      zoom > 0.02 ||
+      staticPanEnabled;
 
     controls.current.setPolarAngle(
       nextPolar,
@@ -247,7 +280,10 @@ export function MapScene({
     }
 
     if (
-      zoom === 0 ||
+      (
+        zoom === 0 &&
+        !staticPanEnabled
+      ) ||
       recentering.current
     ) {
       controls.current.target.lerp(
@@ -261,10 +297,7 @@ export function MapScene({
     }
 
     const panLimitStages = [
-      {
-        x: 0,
-        z: 0,
-      },
+      staticPanLimits,
       {
         x:
           geometry.planeWidth *
@@ -507,6 +540,12 @@ export function MapScene({
                 feature={feature}
                 config={config}
                 geometry={geometry}
+                selected={
+                  selectedFeatureId ===
+                  feature.id
+                }
+                staticMode={zoomLevel === 0}
+                onSelect={onFeatureSelect}
               />
             ),
           )

@@ -12,7 +12,46 @@
   z-index: 190;
 }
 
-@media (max-width: 800px) {
+/*
+ * Compact mode begins exactly where the full labelled desktop pagination no
+ * longer fits. There is deliberately no intermediate dot-only side rail.
+ */
+@media (max-width: 767px) {
+  .nation-lore-page {
+    --nation-mobile-masthead-speed: .52s;
+    --nation-mobile-masthead-ease: cubic-bezier(.22, .8, .2, 1);
+    overflow: hidden;
+  }
+
+  /*
+   * Opaque mobile masthead. It masks the scrolling chapter beneath the
+   * controls and timeline instead of allowing lines of text to show through.
+   */
+  .nation-lore-page::before {
+    content: "";
+    position: absolute;
+    z-index: 84;
+    inset: 0 0 auto;
+    height: calc(120px + env(safe-area-inset-top));
+    display: block;
+    pointer-events: none;
+    background:
+      radial-gradient(circle at 18% 0, rgba(118, 45, 42, .13), transparent 48%),
+      linear-gradient(155deg, #fffdf7 0%, #f2eadb 66%, #e4d4ba 100%);
+    box-shadow: 0 8px 18px rgba(36, 20, 16, .16);
+    opacity: 1;
+    transform: translateY(0);
+    transition:
+      opacity var(--nation-mobile-masthead-speed) ease,
+      transform var(--nation-mobile-masthead-speed)
+        var(--nation-mobile-masthead-ease);
+  }
+
+  .nation-lore-page.is-atlas-active::before {
+    opacity: 0;
+    transform: translateY(-100%);
+  }
+
   .nation-lore-swiper,
   .nation-lore-swiper > .swiper-wrapper,
   .nation-lore-swiper > .swiper-wrapper > .swiper-slide,
@@ -42,7 +81,7 @@
     --timeline-gap: clamp(25px, 8vw, 38px);
     position: fixed;
     z-index: 89;
-    top: 58px;
+    top: calc(54px + env(safe-area-inset-top));
     right: 54px;
     left: 54px;
     width: auto;
@@ -53,9 +92,57 @@
     overflow-y: hidden;
     scrollbar-width: none;
     overscroll-behavior-inline: contain;
-    scroll-snap-type: x mandatory;
+    scroll-snap-type: none;
     scroll-behavior: smooth;
     mask-image: linear-gradient(to right, transparent, #000 13%, #000 87%, transparent);
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+    transition:
+      opacity var(--nation-mobile-masthead-speed) ease,
+      transform var(--nation-mobile-masthead-speed)
+        var(--nation-mobile-masthead-ease),
+      visibility 0s;
+  }
+
+  /*
+   * The info-panel separator, adapted to the mobile masthead: two rules and
+   * the same small rotated square at their meeting point.
+   */
+  .nation-mobile-section-timeline::before {
+    content: "";
+    position: fixed;
+    z-index: 1;
+    top: calc(115px + env(safe-area-inset-top));
+    right: 24px;
+    left: 24px;
+    height: 1px;
+    pointer-events: none;
+    background:
+      linear-gradient(
+        90deg,
+        transparent,
+        rgba(181, 139, 67, .72) 14%,
+        #b58b43 calc(50% - 8px),
+        transparent calc(50% - 8px) calc(50% + 8px),
+        #b58b43 calc(50% + 8px),
+        rgba(181, 139, 67, .72) 86%,
+        transparent
+      );
+  }
+
+  .nation-mobile-section-timeline::after {
+    content: "";
+    position: fixed;
+    z-index: 2;
+    top: calc(111.5px + env(safe-area-inset-top));
+    left: 50%;
+    width: 7px;
+    height: 7px;
+    pointer-events: none;
+    border: 1px solid #b58b43;
+    background: #f2eadb;
+    transform: translateX(-50%) rotate(45deg);
   }
 
   .nation-mobile-section-timeline::-webkit-scrollbar {
@@ -63,8 +150,15 @@
   }
 
   .is-atlas-active .nation-mobile-section-timeline {
-    display: none;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(calc(-120px - env(safe-area-inset-top)));
     pointer-events: none;
+    transition:
+      opacity var(--nation-mobile-masthead-speed) ease,
+      transform var(--nation-mobile-masthead-speed)
+        var(--nation-mobile-masthead-ease),
+      visibility 0s linear var(--nation-mobile-masthead-speed);
   }
 
   .nation-mobile-section-track {
@@ -96,8 +190,8 @@
       linear-gradient(
         to right,
         transparent,
-        color-mix(in srgb, var(--nation-gold) 46%, transparent) 7%,
-        color-mix(in srgb, var(--nation-gold) 46%, transparent) 93%,
+        rgba(181, 139, 67, .48) 7%,
+        rgba(181, 139, 67, .48) 93%,
         transparent
       );
   }
@@ -118,7 +212,7 @@
     padding: 0;
     border: 0;
     border-radius: 50%;
-    background: var(--nation-green-deep);
+    background: #f2eadb;
     cursor: pointer;
     scroll-snap-align: center;
   }
@@ -126,9 +220,9 @@
   .nation-mobile-section-track button > span {
     width: 7px;
     height: 7px;
-    border: 1px solid var(--nation-gold);
+    border: 1px solid #b58b43;
     border-radius: 50%;
-    background: var(--nation-green-deep);
+    background: #fffdf7;
     transition:
       background-color .3s ease,
       border-color .3s ease,
@@ -142,16 +236,16 @@
   }
 
   .nation-mobile-section-track button.is-active > span {
-    border-color: var(--nation-gold-bright);
-    background: var(--nation-gold-bright);
-    box-shadow: 0 0 0 4px rgba(212, 184, 117, .12);
+    border-color: #762d2a;
+    background: #762d2a;
+    box-shadow: 0 0 0 4px rgba(118, 45, 42, .11);
     transform: scale(1.12);
   }
 
   .nation-mobile-section-track button.is-preview:not(.is-active) > span {
-    border-color: var(--nation-ivory);
-    background: var(--nation-green-deep);
-    box-shadow: 0 0 0 3px rgba(238, 231, 216, .08);
+    border-color: #762d2a;
+    background: #fffdf7;
+    box-shadow: 0 0 0 3px rgba(118, 45, 42, .08);
     transform: scale(1.1);
   }
 
@@ -162,7 +256,7 @@
     max-width: calc(100vw - 130px);
     display: block;
     margin-top: 1px;
-    color: var(--nation-ivory);
+    color: #342a22;
     font: 600 10px/1.15 Georgia, "Times New Roman", serif;
     letter-spacing: .025em;
     text-align: center;
@@ -174,8 +268,8 @@
   }
 
   .nation-mobile-section-timeline output.is-selected {
-    color: var(--nation-gold-bright);
-    text-shadow: 0 0 8px rgba(212, 184, 117, .22);
+    color: #762d2a;
+    text-shadow: 0 0 8px rgba(118, 45, 42, .12);
   }
 
   .nation-subchapter header {

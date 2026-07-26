@@ -1,20 +1,19 @@
 /* Foundation: theme tokens, page viewport and global decorative frame. */
 @import "./styles/nation-page-shell.css";
 
-/* Feature modules. */
+/*
+ * Feature modules own their common rules first and their responsive variants
+ * afterwards. Import order therefore describes component composition, not a
+ * cascade of device-specific patches.
+ */
 @import "./styles/nation-atlas.css";
 @import "./styles/nation-lore-slides.css";
 @import "./styles/encyclopedia-drawer.css";
 @import "./styles/nation-pagination.css";
-
-/* Legacy responsive layer kept before component refinements by design. */
-@import "./styles/nation-responsive.css";
-
-/* Shared floating controls and atlas interaction states. */
 @import "./styles/nation-controls.css";
 @import "./styles/nation-atlas-overlay.css";
-
-/* Final layout contracts: responsive corrections, sidebars and mobile tools. */
-@import "./styles/nation-responsive-overrides.css";
 @import "./styles/nation-sidebars.css";
 @import "./styles/nation-mobile-tools.css";
+
+/* Cross-module geometry only: named viewport/orientation layouts. */
+@import "./styles/nation-responsive.css";

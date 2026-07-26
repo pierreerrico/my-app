@@ -34,7 +34,13 @@ export function NationSectionNavigation({
   };
 
   useEffect(() => {
-    center(current);
+    /*
+     * The rail is re-parented from the first lore slide to its fixed dock.
+     * Smooth centering here would expose all intermediate preview bullets and
+     * look like the selection jumps forward and back.
+     */
+    setPreview(current);
+    center(current, "auto");
   }, [current, labels.length]);
 
   const handleScroll = () => {

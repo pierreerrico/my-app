@@ -30,7 +30,7 @@ export default function NationLorePage({
   const rootRef = useRef<HTMLElement>(null);
   const [infoOpen, setInfoOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const isDesktop = useDesktopLayout();
+  const desktopLayout = useDesktopLayout();
 
   const closeTransientMenu = useCallback(() => setMenuOpen(false), []);
   const leaveAtlas = useCallback(() => {
@@ -39,6 +39,7 @@ export default function NationLorePage({
   }, []);
   const {
     activeSlide,
+    loreGeometryActive,
     flatPosition,
     navigateFlat,
     navigateLore,
@@ -51,14 +52,18 @@ export default function NationLorePage({
   });
 
   const atlasActive = activeSlide === 0;
-  const menuPinned = isDesktop && !atlasActive;
+  const menuPinned = desktopLayout.pinMenu && !atlasActive;
+  const infoPinned = desktopLayout.pinInfo && !atlasActive;
   const menuVisible = menuPinned || menuOpen;
+  const infoVisible = infoPinned || infoOpen;
   const rootClasses = [
     "nation-lore-page",
     atlasActive && "is-atlas-active",
     menuVisible && "is-menu-open",
     menuPinned && "is-menu-pinned",
-    infoOpen && "is-info-open",
+    infoVisible && "is-info-open",
+    infoPinned && "is-info-pinned",
+    loreGeometryActive && "is-lore-geometry-active",
   ]
     .filter(Boolean)
     .join(" ");
@@ -96,8 +101,10 @@ export default function NationLorePage({
       />
       <NationAtlasInfo
         atlas={atlas}
-        open={infoOpen}
-        onOpenChange={setInfoOpen}
+        open={infoVisible}
+        onOpenChange={(open) => {
+          if (!infoPinned) setInfoOpen(open);
+        }}
       />
 
       <NationMobileNavigation
@@ -105,16 +112,17 @@ export default function NationLorePage({
         labels={flatPosition.labels}
         onNavigate={navigateFlat}
       />
-      <NationSectionNavigation
-        current={flatPosition.index}
-        labels={flatPosition.labels}
-        depths={flatPosition.depths}
-        onNavigate={navigateFlat}
-      />
-
       <NationLoreViewport
         atlas={atlas}
         onOpenLore={openLore}
+        navigation={
+          <NationSectionNavigation
+            current={flatPosition.index}
+            labels={flatPosition.labels}
+            depths={flatPosition.depths}
+            onNavigate={navigateFlat}
+          />
+        }
       >
         {children}
       </NationLoreViewport>

@@ -12,8 +12,9 @@ import {
   type FlatLorePosition,
 } from "../navigation/nation-swiper-dom";
 
-const PORTRAIT_MOBILE_QUERY =
-  "(max-width: 600px) and (orientation: portrait)";
+/* Must match the breakpoint that displays the double-chevron control. */
+const DIRECT_ATLAS_RETURN_QUERY =
+  "(max-width: 600px), (max-height: 600px) and (pointer: coarse)";
 
 interface UseNationLoreSwiperOptions {
   rootRef: RefObject<HTMLElement | null>;
@@ -30,6 +31,7 @@ export function useNationLoreSwiper({
   const pendingFlatTargetRef = useRef<number | null>(null);
   const pendingFlatTimerRef = useRef<number | null>(null);
   const [activeSlide, setActiveSlide] = useState(0);
+  const [loreGeometryActive, setLoreGeometryActive] = useState(false);
   const [flatPosition, setFlatPosition] = useState<FlatLorePosition>({
     index: 0,
     total: 1,
@@ -82,11 +84,27 @@ export function useNationLoreSwiper({
       on: {
         init(instance) {
           syncAtlasState(instance);
+          setLoreGeometryActive(instance.activeIndex > 0);
           labelChapterPagination(instance);
           mountSubnavigation(instance);
           window.setTimeout(() => syncPosition(instance), 100);
         },
         slideChange(instance) {
+          /*
+           * Lower the rail before atlas state changes so the still-visible
+           * atlas always remains above it during the transition.
+           */
+          root.classList.add("is-slide-moving");
+          root.classList.toggle(
+            "is-atlas-transition",
+            instance.activeIndex === 0 || instance.previousIndex === 0,
+          );
+          /*
+           * Lore geometry is installed as soon as a lore slide enters, but is
+           * retained until that slide has completely left for the atlas.
+           * This prevents the outgoing reading sheet from snapping to center.
+           */
+          if (instance.activeIndex > 0) setLoreGeometryActive(true);
           /*
            * Lo scroll legge l'articolo come un'unica sequenza. Quando si
            * attraversa il confine fra capitoli non ripristiniamo l'ultima
@@ -119,6 +137,8 @@ export function useNationLoreSwiper({
         },
         slideChangeTransitionEnd(instance) {
           mountSubnavigation(instance);
+          setLoreGeometryActive(instance.activeIndex > 0);
+          root.classList.remove("is-atlas-transition");
           window.setTimeout(() => root.classList.remove("is-slide-moving"), 90);
         },
       },
@@ -179,11 +199,15 @@ export function useNationLoreSwiper({
     };
   }, [onAtlasLeave, onSlideChange, rootRef]);
 
+  const returnToAtlas = (outer: Swiper) => outer.slideTo(0);
+
   const navigateFlat = (target: number) => {
     if (swiperRef.current) {
+      const outer = swiperRef.current;
       pendingFlatTargetRef.current = target;
       setFlatPosition((position) => ({ ...position, index: target }));
-      navigateToFlatPosition(swiperRef.current, target);
+      if (target <= 0) returnToAtlas(outer);
+      else navigateToFlatPosition(outer, target);
       if (pendingFlatTimerRef.current !== null) {
         window.clearTimeout(pendingFlatTimerRef.current);
       }
@@ -192,7 +216,7 @@ export function useNationLoreSwiper({
         if (swiperRef.current) {
           setFlatPosition(readFlatLorePosition(swiperRef.current));
         }
-      }, (swiperRef.current.params.speed ?? 800) + 120);
+      }, (outer.params.speed ?? 800) + 160);
     }
   };
 
@@ -202,9 +226,9 @@ export function useNationLoreSwiper({
 
     if (
       direction === "previous" &&
-      window.matchMedia(PORTRAIT_MOBILE_QUERY).matches
+      window.matchMedia(DIRECT_ATLAS_RETURN_QUERY).matches
     ) {
-      outer.slideTo(0);
+      returnToAtlas(outer);
       return;
     }
 
@@ -222,12 +246,15 @@ export function useNationLoreSwiper({
         return;
       }
     }
-    if (direction === "previous") outer.slidePrev();
+    if (direction === "previous" && outer.activeIndex === 1) {
+      returnToAtlas(outer);
+    } else if (direction === "previous") outer.slidePrev();
     else outer.slideNext();
   };
 
   return {
     activeSlide,
+    loreGeometryActive,
     flatPosition,
     navigateFlat,
     navigateLore,

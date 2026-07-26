@@ -1,14 +1,13 @@
 import type { MapFeature } from "../types";
 
 export const selodiaFeatures: MapFeature[] = [
-  /*
   {
     id: "arsecori",
     name: "Arsecori",
     kind: "capital",
     position: {
-      latitude: 37.58,
-      longitude: -0.18,
+      latitude: 39.48,
+      longitude: 0.04,
     },
     description: "Capitale dell’Arcontato di Selodia.",
   },
@@ -22,5 +21,4 @@ export const selodiaFeatures: MapFeature[] = [
     },
     elevationKm: 4.326,
   },
-  */
 ];

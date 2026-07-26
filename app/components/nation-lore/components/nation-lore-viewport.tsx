@@ -5,16 +5,22 @@ import { NationAtlasSlide } from "../nation-atlas-slide";
 interface NationLoreViewportProps {
   atlas: NationAtlas;
   children: ReactNode;
+  navigation: ReactNode;
   onOpenLore(): void;
 }
 
 export function NationLoreViewport({
   atlas,
   children,
+  navigation,
   onOpenLore,
 }: NationLoreViewportProps) {
   return (
     <div className="nation-lore-layout">
+      <div className="nation-lore-rail-layer">
+        <span className="nation-lore-divider" aria-hidden="true" />
+        {navigation}
+      </div>
       <div className="swiper nation-lore-swiper">
         <div className="swiper-wrapper">
           <div
@@ -26,7 +32,6 @@ export function NationLoreViewport({
           {children}
         </div>
       </div>
-      <span className="nation-lore-divider" aria-hidden="true" />
       <div
         className="nation-swiper-pagination-engine"
         aria-label="Sezioni della voce"

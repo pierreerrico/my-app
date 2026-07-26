@@ -10,13 +10,17 @@ import {
   type WheelEvent,
 } from "react";
 import { PCFSoftShadowMap } from "three";
-import type { NationMapConfig } from "../../data/maps/";
+import type {
+  MapFeature,
+  NationMapConfig,
+} from "../../data/maps/";
 import { deriveMapGeometry } from "../../data/maps/geography";
 import NeoclassicalMapFrame from "./neoclassical-map-frame";
 import { CompassControl } from "./map-controls";
 import { MapScale } from "./map-scale";
 import { MapScene } from "./map-scene";
 import { MapTitle } from "./map-title";
+import { MapFeatureSidebar } from "./map-feature-sidebar";
 import { resolveStaticMapFit } from "./map-camera-fit";
 import {
   resolveMapPerformance,
@@ -39,6 +43,8 @@ export default function NationMap({ config }: { config: NationMapConfig }) {
     });
   const [resetNorthSignal, setResetNorthSignal] = useState(0);
   const [northStepSignal, setNorthStepSignal] = useState(0);
+  const [selectedFeature, setSelectedFeature] =
+    useState<MapFeature | null>(null);
   const performance =
     useMemo<ResolvedMapPerformance>(
       () =>
@@ -71,6 +77,36 @@ export default function NationMap({ config }: { config: NationMapConfig }) {
     lorePage.addEventListener("nation-map-reset-static", resetToStatic);
     return () => {
       lorePage.removeEventListener("nation-map-reset-static", resetToStatic);
+    };
+  }, []);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    const lorePage =
+      map?.closest(".nation-lore-page");
+
+    if (!lorePage) return;
+
+    const closeWhenAtlasInfoOpens = () => {
+      if (
+        lorePage.classList.contains(
+          "is-info-open",
+        )
+      ) {
+        setSelectedFeature(null);
+      }
+    };
+    const observer = new MutationObserver(
+      closeWhenAtlasInfoOpens,
+    );
+
+    observer.observe(lorePage, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+
+    return () => {
+      observer.disconnect();
     };
   }, []);
 
@@ -217,6 +253,12 @@ export default function NationMap({ config }: { config: NationMapConfig }) {
             resetNorthSignal={resetNorthSignal}
             northStepSignal={northStepSignal}
             performance={performance}
+            selectedFeatureId={
+              selectedFeature?.id ?? null
+            }
+            onFeatureSelect={
+              setSelectedFeature
+            }
           />
         </Canvas>
 
@@ -227,6 +269,13 @@ export default function NationMap({ config }: { config: NationMapConfig }) {
         <NeoclassicalMapFrame />
         <MapTitle title={config.title} />
       </div>
+
+      <MapFeatureSidebar
+        feature={selectedFeature}
+        onClose={() => {
+          setSelectedFeature(null);
+        }}
+      />
 
       <div className="map-navigation-cluster">
         <CompassControl

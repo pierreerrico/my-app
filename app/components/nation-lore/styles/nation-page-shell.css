@@ -180,9 +180,9 @@
   transition: opacity .42s ease .18s;
 }
 
-.is-atlas-active .nation-lore-divider,
 .is-atlas-active .nation-lore-pagination {
-  display: none;
+  opacity: 0;
+  pointer-events: none;
 }
 
 .nation-lore-swiper,

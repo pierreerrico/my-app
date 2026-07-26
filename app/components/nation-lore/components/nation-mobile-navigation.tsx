@@ -14,6 +14,8 @@ export function NationMobileNavigation({
   onNavigate,
 }: NationMobileNavigationProps) {
   const timelineRef = useRef<HTMLDivElement>(null);
+  const centeringRef = useRef(false);
+  const centeringTimerRef = useRef<number | null>(null);
   const [preview, setPreview] = useState(current);
 
   useEffect(() => {
@@ -23,6 +25,10 @@ export function NationMobileNavigation({
     );
     if (!timeline || !selected) return;
 
+    centeringRef.current = true;
+    if (centeringTimerRef.current !== null) {
+      window.clearTimeout(centeringTimerRef.current);
+    }
     setPreview(current);
     timeline.scrollTo({
       left:
@@ -31,9 +37,22 @@ export function NationMobileNavigation({
         selected.offsetWidth / 2,
       behavior: "smooth",
     });
+    centeringTimerRef.current = window.setTimeout(() => {
+      centeringRef.current = false;
+      centeringTimerRef.current = null;
+    }, 520);
+
+    return () => {
+      if (centeringTimerRef.current !== null) {
+        window.clearTimeout(centeringTimerRef.current);
+        centeringTimerRef.current = null;
+      }
+      centeringRef.current = false;
+    };
   }, [current, labels.length]);
 
   const handleScroll = () => {
+    if (centeringRef.current) return;
     const timeline = timelineRef.current;
     if (!timeline) return;
 

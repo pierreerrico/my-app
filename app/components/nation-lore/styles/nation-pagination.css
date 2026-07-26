@@ -143,11 +143,6 @@
   transform: scale(1.06);
 }
 
-.is-atlas-active .nation-section-navigation {
-  opacity: 0;
-  pointer-events: none;
-}
-
 .nation-slide-arrow.is-next.is-unavailable,
 .is-atlas-active .nation-slide-arrow {
   opacity: 0;
