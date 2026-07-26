@@ -1,5 +1,6 @@
 .nation-mobile-double-chevron,
 .nation-mobile-section-timeline,
+.nation-mobile-section-rule,
 .nation-mobile-browser-blend,
 .nation-mobile-reading-frame {
   display: none;
@@ -91,12 +92,7 @@
     height: calc(96px + env(safe-area-inset-top));
     display: block;
     pointer-events: none;
-    /*
-     * Safari schiarisce leggermente il theme-color nel materiale della sua
-     * barra. Questo valore compensa quella trasformazione percettiva, così il
-     * bordo della visual viewport non produce una fascia visibile.
-     */
-    background: #f6eee1;
+    background: #f2eadb;
     box-shadow: none;
     opacity: 1;
     transform: translateY(0);
@@ -168,33 +164,33 @@
    * The info-panel separator, adapted to the mobile masthead: two rules and
    * the same small rotated square at their meeting point.
    */
-  .nation-mobile-section-timeline::before {
-    content: "";
+  .nation-mobile-section-rule {
     position: fixed;
-    z-index: 1;
+    z-index: 88;
     top: calc(91px + env(safe-area-inset-top));
     right: 24px;
     left: 24px;
     height: 1px;
+    display: block;
     pointer-events: none;
     background:
       linear-gradient(
         90deg,
-        transparent,
+        rgba(181, 139, 67, .72),
         rgba(181, 139, 67, .72) 14%,
         #b58b43 calc(50% - 8px),
         transparent calc(50% - 8px) calc(50% + 8px),
         #b58b43 calc(50% + 8px),
         rgba(181, 139, 67, .72) 86%,
-        transparent
+        rgba(181, 139, 67, .72)
       );
   }
 
-  .nation-mobile-section-timeline::after {
+  .nation-mobile-section-rule::after {
     content: "";
-    position: fixed;
-    z-index: 2;
-    top: calc(87.5px + env(safe-area-inset-top));
+    position: absolute;
+    z-index: 1;
+    top: -3.5px;
     left: 50%;
     width: 7px;
     height: 7px;
@@ -218,6 +214,12 @@
       transform var(--nation-mobile-masthead-speed)
         var(--nation-mobile-masthead-ease),
       visibility 0s linear var(--nation-mobile-masthead-speed);
+  }
+
+  .is-atlas-active .nation-mobile-section-rule {
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(calc(-96px - env(safe-area-inset-top)));
   }
 
   .nation-mobile-section-track {

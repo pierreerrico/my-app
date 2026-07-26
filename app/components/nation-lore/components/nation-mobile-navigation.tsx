@@ -90,6 +90,11 @@ export function NationMobileNavigation({
         />
       </label>
 
+      <span
+        className="nation-mobile-section-rule"
+        aria-hidden="true"
+      />
+
       <nav
         ref={timelineRef}
         className="nation-mobile-section-timeline"
