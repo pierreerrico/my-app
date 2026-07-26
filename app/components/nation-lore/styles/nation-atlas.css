@@ -5,6 +5,21 @@
   background: var(--nation-green-deep);
 }
 
+/*
+ * Una carta deve restare interamente leggibile anche quando Safari mostra
+ * entrambe le barre. `svh` rappresenta proprio la viewport mobile minima e
+ * impedisce che il filetto inferiore della cornice finisca sotto la toolbar.
+ * Le slide di lore conservano invece la loro geometria indipendente.
+ */
+@media (max-width: 767px), (max-height: 600px) and (pointer: coarse) {
+  @supports (height: 100svh) {
+    .nation-atlas {
+      height: 100svh;
+      max-height: 100%;
+    }
+  }
+}
+
 .nation-atlas-map {
   position: relative;
   flex: 1 1 auto;
