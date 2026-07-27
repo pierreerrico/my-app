@@ -1,26 +1,25 @@
 @property --circle-progress {
   syntax: "<percentage>";
-  inherits: false;
-  initial-value: 0%;
-}
-
-@property --circle-tail {
-  syntax: "<percentage>";
-  inherits: false;
+  inherits: true;
   initial-value: 0%;
 }
 
 /*
- * Unico stile visivo di CircleControl.
- *
- * Dimensioni, transizioni, ring e SVG sono comuni a ogni istanza. Il contesto
- * decide la palette ereditando --circle-background, --circle-icon,
- * --circle-icon-hover, --circle-ring e --circle-track.
+ * CircleControl:
+ * - bordo esterno statico;
+ * - progress ring ivory, 2px all'interno;
+ * - hover: progress completo + lieve zoom dell'icona;
+ * - click: glow animato su ring e contenuto;
+ * - rilascio: regressione del ring e spegnimento del glow sincronizzati.
  */
 .nation-circle-control {
   --circle-size: var(--nation-control-size, 42px);
   --circle-progress: 0%;
-  --circle-tail: 0%;
+  --circle-progress-inset: 2px;
+  --circle-progress-width: 2px;
+  --circle-release-duration: .4s;
+  --circle-ivory: var(--nation-ivory, #f2eadb);
+  --circle-glow-color: color-mix(in srgb, var(--circle-ivory) 72%, white);
 
   position: relative;
   box-sizing: border-box;
@@ -30,22 +29,36 @@
   place-items: center;
   padding: 0;
   overflow: visible;
-  border: 0;
+  border: 1px solid color-mix(in srgb, var(--nation-gold, #c9a85d) 72%, transparent);
   border-radius: 50%;
-  color: var(--circle-icon, var(--nation-ivory));
+  color: var(--circle-ivory);
   background:
-    conic-gradient(from -90deg,
-      transparent 0 var(--circle-tail),
-      var(--circle-ring, var(--nation-gold-bright)) var(--circle-tail) var(--circle-progress),
-      transparent var(--circle-progress) 100%);
-  box-shadow: none;
+    radial-gradient(
+      circle at 31% 23%,
+      rgba(255, 255, 255, .09) 0%,
+      rgba(255, 255, 255, .025) 34%,
+      transparent 62%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, .035) 0%,
+      transparent 52%,
+      rgba(0, 0, 0, .10) 100%
+    ),
+    var(--circle-background, var(--nation-green-deep));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .11),
+    inset 0 -1px 0 rgba(0, 0, 0, .2),
+    0 4px 9px -5px rgba(0, 0, 0, .62),
+    0 11px 22px -12px rgba(0, 0, 0, .5);
   cursor: pointer;
   isolation: isolate;
   transition:
-    --circle-progress .52s var(--nation-ease-standard, ease),
-    --circle-tail .52s linear,
+    --circle-progress var(--circle-release-duration) cubic-bezier(.22, .8, .2, 1),
     color var(--nation-motion-fast, .24s) ease,
-    filter var(--nation-motion-fast, .24s) ease,
+    background-color var(--nation-motion-fast, .24s) ease,
+    border-color var(--nation-motion-fast, .24s) ease,
+    box-shadow .28s ease,
     opacity .28s ease,
     transform var(--nation-motion-standard, .48s) var(--nation-ease-standard, ease),
     top var(--nation-motion-standard, .48s) var(--nation-ease-standard, ease),
@@ -54,82 +67,173 @@
     left var(--nation-motion-standard, .48s) var(--nation-ease-standard, ease);
 }
 
+/* Ring reale e copia luminosa condividono la stessa geometria. */
+.nation-circle-control::before,
 .nation-circle-control::after {
   content: "";
   position: absolute;
-  z-index: -1;
-  inset: 2px;
-  border-radius: inherit;
-  background: var(--circle-background, var(--nation-green-deep));
-  box-shadow:
-    inset 0 0 0 1px color-mix(in srgb, var(--circle-ring) 26%, transparent),
-    inset 0 0 12px color-mix(in srgb, var(--circle-icon) 4%, transparent);
-  transition:
-    background-color var(--nation-motion-fast, .24s) ease,
-    box-shadow var(--nation-motion-fast, .24s) ease;
+  z-index: 0;
+  inset: var(--circle-progress-inset);
+  border-radius: 50%;
+  pointer-events: none;
+  background:
+    conic-gradient(
+      from -90deg,
+      var(--circle-ivory) 0 var(--circle-progress),
+      transparent var(--circle-progress) 100%
+    );
+  -webkit-mask:
+    radial-gradient(
+      farthest-side,
+      transparent calc(100% - var(--circle-progress-width)),
+      #000 calc(100% - var(--circle-progress-width) + .5px)
+    );
+  mask:
+    radial-gradient(
+      farthest-side,
+      transparent calc(100% - var(--circle-progress-width)),
+      #000 calc(100% - var(--circle-progress-width) + .5px)
+    );
 }
 
+/* Ring principale: ivory sempre, glow soltanto durante il click. */
 .nation-circle-control::before {
-  content: none;
+  opacity: 1;
+  filter: brightness(1) drop-shadow(0 0 0 transparent);
+  -webkit-filter: brightness(1) drop-shadow(0 0 0 transparent);
+  transition:
+    filter var(--circle-release-duration) cubic-bezier(.22, .8, .2, 1),
+    -webkit-filter var(--circle-release-duration) cubic-bezier(.22, .8, .2, 1);
 }
 
-.nation-circle-control:hover {
-  --circle-progress: 25%;
-  color: var(--circle-icon-hover, var(--nation-gold-bright));
-  filter: drop-shadow(0 0 7px color-mix(in srgb, var(--circle-ring) 30%, transparent));
+/* Copia sfocata: genera l'alone, invisibile fuori dal click. */
+.nation-circle-control::after {
+  opacity: 0;
+  transform: scale(1);
+  transform-origin: center;
+  mix-blend-mode: screen;
+  filter: blur(.25px) brightness(1) drop-shadow(0 0 0 transparent);
+  -webkit-filter: blur(.25px) brightness(1) drop-shadow(0 0 0 transparent);
+  transition:
+    opacity var(--circle-release-duration) cubic-bezier(.22, .8, .2, 1),
+    transform var(--circle-release-duration) cubic-bezier(.22, .8, .2, 1),
+    filter var(--circle-release-duration) cubic-bezier(.22, .8, .2, 1),
+    -webkit-filter var(--circle-release-duration) cubic-bezier(.22, .8, .2, 1);
+  will-change: opacity, transform, filter;
 }
 
-.nation-circle-control:active,
-.nation-circle-control.is-control-hold,
-.nation-circle-control.is-control-active {
+@media (hover: hover) and (pointer: fine) {
+  .nation-circle-control:hover {
+    --circle-progress: 100%;
+  }
+
+  .nation-circle-control:hover > svg {
+    transform: scale(1.1);
+  }
+
+  .nation-circle-control:hover > span {
+    transform: scale(1.06);
+  }
+}
+
+/*
+ * Click: ingresso rapido del glow.
+ * Quando la classe viene rimossa, ring, alone e contenuto tornano allo stato
+ * base con la stessa durata del regresso della progress bar.
+ */
+.nation-circle-control.is-control-glowing {
   --circle-progress: 100%;
-  color: var(--circle-icon-hover, var(--nation-gold-bright));
+  --circle-release-duration: .16s;
 }
 
-@keyframes nation-control-forward-reset {
-
-  0%,
-  24% {
-    --circle-progress: 100%;
-    --circle-tail: 0%;
-  }
-
-  100% {
-    --circle-progress: 100%;
-    --circle-tail: 100%;
-  }
+.nation-circle-control.is-control-glowing::before {
+  filter:
+    brightness(1.95)
+    drop-shadow(0 0 2px rgba(255, 255, 255, .95))
+    drop-shadow(0 0 6px var(--circle-glow-color))
+    drop-shadow(0 0 11px color-mix(in srgb, var(--circle-glow-color) 66%, transparent));
+  -webkit-filter:
+    brightness(1.95)
+    drop-shadow(0 0 2px rgba(255, 255, 255, .95))
+    drop-shadow(0 0 6px var(--circle-glow-color))
+    drop-shadow(0 0 11px color-mix(in srgb, var(--circle-glow-color) 66%, transparent));
+  transition-duration: .16s;
 }
 
-.nation-circle-control.is-control-hold {
-  animation: nation-control-forward-reset 820ms linear both;
+.nation-circle-control.is-control-glowing::after {
+  opacity: .82;
+  transform: scale(1.025);
+  filter:
+    blur(1.35px)
+    brightness(2.15)
+    drop-shadow(0 0 5px var(--circle-glow-color))
+    drop-shadow(0 0 10px color-mix(in srgb, var(--circle-glow-color) 58%, transparent));
+  -webkit-filter:
+    blur(1.35px)
+    brightness(2.15)
+    drop-shadow(0 0 5px var(--circle-glow-color))
+    drop-shadow(0 0 10px color-mix(in srgb, var(--circle-glow-color) 58%, transparent));
+  transition-duration: .16s;
 }
 
-.nation-circle-control>svg {
+.nation-circle-control > svg {
   position: relative;
   z-index: 1;
   width: 20px;
   height: 20px;
   overflow: visible;
+  color: var(--circle-ivory);
   fill: none;
   stroke: currentColor;
   stroke-width: 1.6;
   stroke-linecap: round;
   stroke-linejoin: round;
+  transform-origin: center;
+  filter: brightness(1) drop-shadow(0 0 0 transparent);
   transition:
     color var(--nation-motion-fast, .24s) ease,
-    filter var(--nation-motion-fast, .24s) ease,
-    transform .3s var(--nation-ease-standard, ease);
+    transform .24s cubic-bezier(.22, .8, .2, 1),
+    filter var(--circle-release-duration) cubic-bezier(.22, .8, .2, 1);
 }
 
-.nation-circle-control:is( :hover,
-  :active,
-  .is-control-hold,
-  .is-control-active)>svg {
-  color: currentColor;
-  filter: drop-shadow(0 0 5px color-mix(in srgb, var(--circle-ring) 52%, transparent));
-  transform: scale(1.14);
+.nation-circle-control > span {
+  position: relative;
+  z-index: 1;
+  color: var(--circle-ivory);
+  transform-origin: center;
+  text-shadow: 0 0 0 transparent;
+  transition:
+    color var(--nation-motion-fast, .24s) ease,
+    transform .24s cubic-bezier(.22, .8, .2, 1),
+    text-shadow var(--circle-release-duration) cubic-bezier(.22, .8, .2, 1);
 }
 
+.nation-circle-control.is-control-glowing > svg {
+  color: var(--circle-ivory);
+  transform: scale(1.1);
+  filter:
+    brightness(1.75)
+    drop-shadow(0 0 2px rgba(255, 255, 255, .9))
+    drop-shadow(0 0 6px var(--circle-glow-color))
+    drop-shadow(0 0 10px color-mix(in srgb, var(--circle-glow-color) 54%, transparent));
+  transition:
+    color .16s ease,
+    transform .16s cubic-bezier(.22, .8, .2, 1),
+    filter .16s cubic-bezier(.22, .8, .2, 1);
+}
+
+.nation-circle-control.is-control-glowing > span {
+  color: var(--circle-ivory);
+  transform: scale(1.06);
+  text-shadow:
+    0 0 2px rgba(255, 255, 255, .92),
+    0 0 6px var(--circle-glow-color),
+    0 0 10px color-mix(in srgb, var(--circle-glow-color) 54%, transparent);
+  transition:
+    color .16s ease,
+    transform .16s cubic-bezier(.22, .8, .2, 1),
+    text-shadow .16s cubic-bezier(.22, .8, .2, 1);
+}
 
 .nation-circle-control svg path {
   transition:
@@ -138,19 +242,22 @@
 }
 
 .nation-circle-control:focus-visible {
-  outline: 2px solid var(--circle-focus, var(--nation-gold-bright));
+  outline: 2px solid var(--circle-ivory);
   outline-offset: 3px;
 }
 
 .nation-circle-control:disabled,
 .nation-circle-control[aria-disabled="true"] {
+  --circle-progress: 0%;
   cursor: default;
 }
 
 @media (prefers-reduced-motion: reduce) {
-
   .nation-circle-control,
-  .nation-circle-control>svg {
-    transition-duration: .01ms;
+  .nation-circle-control::before,
+  .nation-circle-control::after,
+  .nation-circle-control > svg,
+  .nation-circle-control > span {
+    transition-duration: .01ms !important;
   }
 }

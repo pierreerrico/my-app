@@ -2,14 +2,14 @@
 
 .nation-global-controls {
   position: fixed;
-  z-index: 96;
+  z-index: 320;
   top: var(--nation-control-edge);
   left: var(--nation-control-edge);
   display: block;
 }
 
 .nation-lore-page.is-menu-open .nation-global-controls {
-  z-index: 221;
+  z-index: 320;
 }
 
 .nation-menu-control {
@@ -25,7 +25,7 @@
 }
 
 .nation-atlas-toggle {
-  z-index: 97;
+  z-index: 320;
   top: var(--nation-control-edge);
   right: var(--nation-control-edge);
   bottom: auto;
@@ -79,7 +79,7 @@
   --circle-ring: var(--nation-gold-bright);
   --circle-track:
     color-mix(in srgb, var(--nation-burgundy) 48%, var(--nation-gold));
-  z-index: 221;
+  z-index: 320;
   opacity: 1;
   visibility: visible;
   pointer-events: auto;

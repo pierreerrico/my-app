@@ -1,7 +1,12 @@
 "use client";
 
 import { motion, type HTMLMotionProps } from "motion/react";
-import { useEffect, useRef, useState } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type MouseEvent,
+} from "react";
 import "./circle-control.css";
 
 type CircleIcon =
@@ -23,49 +28,65 @@ const iconTransition = {
   ease: [0.22, 0.8, 0.2, 1] as const,
 };
 
+const CLICK_GLOW_DURATION_MS = 260;
+
 export function CircleControl({
   icon,
   active = false,
   className = "",
-  onPointerDown,
-  onPointerUp,
-  onPointerCancel,
+  onClick,
   ...props
 }: CircleControlProps) {
-  const [holding, setHolding] = useState(false);
-  const releaseTimer = useRef<number | null>(null);
+  const [glowing, setGlowing] = useState(false);
+  const glowTimer = useRef<number | null>(null);
+  const glowFrame = useRef<number | null>(null);
 
-  const holdAfterRelease = () => {
-    if (releaseTimer.current !== null) window.clearTimeout(releaseTimer.current);
-    setHolding(true);
-    releaseTimer.current = window.setTimeout(() => {
-      setHolding(false);
-      releaseTimer.current = null;
-    }, 820);
+  useEffect(() => {
+    return () => {
+      if (glowTimer.current !== null) {
+        window.clearTimeout(glowTimer.current);
+      }
+
+      if (glowFrame.current !== null) {
+        window.cancelAnimationFrame(glowFrame.current);
+      }
+    };
+  }, []);
+
+  const restartGlow = () => {
+    if (glowTimer.current !== null) {
+      window.clearTimeout(glowTimer.current);
+      glowTimer.current = null;
+    }
+
+    if (glowFrame.current !== null) {
+      window.cancelAnimationFrame(glowFrame.current);
+      glowFrame.current = null;
+    }
+
+    setGlowing(false);
+    glowFrame.current = window.requestAnimationFrame(() => {
+      setGlowing(true);
+      glowFrame.current = null;
+
+      glowTimer.current = window.setTimeout(() => {
+        setGlowing(false);
+        glowTimer.current = null;
+      }, CLICK_GLOW_DURATION_MS);
+    });
   };
 
-  useEffect(() => () => {
-    if (releaseTimer.current !== null) window.clearTimeout(releaseTimer.current);
-  }, []);
+  const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
+    restartGlow();
+    onClick?.(event);
+  };
 
   return (
     <motion.button
       {...props}
-      className={`nation-circle-control ${active ? "is-control-active" : ""} ${holding ? "is-control-hold" : ""} ${className}`.trim()}
+      className={`nation-circle-control ${active ? "is-control-active" : ""} ${glowing ? "is-control-glowing" : ""} ${className}`.trim()}
       data-control-icon={icon}
-      onPointerDown={(event) => {
-        if (releaseTimer.current !== null) window.clearTimeout(releaseTimer.current);
-        setHolding(false);
-        onPointerDown?.(event);
-      }}
-      onPointerUp={(event) => {
-        holdAfterRelease();
-        onPointerUp?.(event);
-      }}
-      onPointerCancel={(event) => {
-        holdAfterRelease();
-        onPointerCancel?.(event);
-      }}
+      onClick={handleClick}
     >
       <ControlIcon icon={icon} active={active} />
     </motion.button>
@@ -76,18 +97,14 @@ function ControlIcon({ icon, active }: { icon: CircleIcon; active: boolean }) {
   if (icon === "menu") {
     return (
       <motion.svg viewBox="0 0 24 24" aria-hidden="true">
-        <path
-          d={active ? "M6 6 18 18" : "M5 7 19 7"}
-        />
+        <path d={active ? "M6 6 18 18" : "M5 7 19 7"} />
         <motion.path
           d="M5 12 19 12"
           initial={{ opacity: 1, pathLength: 1 }}
           animate={{ opacity: active ? 0 : 1, pathLength: active ? 0 : 1 }}
           transition={{ duration: 0.2 }}
         />
-        <path
-          d={active ? "M18 6 6 18" : "M5 17 19 17"}
-        />
+        <path d={active ? "M18 6 6 18" : "M5 17 19 17"} />
       </motion.svg>
     );
   }
@@ -95,12 +112,8 @@ function ControlIcon({ icon, active }: { icon: CircleIcon; active: boolean }) {
   if (icon === "info") {
     return (
       <motion.svg viewBox="0 0 24 24" aria-hidden="true">
-        <path
-          d={active ? "M6 6 18 18" : "M12 10 12 18"}
-        />
-        <path
-          d={active ? "M18 6 6 18" : "M12 6 12.01 6"}
-        />
+        <path d={active ? "M6 6 18 18" : "M12 10 12 18"} />
+        <path d={active ? "M18 6 6 18" : "M12 6 12.01 6"} />
       </motion.svg>
     );
   }
