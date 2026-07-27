@@ -728,14 +728,18 @@ export function MapEdgeFog({
   geometry,
   parchment,
   performance,
+  onReady,
 }: {
   config: NationMapConfig;
   geometry: DerivedMapGeometry;
   parchment: boolean;
   performance: ResolvedMapPerformance;
+  onReady?: () => void;
 }) {
   const fogMeshRef = useRef<Mesh>(null);
   const cloudMeshRef = useRef<Mesh>(null);
+  const fogCameraLocal = useMemo(() => new Vector3(), []);
+  const cloudCameraLocal = useMemo(() => new Vector3(), []);
 
   const landMaskPath =
     config.textures.landMask;
@@ -996,6 +1000,14 @@ export function MapEdgeFog({
     cloudVolumeWidth,
   ]);
 
+  useEffect(() => {
+    onReady?.();
+  }, [
+    cloudMaterial,
+    fogMaterial,
+    onReady,
+  ]);
+
   useFrame((state) => {
     const elapsedTime =
       state.clock.elapsedTime;
@@ -1016,14 +1028,12 @@ export function MapEdgeFog({
     ) {
       activeFogMaterial.uniforms.uTime.value =
         elapsedTime;
-      const localFogCamera =
-        fogMeshRef.current.worldToLocal(
-          state.camera.position.clone(),
-        );
+      fogCameraLocal.copy(state.camera.position);
+      fogMeshRef.current.worldToLocal(fogCameraLocal);
 
       activeFogMaterial.uniforms
         .uCameraLocal.value.copy(
-          localFogCamera,
+          fogCameraLocal,
         );
     }
 
@@ -1034,14 +1044,12 @@ export function MapEdgeFog({
     ) {
       activeCloudMaterial.uniforms.uTime.value =
         elapsedTime;
-      const localCloudCamera =
-        cloudMeshRef.current.worldToLocal(
-          state.camera.position.clone(),
-        );
+      cloudCameraLocal.copy(state.camera.position);
+      cloudMeshRef.current.worldToLocal(cloudCameraLocal);
 
       activeCloudMaterial.uniforms
         .uCameraLocal.value.copy(
-          localCloudCamera,
+          cloudCameraLocal,
         );
     }
   });

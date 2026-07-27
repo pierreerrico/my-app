@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { CanvasTexture } from "three";
 import type { DerivedMapGeometry, NationMapConfig } from "../../data/maps/types";
 
@@ -21,6 +21,10 @@ export function MapLoadingTerrain({
     }
     return new CanvasTexture(canvas);
   }, [config.palette.parchment]);
+
+  useEffect(() => () => {
+    texture.dispose();
+  }, [texture]);
 
   return (
     <mesh rotation={[-Math.PI / 2, 0, 0]}>

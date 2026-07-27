@@ -1,10 +1,8 @@
 "use client";
 
 import { useLoader } from "@react-three/fiber";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import {
-  LinearFilter,
-  SRGBColorSpace,
   TextureLoader,
   Vector2,
 } from "three";
@@ -14,17 +12,24 @@ import type {
   NationMapConfig,
 } from "../../data/maps/types";
 import type { ResolvedMapPerformance } from "./map-performance";
+import {
+  configureColorTexture,
+  configureScalarTexture,
+  configureTerrainNormalTexture,
+} from "./map-texture-config";
 
 export function MapTerrain({
   config,
   geometry,
   parchment,
   performance,
+  onReady,
 }: {
   config: NationMapConfig;
   geometry: DerivedMapGeometry;
   parchment: boolean;
   performance: ResolvedMapPerformance;
+  onReady?: () => void;
 }) {
   const texturePaths = [
     config.textures.diffuse,
@@ -44,56 +49,25 @@ export function MapTerrain({
     texturePaths,
   );
 
-  const surfaceTexture = useMemo(() => {
-    const texture = surface.clone();
+  const surfaceTexture = useMemo(
+    () => configureColorTexture(surface),
+    [surface],
+  );
 
-    texture.colorSpace =
-      SRGBColorSpace;
+  const elevationTexture = useMemo(
+    () => configureScalarTexture(elevation),
+    [elevation],
+  );
 
-    texture.minFilter =
-      LinearFilter;
+  const normalTexture = useMemo(
+    () => configureTerrainNormalTexture(normal),
+    [normal],
+  );
 
-    texture.needsUpdate =
-      true;
-
-    return texture;
-  }, [surface]);
-
-  const elevationTexture = useMemo(() => {
-    const texture = elevation.clone();
-
-    texture.minFilter =
-      LinearFilter;
-
-    texture.needsUpdate =
-      true;
-
-    return texture;
-  }, [elevation]);
-
-  const normalTexture = useMemo(() => {
-    const texture = normal.clone();
-
-    texture.minFilter =
-      LinearFilter;
-
-    texture.needsUpdate =
-      true;
-
-    return texture;
-  }, [normal]);
-
-  const landMaskTexture = useMemo(() => {
-    const texture = landMask.clone();
-
-    texture.minFilter =
-      LinearFilter;
-
-    texture.needsUpdate =
-      true;
-
-    return texture;
-  }, [landMask]);
+  const landMaskTexture = useMemo(
+    () => configureScalarTexture(landMask),
+    [landMask],
+  );
 
   const exaggeration =
     config.rendering?.elevationExaggeration ??
@@ -157,11 +131,26 @@ export function MapTerrain({
       ),
     );
 
+  const normalScale = useMemo(
+    () => new Vector2(0.72, 0.72),
+    [],
+  );
+
+  useEffect(() => {
+    onReady?.();
+  }, [
+    elevationTexture,
+    landMaskTexture,
+    normalTexture,
+    onReady,
+    surfaceTexture,
+  ]);
+
   return (
     <mesh
       rotation={[-Math.PI / 2, 0, 0]}
-      receiveShadow
-      castShadow
+      receiveShadow={performance.shadowMapSize > 0}
+      castShadow={performance.shadowMapSize > 0}
     >
       <planeGeometry
         args={[
@@ -195,9 +184,7 @@ export function MapTerrain({
         normalMap={
           normalTexture
         }
-        normalScale={
-          new Vector2(0.72, 0.72)
-        }
+        normalScale={normalScale}
         alphaMap={
           landMaskTexture
         }

@@ -2,11 +2,8 @@
 
 import { useEffect, useMemo } from "react";
 import {
-  ClampToEdgeWrapping,
   Color,
-  LinearFilter,
   MeshStandardMaterial,
-  NoColorSpace,
   Texture,
 } from "three";
 
@@ -15,6 +12,7 @@ import type {
   NationMapConfig,
 } from "../../data/maps/types";
 import type { ResolvedMapPerformance } from "./map-performance";
+import { configureScalarTexture } from "./map-texture-config";
 
 const DEFAULT_SEABED_SEGMENTS = 256;
 const DEFAULT_SEABED_DEPTH = 0.22;
@@ -39,23 +37,6 @@ type SeabedMaterial = MeshStandardMaterial & {
     seabedUniforms?: SeabedShaderUniforms;
   };
 };
-
-function cloneDataTexture(
-  source: Texture,
-): Texture {
-  const texture = source.clone();
-
-  texture.colorSpace = NoColorSpace;
-  texture.wrapS = ClampToEdgeWrapping;
-  texture.wrapT = ClampToEdgeWrapping;
-  texture.minFilter = LinearFilter;
-  texture.magFilter = LinearFilter;
-  texture.generateMipmaps = true;
-  texture.flipY = source.flipY;
-  texture.needsUpdate = true;
-
-  return texture;
-}
 
 function buildSeabedColors(
   config: NationMapConfig,
@@ -371,12 +352,12 @@ export function MapSeabed({
   performance: ResolvedMapPerformance;
 }) {
   const bathymetryTexture = useMemo(
-    () => cloneDataTexture(bathymetry),
+    () => configureScalarTexture(bathymetry),
     [bathymetry],
   );
 
   const coastDistanceTexture = useMemo(
-    () => cloneDataTexture(coastDistance),
+    () => configureScalarTexture(coastDistance),
     [coastDistance],
   );
 
@@ -416,8 +397,6 @@ export function MapSeabed({
   useEffect(
     () => () => {
       material.dispose();
-      bathymetryTexture.dispose();
-      coastDistanceTexture.dispose();
     },
     [
       bathymetryTexture,
@@ -435,8 +414,8 @@ export function MapSeabed({
       name={`${config.id}-seabed`}
       rotation={[-Math.PI / 2, 0, 0]}
       position={[0, SEABED_TOP_OFFSET, 0]}
-      receiveShadow
-      castShadow
+      receiveShadow={performance.shadowMapSize > 0}
+      castShadow={performance.shadowMapSize > 0}
       renderOrder={-30}
       frustumCulled={false}
     >

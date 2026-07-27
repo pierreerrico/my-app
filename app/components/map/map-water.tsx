@@ -30,11 +30,13 @@ export function MapWater({
   geometry,
   parchment,
   performance,
+  onReady,
 }: {
   config: NationMapConfig;
   geometry: DerivedMapGeometry;
   parchment: boolean;
   performance: ResolvedMapPerformance;
+  onReady?: () => void;
 }) {
   const currentMapPath =
     config.textures.currentMap;
@@ -99,6 +101,7 @@ export function MapWater({
         landMask={landMask}
         coastDistance={coastDistance}
         performance={performance}
+        onReady={onReady}
       />
     </>
   );

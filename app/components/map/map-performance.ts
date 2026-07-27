@@ -11,6 +11,10 @@ export type ResolvedMapPerformance = {
   shadowMapSize: 0 | 512 | 1024 | 2048;
   clouds: boolean;
   pauseWhenHidden: boolean;
+  targetFps: number;
+  staticFps: number;
+  antialias: boolean;
+  prewarmFrames: number;
 };
 
 const PRESETS: Record<
@@ -20,29 +24,41 @@ const PRESETS: Record<
   performance: {
     mode: "performance",
     maxDpr: 1,
-    waterRenderTargetSize: 320,
-    terrainSegments: 128,
+    waterRenderTargetSize: 256,
+    terrainSegments: 112,
     shadowMapSize: 0,
     clouds: false,
     pauseWhenHidden: true,
+    targetFps: 30,
+    staticFps: 12,
+    antialias: false,
+    prewarmFrames: 2,
   },
   balanced: {
     mode: "balanced",
-    maxDpr: 1.35,
-    waterRenderTargetSize: 512,
-    terrainSegments: 192,
-    shadowMapSize: 1024,
-    clouds: true,
+    maxDpr: 1.25,
+    waterRenderTargetSize: 448,
+    terrainSegments: 176,
+    shadowMapSize: 512,
+    clouds: false,
     pauseWhenHidden: true,
+    targetFps: 45,
+    staticFps: 18,
+    antialias: true,
+    prewarmFrames: 3,
   },
   quality: {
     mode: "quality",
-    maxDpr: 1.6,
-    waterRenderTargetSize: 768,
-    terrainSegments: 256,
-    shadowMapSize: 2048,
+    maxDpr: 1.5,
+    waterRenderTargetSize: 640,
+    terrainSegments: 224,
+    shadowMapSize: 1024,
     clouds: true,
     pauseWhenHidden: true,
+    targetFps: 60,
+    staticFps: 24,
+    antialias: true,
+    prewarmFrames: 4,
   },
 };
 
@@ -119,14 +135,21 @@ function detectAutomaticMode():
     navigatorWithMemory.deviceMemory ?? 8;
   const cores =
     navigator.hardwareConcurrency ?? 8;
-  const narrow =
+  const coarsePointer = window.matchMedia(
+    "(pointer: coarse)",
+  ).matches;
+  const narrowViewport =
+    window.innerWidth < 760;
+  const compactTouchDevice =
+    coarsePointer &&
     Math.min(
       window.innerWidth,
       window.innerHeight,
-    ) < 720;
+    ) < 920;
 
   if (
-    narrow ||
+    narrowViewport ||
+    compactTouchDevice ||
     memory <= 4 ||
     cores <= 4
   ) {
@@ -134,9 +157,10 @@ function detectAutomaticMode():
   }
 
   if (
-    memory >= 12 &&
+    window.innerWidth >= 1440 &&
+    memory >= 8 &&
     cores >= 10 &&
-    window.devicePixelRatio <= 2
+    window.devicePixelRatio <= 1.75
   ) {
     return "quality";
   }

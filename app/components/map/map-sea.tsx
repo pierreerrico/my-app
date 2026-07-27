@@ -10,15 +10,10 @@ import {
   useRef,
 } from "react";
 import {
-  ClampToEdgeWrapping,
   type BufferGeometry,
   type Camera,
   type Group,
-  LinearFilter,
-  LinearMipmapLinearFilter,
-  NoColorSpace,
   PlaneGeometry,
-  RepeatWrapping,
   ShaderMaterial,
   type Material,
   type Scene,
@@ -35,6 +30,11 @@ import type {
 } from "../../data/maps/types";
 import { atlasWaterShader } from "./water/shaders/atlas-water-shader";
 import type { ResolvedMapPerformance } from "./map-performance";
+import {
+  configureRepeatDetailTexture,
+  configureRepeatNormalTexture,
+  configureScalarTexture,
+} from "./map-texture-config";
 
 const DEFAULT_NORMAL_B =
   "/maps/shared/water-normal-b.jpg";
@@ -46,57 +46,6 @@ const SHORE_FOAM_TEXTURE =
   "/maps/shared/foam-shore.png";
 
 const WATER_FLOW_SPEED = 0.0085;
-
-function cloneScalarMap(
-  source: Texture,
-): Texture {
-  const texture = source.clone();
-
-  texture.colorSpace = NoColorSpace;
-  texture.wrapS = ClampToEdgeWrapping;
-  texture.wrapT = ClampToEdgeWrapping;
-  texture.minFilter = LinearFilter;
-  texture.magFilter = LinearFilter;
-  texture.generateMipmaps = false;
-  texture.flipY = source.flipY;
-  texture.needsUpdate = true;
-
-  return texture;
-}
-
-function cloneNormalMap(
-  source: Texture,
-): Texture {
-  const texture = source.clone();
-
-  texture.colorSpace = NoColorSpace;
-  texture.wrapS = RepeatWrapping;
-  texture.wrapT = RepeatWrapping;
-  texture.minFilter = LinearMipmapLinearFilter;
-  texture.magFilter = LinearFilter;
-  texture.generateMipmaps = true;
-  texture.flipY = source.flipY;
-  texture.needsUpdate = true;
-
-  return texture;
-}
-
-function cloneFoamMap(
-  source: Texture,
-): Texture {
-  const texture = source.clone();
-
-  texture.colorSpace = NoColorSpace;
-  texture.wrapS = RepeatWrapping;
-  texture.wrapT = RepeatWrapping;
-  texture.minFilter = LinearMipmapLinearFilter;
-  texture.magFilter = LinearFilter;
-  texture.generateMipmaps = true;
-  texture.flipY = source.flipY;
-  texture.needsUpdate = true;
-
-  return texture;
-}
 
 function resolveSecondNormalMap(
   firstPath: string,
@@ -119,6 +68,7 @@ export function MapSea({
   landMask,
   coastDistance,
   performance,
+  onReady,
 }: {
   config: NationMapConfig;
   geometry: DerivedMapGeometry;
@@ -127,6 +77,7 @@ export function MapSea({
   landMask: Texture;
   coastDistance: Texture;
   performance: ResolvedMapPerformance;
+  onReady?: () => void;
 }) {
   const waterRef =
     useRef<Water2 | null>(null);
@@ -160,37 +111,37 @@ export function MapSea({
   );
 
   const flowMap = useMemo(
-    () => cloneScalarMap(currentMap),
+    () => configureScalarTexture(currentMap),
     [currentMap],
   );
 
   const landMaskMap = useMemo(
-    () => cloneScalarMap(landMask),
+    () => configureScalarTexture(landMask),
     [landMask],
   );
 
   const coastDistanceMap = useMemo(
-    () => cloneScalarMap(coastDistance),
+    () => configureScalarTexture(coastDistance),
     [coastDistance],
   );
 
   const normalMap0 = useMemo(
-    () => cloneNormalMap(normalASource),
+    () => configureRepeatNormalTexture(normalASource),
     [normalASource],
   );
 
   const normalMap1 = useMemo(
-    () => cloneNormalMap(normalBSource),
+    () => configureRepeatNormalTexture(normalBSource),
     [normalBSource],
   );
 
   const foamMap = useMemo(
-    () => cloneFoamMap(foamSource),
+    () => configureRepeatDetailTexture(foamSource),
     [foamSource],
   );
 
   const shoreFoamMap = useMemo(
-    () => cloneFoamMap(shoreFoamSource),
+    () => configureRepeatDetailTexture(shoreFoamSource),
     [shoreFoamSource],
   );
 
@@ -426,8 +377,8 @@ export function MapSea({
         ? 1
         : performance.mode ===
             "balanced"
-          ? 2
-          : 3;
+          ? 3
+          : 4;
     const renderReflection =
       instance.onBeforeRender.bind(
         instance,
@@ -482,6 +433,10 @@ export function MapSea({
     waterGeometry,
   ]);
 
+  useEffect(() => {
+    onReady?.();
+  }, [onReady, water]);
+
   useFrame((state) => {
     const activeWater =
       waterRef.current;
@@ -502,13 +457,6 @@ export function MapSea({
     () => () => {
       water.material.dispose();
       waterGeometry.dispose();
-      flowMap.dispose();
-      landMaskMap.dispose();
-      coastDistanceMap.dispose();
-      normalMap0.dispose();
-      normalMap1.dispose();
-      foamMap.dispose();
-      shoreFoamMap.dispose();
     },
     [
       coastDistanceMap,

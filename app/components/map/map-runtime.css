@@ -1,0 +1,292 @@
+.interactive-map {
+  --map-reveal-duration: 280ms;
+  --map-content-inset: calc(
+    var(--nation-frame-depth, clamp(38px, 5.4vmin, 58px)) + 1px
+  );
+  position: relative;
+  isolation: isolate;
+}
+
+.interactive-map .cartographic-sheet {
+  position: relative;
+  isolation: isolate;
+}
+
+/*
+ * La cornice neoclassica e i CircleControl restano renderizzati fin dal
+ * primo paint. Soltanto la superficie interna dell'Atlante, il titolo e i
+ * controlli propri della mappa attendono il warm-up WebGL.
+ */
+.interactive-map .map-atlas-surface {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.interactive-map .map-atlas-reveal {
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity var(--map-reveal-duration) ease-out,
+    visibility 0s linear var(--map-reveal-duration);
+}
+
+/*
+ * Il contenitore del cartiglio conserva sempre geometria, posizione e
+ * trasformazioni originali. Il fade viene applicato esclusivamente ai due
+ * elementi visivi interni, evitando il breve ingrandimento che si verificava
+ * quando la transizione interessava direttamente .map-title-group.
+ */
+.interactive-map .map-title-group {
+  visibility: hidden;
+  pointer-events: none;
+  transition: visibility 0s linear 220ms;
+}
+
+.interactive-map .map-title-laurel,
+.interactive-map .map-title-cartouche {
+  opacity: 0;
+  transition: opacity 220ms ease-out;
+}
+
+.interactive-map:not(.is-map-ready) .map-atlas-reveal {
+  pointer-events: none;
+}
+
+.interactive-map.is-map-ready .map-atlas-reveal {
+  opacity: 1;
+  visibility: visible;
+  transition-delay: 0s;
+}
+
+.interactive-map.is-map-ready.zoom-level-0 .map-title-group {
+  visibility: visible;
+  transition-delay: 0s;
+}
+
+.interactive-map.is-map-ready.zoom-level-0 .map-title-laurel,
+.interactive-map.is-map-ready.zoom-level-0 .map-title-cartouche {
+  opacity: 1;
+}
+
+/*
+ * Il cartiglio e il suo emblema appartengono alla vista d'insieme. Durante
+ * lo zoom il loro contenitore non cambia mai scala: svaniscono soltanto i
+ * contenuti, poi il gruppo viene nascosto al termine del fade.
+ */
+.interactive-map.is-map-ready.zoom-level-1 .map-title-group,
+.interactive-map.is-map-ready.zoom-level-2 .map-title-group {
+  visibility: hidden;
+  transition-delay: 220ms;
+}
+
+.interactive-map.is-map-ready.zoom-level-1 .map-title-laurel,
+.interactive-map.is-map-ready.zoom-level-1 .map-title-cartouche,
+.interactive-map.is-map-ready.zoom-level-2 .map-title-laurel,
+.interactive-map.is-map-ready.zoom-level-2 .map-title-cartouche {
+  opacity: 0;
+}
+
+/*
+ * La copertura di prerender occupa esclusivamente il vano interno della
+ * cornice. Il colore non è hard-coded: arriva dalla palette della mappa
+ * tramite --map-loading-parchment (config.palette.parchment).
+ */
+.map-prerender-cover {
+  position: absolute;
+  z-index: 40;
+  inset: var(--map-content-inset);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: 1;
+  visibility: visible;
+  background:
+    radial-gradient(
+      circle at 50% 42%,
+      color-mix(in srgb, var(--map-loading-parchment) 92%, white) 0%,
+      transparent 68%
+    ),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--map-loading-parchment) 97%, white) 0%,
+      var(--map-loading-parchment) 50%,
+      color-mix(in srgb, var(--map-loading-parchment) 95%, black) 100%
+    ),
+    var(--map-loading-parchment, var(--ivory, #f2eadb));
+  transition:
+    opacity var(--map-reveal-duration) ease-out,
+    visibility 0s linear var(--map-reveal-duration);
+}
+
+.interactive-map.is-map-ready .map-prerender-cover {
+  opacity: 0;
+  visibility: hidden;
+}
+
+/*
+ * Loader nello stesso linguaggio dei CircleControl: 42 px, bordo oro,
+ * superficie verde leggermente dimensionale e anello ivory interno.
+ */
+.map-prerender-circle {
+  --loader-size: var(--nation-control-size, 42px);
+  --loader-ivory: var(--nation-ivory, #f2eadb);
+  --loader-gold: var(--nation-gold, var(--map-loading-accent));
+  position: relative;
+  width: var(--loader-size);
+  height: var(--loader-size);
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  border: 1px solid color-mix(in srgb, var(--loader-gold) 72%, transparent);
+  border-radius: 50%;
+  color: var(--loader-ivory);
+  background:
+    radial-gradient(
+      circle at 31% 23%,
+      rgba(255, 255, 255, .075) 0%,
+      rgba(255, 255, 255, .018) 34%,
+      transparent 62%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, .025) 0%,
+      transparent 54%,
+      rgba(0, 0, 0, .075) 100%
+    ),
+    var(--nation-green-deep, #153f38);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .09),
+    inset 0 -1px 0 rgba(0, 0, 0, .16),
+    0 4px 9px -5px rgba(0, 0, 0, .5),
+    0 11px 22px -12px rgba(0, 0, 0, .4);
+}
+
+.map-prerender-ring {
+  position: absolute;
+  inset: 2px;
+  border-radius: 50%;
+  pointer-events: none;
+  background:
+    conic-gradient(
+      from -90deg,
+      transparent 0 58%,
+      color-mix(in srgb, var(--loader-ivory) 76%, transparent) 68%,
+      var(--loader-ivory) 84%,
+      transparent 100%
+    );
+  -webkit-mask:
+    radial-gradient(
+      farthest-side,
+      transparent calc(100% - 2px),
+      #000 calc(100% - 1.5px)
+    );
+  mask:
+    radial-gradient(
+      farthest-side,
+      transparent calc(100% - 2px),
+      #000 calc(100% - 1.5px)
+    );
+  filter:
+    brightness(1.18)
+    drop-shadow(0 0 3px color-mix(in srgb, var(--loader-ivory) 45%, transparent));
+  animation: map-prerender-spin 820ms linear infinite;
+}
+
+.map-prerender-icon {
+  position: relative;
+  z-index: 1;
+  width: 17px;
+  height: 17px;
+  overflow: visible;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.55;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: .9;
+  animation: map-prerender-icon-pulse 1.25s ease-in-out infinite;
+}
+
+.map-prerender-label {
+  margin: 0;
+  color: color-mix(
+    in srgb,
+    var(--nation-green-deep, #153f38) 84%,
+    transparent
+  );
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(.72rem, 1.4vw, .82rem);
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: .055em;
+  line-height: 1;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/*
+ * I CircleControl esterni alla mappa non fanno parte del warm-up: rimangono
+ * montati, visibili e interattivi fin dall'avvio della slide Atlante.
+ */
+.nation-lore-page.is-atlas-active:has(.interactive-map:not(.is-map-ready))
+  .nation-page-vignette {
+  opacity: 0;
+}
+
+
+@keyframes map-prerender-spin {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
+@keyframes map-prerender-icon-pulse {
+  0%,
+  100% {
+    opacity: .68;
+    transform: scale(.94);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.04);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .interactive-map .map-atlas-reveal,
+  .interactive-map .map-title-group,
+  .interactive-map .map-title-laurel,
+  .interactive-map .map-title-cartouche,
+  .map-prerender-cover {
+    transition-duration: 0.01ms;
+  }
+
+  .map-prerender-ring,
+  .map-prerender-icon {
+    animation: none;
+  }
+}
+
+/*
+ * Su mobile la cornice usa una geometria più compatta: la copertura del
+ * prerender deve arretrare di qualche pixel in più per non coprire la sua
+ * regola interna, soprattutto negli angoli e lungo il bordo inferiore.
+ * Il desktop conserva esattamente l'inset originale.
+ */
+@media (max-width: 600px),
+  (max-height: 600px) and (pointer: coarse) {
+  .interactive-map {
+    --map-content-inset: calc(var(--nation-frame-depth, 28px) + 5px);
+  }
+
+  .interactive-map .neoclassical-map-frame {
+    z-index: 50;
+  }
+}

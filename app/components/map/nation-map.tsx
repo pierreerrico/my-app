@@ -2,10 +2,13 @@
 
 import { Canvas } from "@react-three/fiber";
 import {
+  useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
+  type CSSProperties,
   type TouchEvent,
 } from "react";
 import { PCFShadowMap } from "three";
@@ -26,8 +29,17 @@ import {
   resolvePerformanceMapConfig,
   type ResolvedMapPerformance,
 } from "./map-performance";
+import { preloadMapAssets } from "./map-assets";
+import { MapRenderScheduler } from "./map-render-scheduler";
+import "./map-runtime.css";
 
 const FREE_VIEW_MIN_ZOOM = 0.08;
+type MapReadyPart = "terrain" | "water" | "atmosphere";
+
+const useClientLayoutEffect =
+  typeof window === "undefined"
+    ? useEffect
+    : useLayoutEffect;
 
 export default function NationMap({ config }: { config: NationMapConfig }) {
   const geometry = useMemo(() => deriveMapGeometry(config), [config]);
@@ -48,6 +60,15 @@ export default function NationMap({ config }: { config: NationMapConfig }) {
     useState<ResolvedMapPerformance | null>(
       null,
     );
+  const [sceneAssetsReady, setSceneAssetsReady] =
+    useState(false);
+  const [canvasReady, setCanvasReady] =
+    useState(false);
+  const [prewarming, setPrewarming] =
+    useState(true);
+  const readyPartsRef = useRef<Set<MapReadyPart>>(
+    new Set(),
+  );
   const runtimeConfig = useMemo(
     () =>
       performance
@@ -58,6 +79,19 @@ export default function NationMap({ config }: { config: NationMapConfig }) {
         : config,
     [config, performance],
   );
+  const requiredReadyParts = useMemo<MapReadyPart[]>(() => {
+    const mistMode =
+      runtimeConfig.worldExtension?.mist?.mode ??
+      runtimeConfig.oceanHorizon?.mist?.mode ??
+      "horizon";
+    const needsAtmosphere =
+      mistMode === "volumetric" ||
+      Boolean(performance?.clouds);
+
+    return needsAtmosphere
+      ? ["terrain", "water", "atmosphere"]
+      : ["terrain", "water"];
+  }, [performance?.clouds, runtimeConfig]);
   const [pageVisible, setPageVisible] =
     useState(true);
   const [atlasActive, setAtlasActive] =
@@ -70,23 +104,20 @@ export default function NationMap({ config }: { config: NationMapConfig }) {
   const zoomLevelRef = useRef(0);
   const staticViewAlignedRef = useRef(true);
 
-  useEffect(() => {
+  useClientLayoutEffect(() => {
     /*
-     * La modalità automatica dipende da viewport, DPR e capacità hardware.
-     * Deciderla durante SSR produrrebbe un canvas "balanced" sul server e uno
-     * "performance" al primo render mobile, con doppie allocazioni WebGL.
+     * La modalità automatica viene risolta dopo l'idratazione ma prima del
+     * primo paint utile. Il preload parte prima del mount del Canvas e i
+     * loader della scena riutilizzano le stesse richieste/cache.
      */
-    const frame = window.requestAnimationFrame(
-      () => {
-        setPerformance(
-          resolveMapPerformance(config),
-        );
-      },
-    );
-
-    return () => {
-      window.cancelAnimationFrame(frame);
-    };
+    const resolved = resolveMapPerformance(config);
+    preloadMapAssets(config, resolved);
+    readyPartsRef.current.clear();
+    setSelectedFeature(null);
+    setSceneAssetsReady(false);
+    setCanvasReady(false);
+    setPrewarming(true);
+    setPerformance(resolved);
   }, [config]);
 
   function commitZoomLevel(level: number) {
@@ -136,6 +167,7 @@ export default function NationMap({ config }: { config: NationMapConfig }) {
       syncLorePageState,
     );
 
+    syncLorePageState();
     observer.observe(lorePage, {
       attributes: true,
       attributeFilter: ["class"],
@@ -193,6 +225,19 @@ export default function NationMap({ config }: { config: NationMapConfig }) {
       );
     };
   }, []);
+
+  useEffect(() => {
+    if (!performance || canvasReady) return;
+
+    const fallback = window.setTimeout(() => {
+      setPrewarming(false);
+      setCanvasReady(true);
+    }, 12000);
+
+    return () => {
+      window.clearTimeout(fallback);
+    };
+  }, [canvasReady, performance]);
 
   function changeZoom(amount: number) {
     const currentLevel = zoomLevelRef.current;
@@ -305,12 +350,49 @@ export default function NationMap({ config }: { config: NationMapConfig }) {
     );
   }
 
+  const markScenePartReady = useCallback(
+    (part: MapReadyPart) => {
+      if (readyPartsRef.current.has(part)) return;
+
+      readyPartsRef.current.add(part);
+      const allReady = requiredReadyParts.every(
+        (requiredPart) =>
+          readyPartsRef.current.has(requiredPart),
+      );
+
+      if (allReady) {
+        setSceneAssetsReady(true);
+      }
+    },
+    [requiredReadyParts],
+  );
+
+  const handleCanvasReady = useCallback(() => {
+    /*
+     * La scena dinamica è stata compilata mentre il Canvas era coperto. Ora
+     * torniamo alla tavola statica e la lasciamo renderizzare prima del fade.
+     */
+    setPrewarming(false);
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => {
+        setCanvasReady(true);
+      });
+    });
+  }, []);
+
   const visualZoomLevel = zoomLevel === 0 ? 0 : zoomLevel < 1.15 ? 1 : 2;
 
   return (
     <div
       ref={mapRef}
-      className={`interactive-map zoom-level-${visualZoomLevel}`}
+      className={`interactive-map zoom-level-${visualZoomLevel}${canvasReady ? " is-map-ready" : ""}`}
+      aria-busy={!canvasReady}
+      style={
+        {
+          "--map-loading-parchment": config.palette.parchment,
+          "--map-loading-accent": config.palette.accent,
+        } as CSSProperties
+      }
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={() => {
@@ -325,7 +407,11 @@ export default function NationMap({ config }: { config: NationMapConfig }) {
       data-territory-area-km2={geometry.territoryAreaKm2}
     >
       <div className="cartographic-sheet">
-        {performance ? <Canvas
+        <div
+          className="map-atlas-surface map-atlas-reveal"
+          aria-hidden={!canvasReady}
+        >
+          {performance ? <Canvas
           shadows={
             performance.shadowMapSize > 0
               ? {
@@ -337,24 +423,39 @@ export default function NationMap({ config }: { config: NationMapConfig }) {
             1,
             performance.maxDpr,
           ]}
-          frameloop={
-            (
-              performance.pauseWhenHidden &&
-              !pageVisible
-            ) ||
-            !atlasActive
-              ? "never"
-              : "always"
-          }
+          frameloop="demand"
           camera={{
             position: [0, 15.15, 0.01],
             fov: 45,
             near: 0.1,
             far: 100,
           }}
-          gl={{ antialias: true }}
+          gl={{
+            antialias: performance.antialias,
+            alpha: false,
+            stencil: false,
+            preserveDrawingBuffer: false,
+            powerPreference: "high-performance",
+          }}
           resize={{ debounce: { scroll: 0, resize: 0 } }}
         >
+          <MapRenderScheduler
+            active={
+              atlasActive &&
+              (
+                !performance.pauseWhenHidden ||
+                pageVisible
+              )
+            }
+            assetsReady={sceneAssetsReady}
+            targetFps={
+              zoomLevel === 0
+                ? performance.staticFps
+                : performance.targetFps
+            }
+            prewarmFrames={performance.prewarmFrames}
+            onReady={handleCanvasReady}
+          />
           <MapScene
             config={runtimeConfig}
             geometry={geometry}
@@ -369,6 +470,8 @@ export default function NationMap({ config }: { config: NationMapConfig }) {
             resetNorthSignal={resetNorthSignal}
             northStepSignal={northStepSignal}
             performance={performance}
+            prewarming={prewarming}
+            onReadyPart={markScenePartReady}
             selectedFeatureId={
               selectedFeature?.id ?? null
             }
@@ -384,10 +487,34 @@ export default function NationMap({ config }: { config: NationMapConfig }) {
           />
         )}
 
+          <div
+            className="map-parchment-overlay"
+            aria-hidden="true"
+          />
+        </div>
+
         <div
-          className="map-parchment-overlay"
-          aria-hidden="true"
-        />
+          className="map-prerender-cover"
+          role="status"
+          aria-live="polite"
+          aria-label="Caricamento dell’atlante"
+          aria-hidden={canvasReady}
+        >
+          <div className="map-prerender-circle" aria-hidden="true">
+            <span className="map-prerender-ring" />
+            <svg
+              className="map-prerender-icon"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path d="M12 5 19 18H5L12 5Z" />
+            </svg>
+          </div>
+          <span className="map-prerender-label">
+            Caricando l’atlante…
+          </span>
+        </div>
+
         <NeoclassicalMapFrame />
         <MapTitle title={config.title} />
       </div>
@@ -399,7 +526,10 @@ export default function NationMap({ config }: { config: NationMapConfig }) {
         }}
       />
 
-      <div className="map-navigation-cluster">
+      <div
+        className="map-navigation-cluster map-atlas-reveal"
+        aria-hidden={!canvasReady}
+      >
         <CompassControl
           headingRadians={azimuth}
           onReset={() => setResetNorthSignal((value) => value + 1)}
@@ -409,6 +539,7 @@ export default function NationMap({ config }: { config: NationMapConfig }) {
           projectedMapWidth={projectedMapRect.width}
         />
       </div>
+
     </div>
   );
 }

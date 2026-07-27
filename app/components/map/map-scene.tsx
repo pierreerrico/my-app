@@ -1,10 +1,15 @@
 "use client";
 
 import { MapControls } from "@react-three/drei";
-import { useFrame } from "@react-three/fiber";
+import {
+  useFrame,
+  useThree,
+} from "@react-three/fiber";
 import {
   Suspense,
+  useCallback,
   useEffect,
+  useMemo,
   useRef,
 } from "react";
 import {
@@ -30,6 +35,8 @@ import { MapWorldGrid } from "./map-world-grid";
 import type { ResolvedMapPerformance } from "./map-performance";
 import { resolveStaticMapFit } from "./map-camera-fit";
 
+const DESIRED_POLAR_ANGLES = [0.001, 0.43, 1.05] as const;
+
 export function MapScene({
   config,
   geometry,
@@ -39,6 +46,8 @@ export function MapScene({
   resetNorthSignal,
   northStepSignal,
   performance,
+  prewarming,
+  onReadyPart,
   selectedFeatureId,
   onFeatureSelect,
 }: {
@@ -50,6 +59,8 @@ export function MapScene({
   resetNorthSignal: number;
   northStepSignal: number;
   performance: ResolvedMapPerformance;
+  prewarming: boolean;
+  onReadyPart: (part: "terrain" | "water" | "atmosphere") => void;
   selectedFeatureId: string | null;
   onFeatureSelect: (feature: MapFeature) => void;
 }) {
@@ -63,6 +74,93 @@ export function MapScene({
 
   const recentering =
     useRef(false);
+  const size = useThree((state) => state.size);
+  const origin = useMemo(() => new Vector3(), []);
+  const cameraOffset = useMemo(() => new Vector3(), []);
+  const boundedTarget = useMemo(() => new Vector3(), []);
+  const panCorrection = useMemo(() => new Vector3(), []);
+
+  const staticView = useMemo(() => {
+    const shortSide = Math.min(size.width, size.height);
+    const frameDepth = MathUtils.clamp(
+      shortSide * 0.054,
+      38,
+      58,
+    );
+    const safeInset = frameDepth + 10;
+    const usableWidth = Math.max(
+      size.width - safeInset * 2,
+      size.width * 0.5,
+    );
+    const usableHeight = Math.max(
+      size.height - safeInset * 2,
+      size.height * 0.5,
+    );
+    const fit = resolveStaticMapFit({
+      viewportWidth: size.width,
+      viewportHeight: size.height,
+      usableWidth,
+      usableHeight,
+      planeWidth: geometry.planeWidth,
+      planeHeight: geometry.planeHeight,
+    });
+    const visibleWidth = usableWidth / fit.pixelsPerPlaneUnit;
+    const visibleHeight = usableHeight / fit.pixelsPerPlaneUnit;
+    const panLimits = {
+      x: Math.max(0, (geometry.planeWidth - visibleWidth) / 2),
+      z: Math.max(0, (geometry.planeHeight - visibleHeight) / 2),
+    };
+
+    return {
+      distance: fit.distance,
+      panLimits,
+      panEnabled: panLimits.x > 0.01 || panLimits.z > 0.01,
+    };
+  }, [
+    geometry.planeHeight,
+    geometry.planeWidth,
+    size.height,
+    size.width,
+  ]);
+
+  const desiredDistances = useMemo(
+    () => [
+      staticView.distance,
+      Math.max(staticView.distance * 0.62, 6.4),
+      3.2,
+    ],
+    [staticView.distance],
+  );
+  const panLimitStages = useMemo(
+    () => [
+      staticView.panLimits,
+      {
+        x: geometry.planeWidth * 0.26,
+        z: geometry.planeHeight * 0.22,
+      },
+      {
+        x: geometry.planeWidth * 0.43,
+        z: geometry.planeHeight * 0.38,
+      },
+    ],
+    [
+      geometry.planeHeight,
+      geometry.planeWidth,
+      staticView.panLimits,
+    ],
+  );
+  const reportWaterReady = useCallback(
+    () => onReadyPart("water"),
+    [onReadyPart],
+  );
+  const reportTerrainReady = useCallback(
+    () => onReadyPart("terrain"),
+    [onReadyPart],
+  );
+  const reportAtmosphereReady = useCallback(
+    () => onReadyPart("atmosphere"),
+    [onReadyPart],
+  );
 
   useEffect(() => {
     if (
@@ -110,104 +208,25 @@ export function MapScene({
     onAzimuthChange(nextAzimuth);
   }, [northStepSignal, onAzimuthChange]);
 
-  useFrame(({ camera, size }) => {
+  useFrame(({ camera }) => {
     if (!controls.current) {
       return;
     }
     
 
-    const shortSide =
-      Math.min(
-        size.width,
-        size.height,
-      );
-
-    const frameDepth =
-      MathUtils.clamp(
-        shortSide * 0.054,
-        38,
-        58,
-      );
-
-    const safeInset =
-      frameDepth + 10;
-
-    const usableWidth =
-      Math.max(
-        size.width -
-          safeInset * 2,
-        size.width * 0.5,
-      );
-
-    const usableHeight =
-      Math.max(
-        size.height -
-          safeInset * 2,
-        size.height * 0.5,
-      );
-
-    const staticFit = resolveStaticMapFit({
-      viewportWidth: size.width,
-      viewportHeight: size.height,
-      usableWidth,
-      usableHeight,
-      planeWidth: geometry.planeWidth,
-      planeHeight: geometry.planeHeight,
-    });
-    const staticFitDistance =
-      staticFit.distance;
-    const staticVisibleWidth =
-      usableWidth /
-      staticFit.pixelsPerPlaneUnit;
-    const staticVisibleHeight =
-      usableHeight /
-      staticFit.pixelsPerPlaneUnit;
-    const staticPanLimits = {
-      x: Math.max(
-        0,
-        (
-          geometry.planeWidth -
-          staticVisibleWidth
-        ) / 2,
-      ),
-      z: Math.max(
-        0,
-        (
-          geometry.planeHeight -
-          staticVisibleHeight
-        ) / 2,
-      ),
-    };
-    const staticPanEnabled =
-      staticPanLimits.x > 0.01 ||
-      staticPanLimits.z > 0.01;
+    const staticPanEnabled = staticView.panEnabled;
 
     const zoom = MathUtils.clamp(zoomLevel, 0, 2);
     const zoomStage = Math.min(Math.floor(zoom), 1);
     const zoomStageProgress = zoom - zoomStage;
-    const desiredDistances = [
-      staticFitDistance,
-      Math.max(
-        staticFitDistance * 0.62,
-        6.4,
-      ),
-      3.2,
-    ];
-
-    const desiredPolarAngles = [
-      0.001,
-      0.43,
-      1.05,
-    ];
-
     const desiredDistance = MathUtils.lerp(
       desiredDistances[zoomStage],
       desiredDistances[zoomStage + 1],
       zoomStageProgress,
     );
     const desiredPolarAngle = MathUtils.lerp(
-      desiredPolarAngles[zoomStage],
-      desiredPolarAngles[zoomStage + 1],
+      DESIRED_POLAR_ANGLES[zoomStage],
+      DESIRED_POLAR_ANGLES[zoomStage + 1],
       zoomStageProgress,
     );
 
@@ -232,19 +251,14 @@ export function MapScene({
         0.095,
       );
 
-    const offset =
-      camera.position
-        .clone()
-        .sub(
-          controls.current.target,
-        )
-        .setLength(nextDistance);
+    cameraOffset
+      .copy(camera.position)
+      .sub(controls.current.target)
+      .setLength(nextDistance);
 
     camera.position
-      .copy(
-        controls.current.target,
-      )
-      .add(offset);
+      .copy(controls.current.target)
+      .add(cameraOffset);
 
     const canRotate =
       zoom > 0.02;
@@ -272,34 +286,12 @@ export function MapScene({
       recentering.current
     ) {
       controls.current.target.lerp(
-        new Vector3(
-          0,
-          0,
-          0,
-        ),
+        origin,
         0.095,
       );
     }
 
-    const panLimitStages = [
-      staticPanLimits,
-      {
-        x:
-          geometry.planeWidth *
-          0.26,
-        z:
-          geometry.planeHeight *
-          0.22,
-      },
-      {
-        x:
-          geometry.planeWidth *
-          0.43,
-        z:
-          geometry.planeHeight *
-          0.38,
-      },
-    ];
+
     const panLimits = {
       x: MathUtils.lerp(
         panLimitStages[zoomStage].x,
@@ -313,10 +305,7 @@ export function MapScene({
       ),
     };
 
-    const boundedTarget =
-      controls.current
-        .target
-        .clone();
+    boundedTarget.copy(controls.current.target);
 
     boundedTarget.x =
       MathUtils.clamp(
@@ -332,12 +321,9 @@ export function MapScene({
         panLimits.z,
       );
 
-    const panCorrection =
-      boundedTarget
-        .clone()
-        .sub(
-          controls.current.target,
-        );
+    panCorrection
+      .copy(boundedTarget)
+      .sub(controls.current.target);
 
     if (
       panCorrection.lengthSq() >
@@ -423,7 +409,8 @@ export function MapScene({
   });
 
   const parchment =
-    zoomLevel === 0;
+    zoomLevel === 0 &&
+    !prewarming;
 
   const background =
     parchment
@@ -498,6 +485,7 @@ export function MapScene({
           geometry={geometry}
           parchment={parchment}
           performance={performance}
+          onReady={reportWaterReady}
         />
       </Suspense>
 
@@ -514,6 +502,7 @@ export function MapScene({
           geometry={geometry}
           parchment={parchment}
           performance={performance}
+          onReady={reportTerrainReady}
         />
       </Suspense>
 
@@ -536,12 +525,22 @@ export function MapScene({
           )
         : null}
 
-      <MapEdgeFog
-        config={config}
-        geometry={geometry}
-        parchment={parchment}
-        performance={performance}
-      />
+      {(
+        (
+          config.worldExtension?.mist?.mode ??
+          config.oceanHorizon?.mist?.mode ??
+          "horizon"
+        ) === "volumetric" ||
+        performance.clouds
+      ) ? (
+        <MapEdgeFog
+          config={config}
+          geometry={geometry}
+          parchment={parchment}
+          performance={performance}
+          onReady={reportAtmosphereReady}
+        />
+      ) : null}
 
       <MapWorldGrid
         geometry={geometry}
