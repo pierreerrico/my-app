@@ -12,6 +12,7 @@
   --sidebar-accent: var(--nation-burgundy);
   --sidebar-rule: var(--nation-gold-strong);
   --sidebar-radial-x: 0%;
+  --sidebar-shade-x: 100%;
   --sidebar-shadow-x: 20px;
   --sidebar-border-left: 0;
   --sidebar-border-right: 1px;
@@ -30,18 +31,30 @@
   border-color: var(--sidebar-rule);
   border-width:
     0 var(--sidebar-border-right) 0 var(--sidebar-border-left);
+  /*
+   * La profondità è confinata alla fascia centrale: in alto e in basso il
+   * pannello torna esattamente a --sidebar-bg, così si raccorda senza stacchi
+   * con le superfici piane del sito.
+   */
   background:
     radial-gradient(
-      ellipse at var(--sidebar-radial-x) 50%,
-      color-mix(in srgb, var(--sidebar-glow) 70%, transparent) 0%,
-      transparent 65%
+      ellipse 115% 38% at var(--sidebar-radial-x) 50%,
+      color-mix(in srgb, var(--sidebar-glow) 48%, transparent) 0%,
+      color-mix(in srgb, var(--sidebar-glow) 17%, transparent) 48%,
+      transparent 74%
+    ),
+    radial-gradient(
+      ellipse 92% 34% at var(--sidebar-shade-x) 52%,
+      color-mix(in srgb, var(--sidebar-accent) 5%, transparent) 0%,
+      transparent 72%
     ),
     var(--sidebar-bg);
-  box-shadow: var(--sidebar-shadow-x) 0 48px rgba(20, 12, 10, .24);
+  box-shadow: none;
 }
 
 .nation-lore-page .sidebar-panel--left {
   --sidebar-radial-x: 0%;
+  --sidebar-shade-x: 100%;
   --sidebar-shadow-x: 20px;
   --sidebar-border-left: 0;
   --sidebar-border-right: 1px;
@@ -49,6 +62,7 @@
 
 .nation-lore-page .sidebar-panel--right {
   --sidebar-radial-x: 100%;
+  --sidebar-shade-x: 0%;
   --sidebar-shadow-x: -20px;
   --sidebar-border-left: 1px;
   --sidebar-border-right: 0;
@@ -247,6 +261,8 @@
 }
 
 
+.nation-lore-page .sidebar-scrim,
 .nation-lore-page .sidebar-scrim[data-open="true"] {
-  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
 }

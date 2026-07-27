@@ -65,7 +65,11 @@
   width: min(var(--nation-side-column-width), 92vw);
 }
 
-.sidebar-scrim--menu[data-open="true"],
+.sidebar-scrim--menu[data-open="true"] {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
 .nation-atlas.is-open::before {
   backdrop-filter: blur(2px);
 }
