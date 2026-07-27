@@ -13,6 +13,53 @@
 }
 
 /*
+ * La cornice completa non usa fade: quando si entra in modalità zoom le
+ * quattro fasce scorrono oltre il bordo dello schermo modificando soltanto
+ * i propri inset. Su desktop non resta alcuna cornice. Su mobile entra, con
+ * uno slide separato, la sola fascia interna sottile.
+ */
+.interactive-map {
+  --map-frame-slide-distance: calc(
+    var(--nation-frame-depth, clamp(38px, 5.4vmin, 58px)) + 12px
+  );
+}
+
+.interactive-map .neoclassical-map-frame {
+  position: absolute;
+  inset: 0;
+  opacity: 1;
+  pointer-events: none;
+  transform: none;
+  transition:
+    top 340ms cubic-bezier(.22, .76, .2, 1),
+    right 340ms cubic-bezier(.22, .76, .2, 1),
+    bottom 340ms cubic-bezier(.22, .76, .2, 1),
+    left 340ms cubic-bezier(.22, .76, .2, 1);
+  will-change: top, right, bottom, left;
+}
+
+.interactive-map.zoom-level-0 .neoclassical-map-frame {
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+}
+
+.interactive-map.zoom-level-1 .neoclassical-map-frame,
+.interactive-map.zoom-level-2 .neoclassical-map-frame {
+  top: calc(0px - var(--map-frame-slide-distance));
+  right: calc(0px - var(--map-frame-slide-distance));
+  bottom: calc(0px - var(--map-frame-slide-distance));
+  left: calc(0px - var(--map-frame-slide-distance));
+}
+
+/* La fascia mobile è separata dalla cornice completa, quindi può entrare
+ * mentre quest'ultima scorre verso l'esterno. */
+.neo-mobile-zoom-frame {
+  display: none;
+}
+
+/*
  * La cornice neoclassica e i CircleControl restano renderizzati fin dal
  * primo paint. Soltanto la superficie interna dell'Atlante, il titolo e i
  * controlli propri della mappa attendono il warm-up WebGL.
@@ -41,13 +88,17 @@
 .interactive-map .map-title-group {
   visibility: hidden;
   pointer-events: none;
-  transition: visibility 0s linear 220ms;
+  transition: visibility 0s linear 380ms;
 }
 
 .interactive-map .map-title-laurel,
 .interactive-map .map-title-cartouche {
   opacity: 0;
-  transition: opacity 220ms ease-out;
+  scale: .91;
+  transform-origin: 50% 50%;
+  transition:
+    opacity 320ms cubic-bezier(.22, .72, .22, 1),
+    scale 380ms cubic-bezier(.22, .76, .2, 1);
 }
 
 .interactive-map:not(.is-map-ready) .map-atlas-reveal {
@@ -68,6 +119,7 @@
 .interactive-map.is-map-ready.zoom-level-0 .map-title-laurel,
 .interactive-map.is-map-ready.zoom-level-0 .map-title-cartouche {
   opacity: 1;
+  scale: 1;
 }
 
 /*
@@ -78,7 +130,7 @@
 .interactive-map.is-map-ready.zoom-level-1 .map-title-group,
 .interactive-map.is-map-ready.zoom-level-2 .map-title-group {
   visibility: hidden;
-  transition-delay: 220ms;
+  transition-delay: 380ms;
 }
 
 .interactive-map.is-map-ready.zoom-level-1 .map-title-laurel,
@@ -86,6 +138,7 @@
 .interactive-map.is-map-ready.zoom-level-2 .map-title-laurel,
 .interactive-map.is-map-ready.zoom-level-2 .map-title-cartouche {
   opacity: 0;
+  scale: .91;
 }
 
 /*
@@ -264,10 +317,14 @@
   .interactive-map .map-title-group,
   .interactive-map .map-title-laurel,
   .interactive-map .map-title-cartouche,
+  .interactive-map .neoclassical-map-frame,
+  .interactive-map .neo-mobile-zoom-edge,
   .map-prerender-cover {
     transition-duration: 0.01ms;
   }
 
+  .interactive-map .neoclassical-map-frame,
+  .interactive-map .neo-mobile-zoom-edge,
   .map-prerender-ring,
   .map-prerender-icon {
     animation: none;
@@ -286,7 +343,79 @@
     --map-content-inset: calc(var(--nation-frame-depth, 28px) + 5px);
   }
 
+  .interactive-map {
+    --map-frame-slide-distance: calc(
+      var(--nation-frame-depth, 28px) + 10px
+    );
+  }
+
   .interactive-map .neoclassical-map-frame {
     z-index: 50;
   }
+
+  /*
+   * In modalità zoom la fascia completa scorre fuori; quattro bordi mobili
+   * entrano dai rispettivi lati. I 4 px esterni sono var(--ivory), mentre
+   * il bordo rivolto verso la mappa conserva la sottile regola dorata.
+   */
+  .interactive-map .neo-mobile-zoom-frame {
+    position: absolute;
+    z-index: 51;
+    inset: 0;
+    display: block;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  .interactive-map .neo-mobile-zoom-edge {
+    position: absolute;
+    display: block;
+    box-sizing: border-box;
+    background: var(--ivory, #f2eadb);
+    transition: transform 320ms cubic-bezier(.22, .76, .2, 1);
+    will-change: transform;
+  }
+
+  .interactive-map .neo-mobile-zoom-edge.is-top {
+    top: 0;
+    right: 0;
+    left: 0;
+    height: 4px;
+    border-bottom: 1px solid var(--nation-gold, #b79a56);
+    transform: translateY(-105%);
+  }
+
+  .interactive-map .neo-mobile-zoom-edge.is-right {
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 4px;
+    border-left: 1px solid var(--nation-gold, #b79a56);
+    transform: translateX(105%);
+  }
+
+  .interactive-map .neo-mobile-zoom-edge.is-bottom {
+    right: 0;
+    bottom: 0;
+    left: 0;
+    height: 4px;
+    border-top: 1px solid var(--nation-gold, #b79a56);
+    transform: translateY(105%);
+  }
+
+  .interactive-map .neo-mobile-zoom-edge.is-left {
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 4px;
+    border-right: 1px solid var(--nation-gold, #b79a56);
+    transform: translateX(-105%);
+  }
+
+  .interactive-map.zoom-level-1 .neo-mobile-zoom-edge,
+  .interactive-map.zoom-level-2 .neo-mobile-zoom-edge {
+    transform: translate(0);
+  }
 }
+
+

@@ -183,10 +183,13 @@ export default function NationMap({ config }: { config: NationMapConfig }) {
     if (!map) return;
 
     const updateProjectedMapRect = () => {
+      const width = map.clientWidth;
+      const height = map.clientHeight;
+
       setProjectedMapRect(
         calculateProjectedMapRect(
-          map.clientWidth,
-          map.clientHeight,
+          width,
+          height,
           geometry.planeWidth,
           geometry.planeHeight,
         ),
@@ -550,6 +553,7 @@ type ProjectedMapRect = {
   width: number;
   height: number;
 };
+
 
 function calculateProjectedMapRect(
   viewportWidth: number,

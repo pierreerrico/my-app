@@ -2,12 +2,21 @@
 
 export default function NeoclassicalMapFrame() {
   return (
-    <div className="neoclassical-map-frame" aria-hidden="true">
-      <span className="neo-matte" />
-      <span className="neo-rule is-outer" />
-      <span className="neo-rule is-middle" />
-      <span className="neo-rule is-inner" />
-    </div>
+    <>
+      <div className="neoclassical-map-frame" aria-hidden="true">
+        <span className="neo-matte" />
+        <span className="neo-rule is-outer" />
+        <span className="neo-rule is-middle" />
+        <span className="neo-rule is-inner" />
+      </div>
+
+      <div className="neo-mobile-zoom-frame" aria-hidden="true">
+        <span className="neo-mobile-zoom-edge is-top" />
+        <span className="neo-mobile-zoom-edge is-right" />
+        <span className="neo-mobile-zoom-edge is-bottom" />
+        <span className="neo-mobile-zoom-edge is-left" />
+      </div>
+    </>
   );
 }
 

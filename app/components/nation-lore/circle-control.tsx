@@ -5,7 +5,8 @@ import {
   useEffect,
   useRef,
   useState,
-  type MouseEvent,
+  type FocusEvent,
+  type PointerEvent,
 } from "react";
 import "./circle-control.css";
 
@@ -28,7 +29,9 @@ const iconTransition = {
   ease: [0.22, 0.8, 0.2, 1] as const,
 };
 
-const PROGRESS_ERASE_DURATION_MS = 380;
+const PROGRESS_DRAW_DURATION_MS = 480;
+const PROGRESS_FULL_HOLD_MS = 24;
+const PROGRESS_ERASE_DURATION_MS = 430;
 
 type ProgressPhase = "idle" | "hover" | "erase";
 
@@ -36,18 +39,28 @@ export function CircleControl({
   icon,
   active = false,
   className = "",
-  onMouseEnter,
-  onMouseLeave,
+  onPointerEnter,
+  onPointerLeave,
+  onPointerDown,
+  onPointerUp,
+  onPointerCancel,
+  onBlur,
   ...props
 }: CircleControlProps) {
   const [progressPhase, setProgressPhase] =
     useState<ProgressPhase>("idle");
   const eraseTimer = useRef<number | null>(null);
+  const touchReleaseTimer = useRef<number | null>(null);
+  const touchDrawStartedAt = useRef<number | null>(null);
 
   useEffect(() => {
     return () => {
       if (eraseTimer.current !== null) {
         window.clearTimeout(eraseTimer.current);
+      }
+
+      if (touchReleaseTimer.current !== null) {
+        window.clearTimeout(touchReleaseTimer.current);
       }
     };
   }, []);
@@ -59,13 +72,14 @@ export function CircleControl({
     }
   };
 
-  const handleMouseEnter = (event: MouseEvent<HTMLButtonElement>) => {
-    clearEraseTimer();
-    setProgressPhase("hover");
-    onMouseEnter?.(event);
+  const clearTouchReleaseTimer = () => {
+    if (touchReleaseTimer.current !== null) {
+      window.clearTimeout(touchReleaseTimer.current);
+      touchReleaseTimer.current = null;
+    }
   };
 
-  const handleMouseLeave = (event: MouseEvent<HTMLButtonElement>) => {
+  const startErase = () => {
     clearEraseTimer();
     setProgressPhase("erase");
 
@@ -73,8 +87,78 @@ export function CircleControl({
       setProgressPhase("idle");
       eraseTimer.current = null;
     }, PROGRESS_ERASE_DURATION_MS);
+  };
 
-    onMouseLeave?.(event);
+  const resetProgress = () => {
+    clearEraseTimer();
+    clearTouchReleaseTimer();
+    touchDrawStartedAt.current = null;
+    setProgressPhase("idle");
+  };
+
+  const handlePointerEnter = (event: PointerEvent<HTMLButtonElement>) => {
+    // Su touch non esiste un vero hover: alcuni browser sintetizzano uno stato
+    // persistente dopo il tap. Il progress hover viene quindi attivato qui solo
+    // da un puntatore mouse reale.
+    if (event.pointerType === "mouse") {
+      clearEraseTimer();
+      setProgressPhase("hover");
+    }
+
+    onPointerEnter?.(event);
+  };
+
+  const handlePointerLeave = (event: PointerEvent<HTMLButtonElement>) => {
+    if (event.pointerType === "mouse") {
+      startErase();
+    }
+
+    onPointerLeave?.(event);
+  };
+
+  const handlePointerDown = (event: PointerEvent<HTMLButtonElement>) => {
+    if (event.pointerType !== "mouse") {
+      clearEraseTimer();
+      clearTouchReleaseTimer();
+      touchDrawStartedAt.current = performance.now();
+      setProgressPhase("hover");
+    }
+
+    onPointerDown?.(event);
+  };
+
+  const handlePointerUp = (event: PointerEvent<HTMLButtonElement>) => {
+    if (event.pointerType !== "mouse") {
+      clearTouchReleaseTimer();
+
+      const elapsed = touchDrawStartedAt.current === null
+        ? 0
+        : performance.now() - touchDrawStartedAt.current;
+      const remainingDrawTime = Math.max(0, PROGRESS_DRAW_DURATION_MS - elapsed);
+
+      // Anche con un tap molto rapido il ring completa il giro, resta pieno
+      // per un istante leggibile e soltanto dopo avvia la cancellazione.
+      touchReleaseTimer.current = window.setTimeout(() => {
+        touchReleaseTimer.current = null;
+        touchDrawStartedAt.current = null;
+        startErase();
+      }, remainingDrawTime + PROGRESS_FULL_HOLD_MS);
+    }
+
+    onPointerUp?.(event);
+  };
+
+  const handlePointerCancel = (event: PointerEvent<HTMLButtonElement>) => {
+    if (event.pointerType !== "mouse") {
+      resetProgress();
+    }
+
+    onPointerCancel?.(event);
+  };
+
+  const handleBlur = (event: FocusEvent<HTMLButtonElement>) => {
+    resetProgress();
+    onBlur?.(event);
   };
 
   return (
@@ -82,8 +166,12 @@ export function CircleControl({
       {...props}
       className={`nation-circle-control ${active ? "is-control-active" : ""} is-progress-${progressPhase} ${className}`.trim()}
       data-control-icon={icon}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
+      onPointerEnter={handlePointerEnter}
+      onPointerLeave={handlePointerLeave}
+      onPointerDown={handlePointerDown}
+      onPointerUp={handlePointerUp}
+      onPointerCancel={handlePointerCancel}
+      onBlur={handleBlur}
     >
       <ControlIcon icon={icon} active={active} />
     </motion.button>

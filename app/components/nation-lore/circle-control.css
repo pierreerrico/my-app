@@ -24,7 +24,8 @@
   --circle-progress-end: 0%;
   --circle-progress-inset: 2px;
   --circle-progress-width: 2px;
-  --circle-progress-duration: .38s;
+  --circle-progress-draw-duration: .48s;
+  --circle-progress-erase-duration: .43s;
   --circle-ivory: var(--nation-ivory, #f2eadb);
 
   position: relative;
@@ -58,6 +59,8 @@
     0 4px 9px -5px rgba(0, 0, 0, .62),
     0 11px 22px -12px rgba(0, 0, 0, .5);
   cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
   isolation: isolate;
   transition:
     color var(--nation-motion-fast, .24s) ease,
@@ -110,8 +113,8 @@
 
 .nation-circle-control.is-progress-hover::before {
   transition:
-    --circle-progress-end var(--circle-progress-duration)
-    cubic-bezier(.22, .8, .2, 1);
+    --circle-progress-end var(--circle-progress-draw-duration)
+    cubic-bezier(.16, 1, .3, 1);
 }
 
 /*
@@ -126,8 +129,8 @@
 
 .nation-circle-control.is-progress-erase::before {
   transition:
-    --circle-progress-start var(--circle-progress-duration)
-    cubic-bezier(.22, .8, .2, 1);
+    --circle-progress-start var(--circle-progress-erase-duration)
+    cubic-bezier(.4, 0, .2, 1);
 }
 
 .nation-circle-control > svg {
