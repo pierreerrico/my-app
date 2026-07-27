@@ -6,6 +6,7 @@
   top: var(--nation-control-edge);
   left: var(--nation-control-edge);
   display: block;
+  transition: z-index 0s linear var(--nation-motion-standard, .48s);
 }
 
 .nation-lore-page.is-menu-open .nation-global-controls {
@@ -30,6 +31,7 @@
   right: var(--nation-control-edge);
   bottom: auto;
   left: auto;
+  --circle-z-index-delay: var(--nation-motion-standard, .48s);
 }
 
 .nation-atlas-lore {
@@ -104,4 +106,20 @@
 .is-atlas-active .nation-slide-arrow {
   opacity: 0;
   pointer-events: none;
+}
+
+/*
+ * Il controllo opposto resta fermo nella sua posizione. Quando una sidebar
+ * si apre viene semplicemente portato sotto il pannello, che gli scorre
+ * davanti. Alla chiusura torna sopra soltanto dopo la fine della transizione,
+ * evitando che ricompaia prematuramente attraverso la sidebar in uscita.
+ */
+.nation-lore-page.is-menu-open:not(.is-info-open) .nation-atlas-toggle {
+  z-index: 199;
+  --circle-z-index-delay: 0s;
+}
+
+.nation-lore-page.is-info-open:not(.is-menu-open) .nation-global-controls {
+  z-index: 199;
+  transition-delay: 0s;
 }

@@ -69,7 +69,8 @@
     top var(--nation-motion-standard, .48s) var(--nation-ease-standard, ease),
     right var(--nation-motion-standard, .48s) var(--nation-ease-standard, ease),
     bottom var(--nation-motion-standard, .48s) var(--nation-ease-standard, ease),
-    left var(--nation-motion-standard, .48s) var(--nation-ease-standard, ease);
+    left var(--nation-motion-standard, .48s) var(--nation-ease-standard, ease),
+    z-index 0s linear var(--circle-z-index-delay, 0s);
 }
 
 .nation-circle-control::before {
