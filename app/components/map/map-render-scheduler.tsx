@@ -2,18 +2,6 @@
 
 import { useThree } from "@react-three/fiber";
 import { useEffect, useRef } from "react";
-import type {
-  Camera,
-  Scene,
-  WebGLRenderer,
-} from "three";
-
-interface CompilableRenderer extends WebGLRenderer {
-  compileAsync?: (
-    scene: Scene,
-    camera: Camera,
-  ) => Promise<void>;
-}
 
 export function MapRenderScheduler({
   active,
@@ -46,13 +34,18 @@ export function MapRenderScheduler({
     let cancelled = false;
 
     const warmUp = async () => {
-      const renderer = gl as CompilableRenderer;
-
       try {
-        if (renderer.compileAsync) {
-          await renderer.compileAsync(scene, camera);
+        /*
+         * Nelle versioni correnti di Three.js compileAsync è già dichiarato
+         * su WebGLRenderer. Non va ridefinito con un'interfaccia opzionale:
+         * quella ridefinizione rendeva incompatibile il tipo durante la build.
+         */
+        const compileAsync = gl.compileAsync;
+
+        if (typeof compileAsync === "function") {
+          await compileAsync.call(gl, scene, camera);
         } else {
-          renderer.compile(scene, camera);
+          gl.compile(scene, camera);
         }
       } catch {
         // Il warm-up è un'ottimizzazione: un errore non deve bloccare la mappa.

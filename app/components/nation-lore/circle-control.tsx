@@ -28,65 +28,62 @@ const iconTransition = {
   ease: [0.22, 0.8, 0.2, 1] as const,
 };
 
-const CLICK_GLOW_DURATION_MS = 260;
+const PROGRESS_ERASE_DURATION_MS = 380;
+
+type ProgressPhase = "idle" | "hover" | "erase";
 
 export function CircleControl({
   icon,
   active = false,
   className = "",
-  onClick,
+  onMouseEnter,
+  onMouseLeave,
   ...props
 }: CircleControlProps) {
-  const [glowing, setGlowing] = useState(false);
-  const glowTimer = useRef<number | null>(null);
-  const glowFrame = useRef<number | null>(null);
+  const [progressPhase, setProgressPhase] =
+    useState<ProgressPhase>("idle");
+  const eraseTimer = useRef<number | null>(null);
 
   useEffect(() => {
     return () => {
-      if (glowTimer.current !== null) {
-        window.clearTimeout(glowTimer.current);
-      }
-
-      if (glowFrame.current !== null) {
-        window.cancelAnimationFrame(glowFrame.current);
+      if (eraseTimer.current !== null) {
+        window.clearTimeout(eraseTimer.current);
       }
     };
   }, []);
 
-  const restartGlow = () => {
-    if (glowTimer.current !== null) {
-      window.clearTimeout(glowTimer.current);
-      glowTimer.current = null;
+  const clearEraseTimer = () => {
+    if (eraseTimer.current !== null) {
+      window.clearTimeout(eraseTimer.current);
+      eraseTimer.current = null;
     }
-
-    if (glowFrame.current !== null) {
-      window.cancelAnimationFrame(glowFrame.current);
-      glowFrame.current = null;
-    }
-
-    setGlowing(false);
-    glowFrame.current = window.requestAnimationFrame(() => {
-      setGlowing(true);
-      glowFrame.current = null;
-
-      glowTimer.current = window.setTimeout(() => {
-        setGlowing(false);
-        glowTimer.current = null;
-      }, CLICK_GLOW_DURATION_MS);
-    });
   };
 
-  const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
-    restartGlow();
-    onClick?.(event);
+  const handleMouseEnter = (event: MouseEvent<HTMLButtonElement>) => {
+    clearEraseTimer();
+    setProgressPhase("hover");
+    onMouseEnter?.(event);
+  };
+
+  const handleMouseLeave = (event: MouseEvent<HTMLButtonElement>) => {
+    clearEraseTimer();
+    setProgressPhase("erase");
+
+    eraseTimer.current = window.setTimeout(() => {
+      setProgressPhase("idle");
+      eraseTimer.current = null;
+    }, PROGRESS_ERASE_DURATION_MS);
+
+    onMouseLeave?.(event);
   };
 
   return (
     <motion.button
       {...props}
-      className={`nation-circle-control ${active ? "is-control-active" : ""} ${glowing ? "is-control-glowing" : ""} ${className}`.trim()}
+      className={`nation-circle-control ${active ? "is-control-active" : ""} is-progress-${progressPhase} ${className}`.trim()}
       data-control-icon={icon}
-      onClick={handleClick}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
     >
       <ControlIcon icon={icon} active={active} />
     </motion.button>
