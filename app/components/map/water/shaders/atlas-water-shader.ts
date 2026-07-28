@@ -881,6 +881,7 @@ export const atlasWaterShader = {
       vec3 atlasLight = normalize(vec3(-0.35, 0.82, 0.45));
       float sparkle = pow(max(dot(normal, atlasLight), 0.0), 30.0);
       surface += vec3(0.48, 0.72, 0.76) * sparkle * 0.22;
+      vec3 openWaterSurface = surface;
 
       float land = texture2D(
         tLandMask,
@@ -888,6 +889,18 @@ export const atlasWaterShader = {
       ).r;
 
       float waterMask = 1.0 - smoothstep(0.25, 0.75, land);
+      bool outsideMap =
+        vUv.x < 0.0 ||
+        vUv.x > 1.0 ||
+        vUv.y < 0.0 ||
+        vUv.y > 1.0;
+      float mapEdgeInset = min(
+        min(vUv.x, 1.0 - vUv.x),
+        min(vUv.y, 1.0 - vUv.y)
+      );
+      float coastalEffectsWeight = outsideMap
+        ? 0.0
+        : smoothstep(0.035, 0.060, mapEdgeInset);
       float coastDistance = sampleCoastDistance(vUv);
 
       vec2 coastGradient = coastGradientAt(vUv);
@@ -1089,6 +1102,22 @@ export const atlasWaterShader = {
         edgeBlend *
         edgeBlend *
         step(0.001, edgeFadeWidth);
+
+      /*
+       * Fuori dal rettangolo cartografico il mare continua soltanto dai
+       * tratti di bordo classificati come oceano dalla land mask. Le texture
+       * scalari sono clampate al texel di bordo, quindi la classificazione
+       * resta stabile lungo tutta l'estensione.
+       */
+      if (outsideMap && land >= 0.5) {
+        discard;
+      }
+      surface = mix(
+        openWaterSurface,
+        surface,
+        coastalEffectsWeight
+      );
+
       surface = mix(
         surface,
         edgeBlendColor,

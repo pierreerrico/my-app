@@ -4,6 +4,7 @@ import { useEffect, useMemo } from "react";
 import {
   Color,
   MeshStandardMaterial,
+  PlaneGeometry,
   Texture,
 } from "three";
 
@@ -148,19 +149,7 @@ function createSeabedMaterial(
         .multiplyScalar(0.42),
     },
     seabedEdgeFadeWidth: {
-      value:
-        !config.worldExtension ||
-        config.worldExtension.mode ===
-          "ocean"
-          ? Math.max(
-              0.04,
-              config.worldExtension
-                ?.transitionWidth ??
-                config.oceanHorizon
-                  ?.transitionWidth ??
-                0.14,
-            )
-          : 0,
+      value: 0,
     },
   };
 
@@ -394,14 +383,77 @@ export function MapSeabed({
     ),
   );
 
+  const seabedGeometry = useMemo(() => {
+    const extensionScale =
+      config.worldExtension?.mode === "ocean"
+        ? Math.max(
+            1,
+            config.worldExtension.extensionScale ?? 1,
+          )
+        : 1;
+    const extendedHorizontalSegments =
+      Math.min(
+        768,
+        Math.max(
+          horizontalSegments,
+          Math.ceil(
+            horizontalSegments *
+              Math.min(extensionScale, 2),
+          ),
+        ),
+      );
+    const extendedVerticalSegments =
+      Math.max(
+        2,
+        Math.round(
+          extendedHorizontalSegments /
+            mapAspectRatio,
+        ),
+      );
+    const plane = new PlaneGeometry(
+      geometry.planeWidth * extensionScale,
+      geometry.planeHeight * extensionScale,
+      extendedHorizontalSegments,
+      extendedVerticalSegments,
+    );
+    const uv = plane.attributes.uv;
+
+    for (
+      let index = 0;
+      index < uv.count;
+      index += 1
+    ) {
+      uv.setXY(
+        index,
+        (uv.getX(index) - 0.5) *
+          extensionScale +
+          0.5,
+        (uv.getY(index) - 0.5) *
+          extensionScale +
+          0.5,
+      );
+    }
+    uv.needsUpdate = true;
+
+    return plane;
+  }, [
+    config.worldExtension,
+    geometry.planeHeight,
+    geometry.planeWidth,
+    horizontalSegments,
+    mapAspectRatio,
+  ]);
+
   useEffect(
     () => () => {
+      seabedGeometry.dispose();
       material.dispose();
     },
     [
       bathymetryTexture,
       coastDistanceTexture,
       material,
+      seabedGeometry,
     ],
   );
 
@@ -412,6 +464,7 @@ export function MapSeabed({
   return (
     <mesh
       name={`${config.id}-seabed`}
+      geometry={seabedGeometry}
       rotation={[-Math.PI / 2, 0, 0]}
       position={[0, SEABED_TOP_OFFSET, 0]}
       receiveShadow={false}
@@ -419,15 +472,6 @@ export function MapSeabed({
       renderOrder={-30}
       frustumCulled={false}
     >
-      <planeGeometry
-        args={[
-          geometry.planeWidth,
-          geometry.planeHeight,
-          horizontalSegments,
-          verticalSegments,
-        ]}
-      />
-
       <primitive
         object={material}
         attach="material"

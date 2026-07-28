@@ -146,14 +146,53 @@ export function MapSea({
   );
 
   const waterGeometry = useMemo(
-    () =>
-      new PlaneGeometry(
-        geometry.planeWidth,
-        geometry.planeHeight,
-        1,
-        1,
-      ),
+    () => {
+      const extensionScale =
+        config.worldExtension?.mode === "ocean"
+          ? Math.max(
+              1,
+              config.worldExtension.extensionScale ?? 1,
+            )
+          : 1;
+      const segments =
+        extensionScale > 1
+          ? Math.min(
+              64,
+              Math.max(
+                16,
+                Math.ceil(extensionScale * 2),
+              ),
+            )
+          : 1;
+      const waterPlane = new PlaneGeometry(
+        geometry.planeWidth * extensionScale,
+        geometry.planeHeight * extensionScale,
+        segments,
+        segments,
+      );
+      const uv = waterPlane.attributes.uv;
+
+      for (
+        let index = 0;
+        index < uv.count;
+        index += 1
+      ) {
+        uv.setXY(
+          index,
+          (uv.getX(index) - 0.5) *
+            extensionScale +
+            0.5,
+          (uv.getY(index) - 0.5) *
+            extensionScale +
+            0.5,
+        );
+      }
+      uv.needsUpdate = true;
+
+      return waterPlane;
+    },
     [
+      config.worldExtension,
       geometry.planeHeight,
       geometry.planeWidth,
     ],
@@ -339,17 +378,7 @@ export function MapSea({
       );
     material.uniforms
       .edgeFadeWidth
-      .value =
-        !config.worldExtension ||
-        config.worldExtension.mode ===
-          "ocean"
-          ? Math.max(
-              0.04,
-              worldExtension
-                ?.transitionWidth ??
-                0.14,
-            )
-          : 0;
+      .value = 0;
 
     instance.name =
       `${config.id}-water-open-source-port`;
@@ -359,7 +388,7 @@ export function MapSea({
 
     instance.position.set(
       0,
-      -0.006,
+      0,
       0,
     );
 

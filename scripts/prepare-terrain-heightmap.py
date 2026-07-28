@@ -7,6 +7,7 @@ from pathlib import Path
 
 import numpy as np
 from PIL import Image, ImageFilter
+from scipy.ndimage import distance_transform_edt
 
 
 def parse_arguments() -> argparse.Namespace:
@@ -20,6 +21,7 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument("land_mask", type=Path)
     parser.add_argument("output", type=Path)
     parser.add_argument("--rivers", type=Path)
+    parser.add_argument("--aligned-land-output", type=Path)
     parser.add_argument("--aligned-rivers-output", type=Path)
     parser.add_argument("--sea-level", type=int, default=9)
     parser.add_argument("--river-depth", type=float, default=9.0)
@@ -29,6 +31,24 @@ def parse_arguments() -> argparse.Namespace:
         type=float,
         default=0.0,
         help="Smoothing della heightmap prima del displacement.",
+    )
+    parser.add_argument(
+        "--coast-feather",
+        type=float,
+        default=0.0,
+        help=(
+            "Raccordo altimetrico interno alla costa, espresso in pixel "
+            "dell'output. Non modifica la land mask."
+        ),
+    )
+    parser.add_argument(
+        "--sea-height-extension",
+        type=float,
+        default=0.0,
+        help=(
+            "Estende invisibilmente nel mare la quota del pixel terrestre "
+            "più vicino, evitando rampe nei triangoli tagliati dalla alpha mask."
+        ),
     )
     parser.add_argument("--width", type=int)
     return parser.parse_args()
@@ -150,8 +170,31 @@ def main() -> None:
     land = np.asarray(land_image, dtype=np.uint8) >= 128
 
     # Anche i vertici trasparenti del mare partecipano all'interpolazione dei
-    # triangoli costieri. Portarli a quota mare elimina il gradino scuro.
-    prepared = np.maximum(height, float(arguments.sea_level))
+    # triangoli costieri. Dopo il Gaussian blur alcuni pixel marini ereditano
+    # quota dalla terra: devono essere riportati *esattamente* al livello del
+    # mare, altrimenti la parte invisibile della mesh forma una fascia rialzata
+    # lungo soltanto le coste con maggior dislivello.
+    prepared = height.copy()
+    prepared[~land] = float(arguments.sea_level)
+    prepared[land] = np.maximum(
+        prepared[land],
+        float(arguments.sea_level) + 1.0,
+    )
+
+    if arguments.sea_height_extension > 0:
+        sea_distance, nearest_land = distance_transform_edt(
+            ~land,
+            return_indices=True,
+        )
+        extension = (
+            ~land
+            & (sea_distance <= arguments.sea_height_extension)
+        )
+        prepared[extension] = prepared[
+            nearest_land[0][extension],
+            nearest_land[1][extension],
+        ]
+
     aligned_rivers: np.ndarray | None = None
 
     if arguments.rivers:
@@ -170,6 +213,26 @@ def main() -> None:
         )
         prepared[land] -= incision[land] * arguments.river_depth
 
+    if arguments.coast_feather > 0:
+        inside_distance = distance_transform_edt(land)
+        coast_blend = np.clip(
+            (inside_distance - 1.0)
+            / max(arguments.coast_feather - 1.0, 1.0),
+            0.0,
+            1.0,
+        )
+        coast_blend = (
+            coast_blend
+            * coast_blend
+            * (3.0 - 2.0 * coast_blend)
+        )
+        coast_height = float(arguments.sea_level) + 1.0
+        prepared[land] = (
+            coast_height
+            + (prepared[land] - coast_height)
+            * coast_blend[land]
+        )
+
     prepared[land] = np.maximum(
         prepared[land],
         float(arguments.sea_level) + 1.0,
@@ -181,6 +244,16 @@ def main() -> None:
 
     arguments.output.parent.mkdir(parents=True, exist_ok=True)
     result.save(arguments.output, optimize=True)
+
+    if arguments.aligned_land_output:
+        arguments.aligned_land_output.parent.mkdir(
+            parents=True,
+            exist_ok=True,
+        )
+        Image.fromarray(
+            np.where(land, 255, 0).astype(np.uint8),
+            mode="L",
+        ).save(arguments.aligned_land_output, optimize=True)
 
     if arguments.aligned_rivers_output and aligned_rivers is not None:
         river_result = Image.fromarray(aligned_rivers, mode="L")

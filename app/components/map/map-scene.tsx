@@ -25,9 +25,9 @@ import type {
   MapFeature,
   NationMapConfig,
 } from "../../data/maps/types";
-import { MapEdgeFog } from "./map-edge-fog";
 import { MapFeatureMarker } from "./map-feature-marker";
 import { MapLoadingTerrain } from "./map-loading-terrain";
+import { MapLighting } from "./map-lighting";
 import { MapWater } from "./map-water";
 import { MapSkybox } from "./map-skybox";
 import { MapTerrain } from "./map-terrain";
@@ -149,16 +149,22 @@ export function MapScene({
       staticView.panLimits,
     ],
   );
-  const reportWaterReady = useCallback(
-    () => onReadyPart("water"),
-    [onReadyPart],
-  );
   const reportTerrainReady = useCallback(
     () => onReadyPart("terrain"),
     [onReadyPart],
   );
   const reportAtmosphereReady = useCallback(
     () => onReadyPart("atmosphere"),
+    [onReadyPart],
+  );
+
+  useEffect(() => {
+    // Prova diagnostica: il volume atmosferico periferico è escluso.
+    reportAtmosphereReady();
+  }, [reportAtmosphereReady]);
+
+  const reportWaterReady = useCallback(
+    () => onReadyPart("water"),
     [onReadyPart],
   );
 
@@ -415,7 +421,7 @@ export function MapScene({
   const background =
     parchment
       ? "#b5a88f"
-      : config.palette.background ??
+      : config.seaRendering?.deepColor ??
         config.palette.seaDeep;
 
   return (
@@ -425,65 +431,10 @@ export function MapScene({
         args={[background]}
       />
 
-      <fog
-        attach="fog"
-        args={[
-          background,
-          15,
-          31,
-        ]}
-      />
-
-      <ambientLight
-        intensity={0.62}
-      />
-
-      <directionalLight
-        castShadow={
-          performance.shadowMapSize >
-          0
-        }
-        shadow-mapSize={[
-          Math.max(
-            performance.shadowMapSize,
-            512,
-          ),
-          Math.max(
-            performance.shadowMapSize,
-            512,
-          ),
-        ]}
-        shadow-camera-near={0.5}
-        shadow-camera-far={40}
-        shadow-camera-left={
-          -geometry.planeWidth * 0.72
-        }
-        shadow-camera-right={
-          geometry.planeWidth * 0.72
-        }
-        shadow-camera-top={
-          geometry.planeHeight * 0.85
-        }
-        shadow-camera-bottom={
-          -geometry.planeHeight * 0.85
-        }
-        shadow-bias={-0.00015}
-        shadow-normalBias={0.018}
-        position={[
-          -6,
-          10,
-          5,
-        ]}
-        intensity={2.1}
-        color="#ffe0ae"
-      />
-
-      <hemisphereLight
-        args={[
-          "#b8dbe0",
-          "#785b3b",
-          0.38,
-        ]}
+      <MapLighting
+        config={config}
+        geometry={geometry}
+        performance={performance}
       />
 
       <MapSkybox
@@ -537,23 +488,6 @@ export function MapScene({
             ),
           )
         : null}
-
-      {(
-        (
-          config.worldExtension?.mist?.mode ??
-          config.oceanHorizon?.mist?.mode ??
-          "horizon"
-        ) === "volumetric" ||
-        performance.clouds
-      ) ? (
-        <MapEdgeFog
-          config={config}
-          geometry={geometry}
-          parchment={parchment}
-          performance={performance}
-          onReady={reportAtmosphereReady}
-        />
-      ) : null}
 
       <MapWorldGrid
         geometry={geometry}

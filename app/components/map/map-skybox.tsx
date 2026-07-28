@@ -6,7 +6,6 @@ import {
   Color,
   ShaderMaterial,
   SphereGeometry,
-  Vector3,
 } from "three";
 
 import type {
@@ -14,6 +13,7 @@ import type {
   NationMapConfig,
 } from "../../data/maps/types";
 import { getMapAtmosphereColors } from "./map-atmosphere";
+import { getEquinoxNoonSunDirection } from "./map-solar-position";
 
 const vertexShader = /* glsl */ `
   varying vec3 vWorldDirection;
@@ -106,12 +106,12 @@ export function MapSkybox({
         uLowerColor: { value: lower },
         uSunColor: { value: new Color("#fff0c7") },
         uSunDirection: {
-          value: new Vector3(-0.48, 0.72, 0.50),
+          value: getEquinoxNoonSunDirection(geometry),
         },
         uSunStrength: { value: 1.15 },
       },
     });
-  }, [config]);
+  }, [config, geometry]);
 
   useEffect(
     () => () => {

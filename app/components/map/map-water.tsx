@@ -7,23 +7,14 @@ import type {
   DerivedMapGeometry,
   NationMapConfig,
 } from "../../data/maps/types";
+import type { ResolvedMapPerformance } from "./map-performance";
 import { MapSea } from "./map-sea";
 import { MapSeabed } from "./map-seabed";
 import { MapWorldExtension } from "./map-world-extension";
-import type { ResolvedMapPerformance } from "./map-performance";
 
 /**
- * Composito oceanico della mappa.
- *
- * MapSeabed:
- * - bathymetryMap -> displacement del fondale;
- * - coastDistance -> colore del fondale.
- *
- * MapSea:
- * - currentMap -> direzione delle normali Water2 e moto locale della foam;
- * - coastDistance -> equivalente della profondità costiera nel port tuxalin;
- * - landMask -> impedisce alla foam di comparire sulla terra;
- * - texture fotografiche MIT -> struttura organica della foam.
+ * Composito oceanico completo. I suoi livelli sono mantenuti distinti
+ * affinché superficie, fondale ed estensione condividano la stessa geometria.
  */
 export function MapWater({
   config,
@@ -40,41 +31,34 @@ export function MapWater({
 }) {
   const currentMapPath =
     config.textures.currentMap;
-
-  const bathymetryMapPath =
-    config.textures.bathymetryMap;
-
   const coastDistancePath =
     config.textures.coastDistance;
-
   const landMaskPath =
     config.textures.landMask;
-
+  const bathymetryMapPath =
+    config.textures.bathymetryMap;
   if (
     !currentMapPath ||
-    !bathymetryMapPath ||
     !coastDistancePath ||
-    !landMaskPath
+    !landMaskPath ||
+    !bathymetryMapPath
   ) {
     throw new Error(
-      `La mappa "${config.id}" deve definire textures.currentMap, textures.bathymetryMap, textures.coastDistance e textures.landMask.`,
+      `La mappa "${config.id}" deve definire textures.currentMap, textures.coastDistance, textures.landMask e textures.bathymetryMap.`,
     );
   }
 
   const [
     currentMap,
-    bathymetry,
     coastDistance,
     landMask,
-  ] = useLoader(
-    TextureLoader,
-    [
-      currentMapPath,
-      bathymetryMapPath,
-      coastDistancePath,
-      landMaskPath,
-    ],
-  );
+    bathymetry,
+  ] = useLoader(TextureLoader, [
+    currentMapPath,
+    coastDistancePath,
+    landMaskPath,
+    bathymetryMapPath,
+  ]);
 
   return (
     <>

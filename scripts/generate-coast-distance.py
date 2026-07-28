@@ -25,6 +25,16 @@ def parse_arguments() -> argparse.Namespace:
         "map_id",
         help="Identificatore della mappa, per esempio: selodia",
     )
+    parser.add_argument(
+        "--land-mask",
+        type=Path,
+        help="Land mask alternativa; default: asset completo della mappa.",
+    )
+    parser.add_argument(
+        "--output",
+        type=Path,
+        help="Percorso di output alternativo.",
+    )
 
     parser.add_argument(
         "--maximum-distance",
@@ -63,14 +73,12 @@ def main() -> int:
         / map_id
     )
 
-    land_mask_path = (
-        map_directory
-        / f"{map_id}-land-mask.png"
+    land_mask_path = arguments.land_mask or (
+        map_directory / f"{map_id}-land-mask.png"
     )
 
-    output_path = (
-        map_directory
-        / f"{map_id}-coast-distance.png"
+    output_path = arguments.output or (
+        map_directory / f"{map_id}-coast-distance.png"
     )
 
     if not land_mask_path.exists():
@@ -116,12 +124,12 @@ def main() -> int:
 
     print(
         "Land mask:",
-        land_mask_path.relative_to(PROJECT_ROOT),
+        land_mask_path.resolve().relative_to(PROJECT_ROOT),
     )
 
     print(
         "Texture costiera:",
-        output_path.relative_to(PROJECT_ROOT),
+        output_path.resolve().relative_to(PROJECT_ROOT),
     )
 
     print(

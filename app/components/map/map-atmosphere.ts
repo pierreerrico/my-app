@@ -18,9 +18,6 @@ export type MapAtmosphereColors = {
 export function getMapAtmosphereColors(
   config: NationMapConfig,
 ): MapAtmosphereColors {
-  const seaBase = new Color(
-    config.palette.seaDeep,
-  );
   const configuredHorizon =
     config.worldExtension
       ?.horizonColor ??
@@ -32,20 +29,8 @@ export function getMapAtmosphereColors(
       ? new Color(
           configuredHorizon as ColorRepresentation,
         )
-      : seaBase
-          .clone()
-          .lerp(
-            new Color("#9ed5df"),
-            0.68,
-          ),
-    zenith: seaBase
-      .clone()
-      .lerp(
-        new Color("#17384f"),
-        0.42,
-      ),
-    lower: seaBase
-      .clone()
-      .multiplyScalar(0.42),
+      : new Color("#b7d8df"),
+    zenith: new Color("#4d91b4"),
+    lower: new Color("#8fbdca"),
   };
 }

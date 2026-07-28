@@ -9,6 +9,8 @@ import {
 } from "react";
 import {
   Color,
+  MeshDepthMaterial,
+  RGBADepthPacking,
   TextureLoader,
   Vector2,
   type Texture,
@@ -231,6 +233,29 @@ export function MapTerrain({
     -normalizedSeaLevel *
     displacementScale;
 
+  const shadowDepthMaterial = useMemo(
+    () =>
+      new MeshDepthMaterial({
+        depthPacking: RGBADepthPacking,
+        displacementMap: elevationTexture,
+        displacementScale,
+        displacementBias,
+        alphaMap: landMaskTexture,
+        alphaTest: 0.5,
+      }),
+    [
+      displacementBias,
+      displacementScale,
+      elevationTexture,
+      landMaskTexture,
+    ],
+  );
+
+  useEffect(
+    () => () => shadowDepthMaterial.dispose(),
+    [shadowDepthMaterial],
+  );
+
   const horizontalSegments =
     Math.min(
       config.rendering?.segments ??
@@ -272,6 +297,7 @@ export function MapTerrain({
       rotation={[-Math.PI / 2, 0, 0]}
       receiveShadow={performance.shadowMapSize > 0}
       castShadow={performance.shadowMapSize > 0}
+      customDepthMaterial={shadowDepthMaterial}
     >
       <planeGeometry
         args={[
@@ -285,7 +311,7 @@ export function MapTerrain({
       <meshStandardMaterial
         onBeforeCompile={applyRiverMask}
         customProgramCacheKey={() =>
-          `terrain-rivers-water-v3:${parchment ? "parchment" : "dynamic"}:${config.textures.riversMask ?? "land-mask"}`
+          `terrain-rivers-water-v5:${parchment ? "parchment" : "dynamic"}:${config.textures.riversMask ?? "land-mask"}`
         }
         map={
           parchment
@@ -314,6 +340,7 @@ export function MapTerrain({
           landMaskTexture
         }
         alphaTest={0.5}
+        alphaToCoverage
         roughness={0.82}
         metalness={0}
       />

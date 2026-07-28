@@ -19,7 +19,6 @@ import type {
   NationMapConfig,
   NationMapWorldExtension,
 } from "../../data/maps/types";
-import { MapOceanHorizon } from "./map-ocean-horizon";
 
 const vertexShader = /* glsl */ `
   varying vec2 vUv;
@@ -278,13 +277,7 @@ export function MapWorldExtension({
   }
 
   if (extension.mode === "ocean") {
-    return (
-      <MapOceanHorizon
-        config={config}
-        geometry={geometry}
-        parchment={parchment}
-      />
-    );
+    return null;
   }
 
   return (

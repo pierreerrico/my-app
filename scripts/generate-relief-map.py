@@ -8,7 +8,7 @@ from pathlib import Path
 
 import numpy as np
 from PIL import Image
-from scipy.ndimage import gaussian_filter
+from scipy.ndimage import distance_transform_edt, gaussian_filter
 
 
 ColorStop = tuple[float, tuple[int, int, int]]
@@ -20,7 +20,7 @@ SEA_STOPS: tuple[ColorStop, ...] = (
 )
 
 LAND_STOPS: tuple[ColorStop, ...] = (
-    (0.00, (134, 151, 104)),
+    (0.00, (174, 170, 108)),
     (0.12, (177, 168, 105)),
     (0.30, (202, 166, 104)),
     (0.52, (169, 112, 75)),
@@ -39,6 +39,14 @@ def parse_arguments() -> argparse.Namespace:
     )
     parser.add_argument("input", type=Path, help="Heightmap sorgente.")
     parser.add_argument("output", type=Path, help="PNG di destinazione.")
+    parser.add_argument(
+        "--land-mask",
+        type=Path,
+        help=(
+            "Land mask esplicita. Necessaria quando la heightmap estende "
+            "invisibilmente le quote oltre costa."
+        ),
+    )
     parser.add_argument(
         "--sea-level",
         type=int,
@@ -89,6 +97,15 @@ def parse_arguments() -> argparse.Namespace:
         type=int,
         default=6,
         help="Intervallo delle curve di livello in valori heightmap; 0 le disattiva.",
+    )
+    parser.add_argument(
+        "--texture-bleed",
+        type=float,
+        default=0.0,
+        help=(
+            "Estende invisibilmente i colori terrestri oltre la land mask "
+            "per impedire al filtro lineare di mescolarli con il mare."
+        ),
     )
     parser.add_argument(
         "--width",
@@ -189,7 +206,9 @@ def generate_relief_map(
     flat_smoothing: float,
     shade_opacity: float,
     contour_step: int,
+    texture_bleed: float,
     width: int | None,
+    land_mask_path: Path | None,
 ) -> None:
     if not 0 <= sea_level < 255:
         raise ValueError("--sea-level deve essere compreso tra 0 e 254.")
@@ -200,6 +219,10 @@ def generate_relief_map(
 
     with Image.open(input_path) as source:
         height_image = source.convert("L")
+    land_image: Image.Image | None = None
+    if land_mask_path:
+        with Image.open(land_mask_path) as source:
+            land_image = source.convert("L")
 
     if width is not None and width != height_image.width:
         height = round(height_image.height * width / height_image.width)
@@ -207,6 +230,11 @@ def generate_relief_map(
             (width, height),
             Image.Resampling.LANCZOS,
         )
+        if land_image is not None:
+            land_image = land_image.resize(
+                (width, height),
+                Image.Resampling.NEAREST,
+            )
 
     source_values = np.asarray(height_image, dtype=np.float32)
     height_values = (
@@ -244,7 +272,11 @@ def generate_relief_map(
     height = height_values / 255.0
     # La costa rimane quella della sorgente: lo smoothing non deve né
     # espandere né erodere la terra.
-    land = source_values > sea_level
+    land = (
+        np.asarray(land_image, dtype=np.uint8) >= 128
+        if land_image is not None
+        else source_values > sea_level
+    )
 
     sea_values = np.clip(
         height_values / max(sea_level, 1),
@@ -277,6 +309,27 @@ def generate_relief_map(
     # La luce principale modella la forma; una seconda luce debole conserva
     # i dettagli nei versanti in ombra, come nei shaded relief cartografici.
     shade = np.clip(primary_shade * 0.82 + secondary_shade * 0.18, 0.0, 1.0)
+    # Il feather geometrico della costa non è un versante reale e non deve
+    # diventare una corona d'ombra nella texture. Riporta gradualmente
+    # l'illuminazione al valore neutro soltanto vicino al bordo interno.
+    inside_distance = distance_transform_edt(land)
+    coast_neutral_width = max(3.0, height.shape[1] / 8192.0 * 20.0)
+    coast_shade_weight = np.clip(
+        (inside_distance - coast_neutral_width * 0.2)
+        / (coast_neutral_width * 0.8),
+        0.0,
+        1.0,
+    )
+    coast_shade_weight = (
+        coast_shade_weight
+        * coast_shade_weight
+        * (3.0 - 2.0 * coast_shade_weight)
+    )
+    neutral_shade = (1.0 - 0.34) / 1.12
+    shade[land] = (
+        neutral_shade * (1.0 - coast_shade_weight[land])
+        + shade[land] * coast_shade_weight[land]
+    )
     shade_multiplier = 0.34 + shade * 1.12
     effective_opacity = np.where(land, shade_opacity, shade_opacity * 0.16)
     colors *= (
@@ -299,6 +352,17 @@ def generate_relief_map(
             colors * (1.0 - contour_alpha[..., None])
             + contour_color * contour_alpha[..., None]
         )
+
+    if texture_bleed > 0:
+        sea_distance, nearest_land = distance_transform_edt(
+            ~land,
+            return_indices=True,
+        )
+        bleed = (~land) & (sea_distance <= texture_bleed)
+        colors[bleed] = colors[
+            nearest_land[0][bleed],
+            nearest_land[1][bleed],
+        ]
 
     result = Image.fromarray(
         np.clip(np.rint(colors), 0, 255).astype(np.uint8),
@@ -327,7 +391,9 @@ def main() -> None:
         flat_smoothing=arguments.flat_smoothing,
         shade_opacity=arguments.shade_opacity,
         contour_step=arguments.contour_step,
+        texture_bleed=arguments.texture_bleed,
         width=arguments.width,
+        land_mask_path=arguments.land_mask,
     )
 
 

@@ -40,21 +40,6 @@ export type MapFeature = {
   icon?: ReactNode;
 };
 
-export type MapRiverPoint =
-  GeographicPoint & {
-    /**
-     * Elevazione puramente visuale sopra il terreno Three.js.
-     * Non rappresenta necessariamente una quota geografica reale.
-     */
-    visualElevation?: number;
-  };
-
-export type MapRiver = {
-  id: string;
-  name?: string;
-  points: MapRiverPoint[];
-};
-
 export type NationMapTextures = {
   diffuse: string;
   heightmap: string;
@@ -62,7 +47,6 @@ export type NationMapTextures = {
   normalMap?: string;
 
   riversMask?: string;
-  routesMask?: string;
 
   coastDistance?: string;
   currentMap?: string;
