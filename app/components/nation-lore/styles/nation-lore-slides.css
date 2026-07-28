@@ -52,7 +52,7 @@
   position: relative;
   --scrollbar-track-top: 24px;
   --scrollbar-track-bottom: 84px;
-  --scrollbar-track-inline-end: 0px;
+  --scrollbar-track-inline-end: -5px;
 }
 
 .nation-subchapter-content {

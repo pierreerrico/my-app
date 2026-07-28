@@ -68,6 +68,16 @@
   --sidebar-border-right: 0;
 }
 
+@media (min-width: 601px) {
+  .nation-lore-page .sidebar-panel--right[data-open="true"] {
+    box-shadow: -8px 0 14px -8px rgba(18, 13, 10, .34);
+  }
+
+  .nation-lore-page .sidebar-panel--left[data-open="true"] {
+    box-shadow: 8px 0 14px -8px rgba(18, 13, 10, .34);
+  }
+}
+
 /*
  * I trigger esterni sono anche i controlli di chiusura. Eventuali close
  * legacy presenti nel markup della Sidebar non devono generare un secondo
