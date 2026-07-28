@@ -192,13 +192,12 @@ export const selodiaMap:
    */
   performance: {
     mode: "auto",
-    clouds: true,
     pauseWhenHidden: true,
     textures: {
       diffuse:
-        "/maps/selodia/selodia-atlas-performance.png?v=relief-14",
+        "/maps/selodia/selodia-atlas-mobile.png?v=relief-15",
       parchmentDiffuse:
-        "/maps/selodia/selodia-atlas-sepia.png?v=relief-1",
+        "/maps/selodia/selodia-atlas-sepia-performance.png?v=relief-2",
       heightmap:
         "/maps/selodia/selodia-terrain-heightmap-performance.png?v=relief-13",
       landMask:

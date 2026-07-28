@@ -1,5 +1,6 @@
 "use client";
 
+import { useFrame, useThree } from "@react-three/fiber";
 import { useLayoutEffect, useMemo, useRef } from "react";
 import {
   DirectionalLight,
@@ -24,6 +25,10 @@ export function MapLighting({
 }) {
   const light = useRef<DirectionalLight>(null);
   const target = useRef<Object3D>(null);
+  const shadowFrames = useRef(0);
+  const renderer = useThree(
+    (state) => state.gl,
+  );
 
   const shadowVolume = useMemo(() => {
     const exaggeration =
@@ -76,6 +81,48 @@ export function MapLighting({
 
   const shadowsEnabled =
     performance.shadowMapSize > 0;
+
+  useLayoutEffect(() => {
+    if (
+      performance.mode !== "performance" ||
+      !shadowsEnabled
+    ) {
+      return;
+    }
+
+    shadowFrames.current = 0;
+    renderer.shadowMap.autoUpdate = true;
+    renderer.shadowMap.needsUpdate = true;
+
+    return () => {
+      renderer.shadowMap.autoUpdate = true;
+      renderer.shadowMap.needsUpdate = true;
+    };
+  }, [
+    performance.mode,
+    renderer,
+    shadowsEnabled,
+  ]);
+
+  useFrame(() => {
+    if (
+      performance.mode !== "performance" ||
+      !shadowsEnabled ||
+      shadowFrames.current > 1
+    ) {
+      return;
+    }
+
+    shadowFrames.current += 1;
+    if (shadowFrames.current === 2) {
+      /*
+       * Terrain and equinox light are static. After the first completed shadow
+       * render, keep the resulting map instead of rebuilding it for every
+       * animated water frame.
+       */
+      renderer.shadowMap.autoUpdate = false;
+    }
+  });
 
   return (
     <>

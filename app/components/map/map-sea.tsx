@@ -235,11 +235,17 @@ export function MapSea({
 
     material.uniforms
       .reflectionStrength
-      .value = 0.18;
+      .value =
+        performance.mode === "performance"
+          ? 0
+          : 0.18;
 
     material.uniforms
       .refractionStrength
-      .value = 0.74;
+      .value =
+        performance.mode === "performance"
+          ? 0
+          : 0.74;
 
     material.uniforms
       .normalStrength
@@ -422,6 +428,19 @@ export function MapSea({
       materialToRender: Material,
       group: Group,
     ) => {
+      /*
+       * On compact devices the map diffuse, bathymetry and procedural normals
+       * already provide the complete water appearance. Skipping Water2's two
+       * scene captures removes the dominant mobile GPU cost and leaves enough
+       * bandwidth for the higher-resolution atlas.
+       */
+      if (
+        performance.mode ===
+        "performance"
+      ) {
+        return;
+      }
+
       reflectionFrame += 1;
       if (
         reflectionFrame %
