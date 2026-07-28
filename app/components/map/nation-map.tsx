@@ -346,11 +346,26 @@ export default function NationMap({ config }: { config: NationMapConfig }) {
     const distance = touchDistance(event.touches);
     const distanceDelta =
       distance - pinchRef.current.distance;
-
-    commitZoomLevel(
-      pinchRef.current.zoom +
-        distanceDelta / 140,
+    const nextLevel = Math.min(
+      2,
+      Math.max(
+        0,
+        pinchRef.current.zoom +
+          distanceDelta / 140,
+      ),
     );
+
+    if (
+      distanceDelta < 0 &&
+      !staticViewAlignedRef.current &&
+      nextLevel <= FREE_VIEW_MIN_ZOOM
+    ) {
+      commitZoomLevel(FREE_VIEW_MIN_ZOOM);
+      setNorthStepSignal((value) => value + 1);
+      return;
+    }
+
+    commitZoomLevel(nextLevel);
   }
 
   const markScenePartReady = useCallback(
