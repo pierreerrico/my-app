@@ -25,6 +25,7 @@ import type {
   MapFeature,
   NationMapConfig,
 } from "../../data/maps/types";
+import { MapEdgeFog } from "./map-edge-fog";
 import { MapFeatureMarker } from "./map-feature-marker";
 import { MapLoadingTerrain } from "./map-loading-terrain";
 import { MapLighting } from "./map-lighting";
@@ -442,6 +443,16 @@ export function MapScene({
         geometry={geometry}
         parchment={parchment}
       />
+
+      <Suspense fallback={null}>
+        <MapEdgeFog
+          config={config}
+          geometry={geometry}
+          parchment={parchment}
+          performance={performance}
+          onReady={reportAtmosphereReady}
+        />
+      </Suspense>
 
       <Suspense fallback={null}>
         <MapWater

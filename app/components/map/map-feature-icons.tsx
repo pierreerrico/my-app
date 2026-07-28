@@ -19,7 +19,7 @@ const icons: Record<MapFeatureKind, (props: IconProps) => ReactNode> = {
   ),
   city: (props) => (
     <BaseIcon {...props}>
-      <path d="M3 27h26M5 27V17l5-5 5 5v10M17 27V14l5-4 5 4v13M8 27v-6h4v6M20 18h4M20 22h4M13 13l3-5 3 5M16 8V5" />
+      <path d="M6 27h20M9 27V13l7-6 7 6v14M13 27v-7h6v7M13 14h6M16 7V3M16 3l4 2" />
     </BaseIcon>
   ),
   town: (props) => (

@@ -1,7 +1,7 @@
 export function MapTitle({ title }: { title: string }) {
   return (
     <div className="map-title-group" aria-hidden="true">
-      <div className="map-title-laurel" />
+      <div className="map-title-emblem" />
       <svg className="map-title-cartouche" viewBox="0 0 420 94">
         <path d="M48 18H372L402 47L372 76H48L18 47Z" />
         <path d="M52 25H368L389 47L368 69H52L31 47Z" />

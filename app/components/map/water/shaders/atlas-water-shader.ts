@@ -446,8 +446,8 @@ export const atlasWaterShader = {
       );
 
       float approachWidthScale = mix(
-        0.52,
-        1.95,
+        0.62,
+        1.34,
         shoreApproach
       );
 
@@ -494,6 +494,30 @@ export const atlasWaterShader = {
       mix(0.30, 1.55, currentStrength);
 
       vec2 currentCoastUv = coastUv + currentCoastDrift;
+
+      /*
+       * Neighbouring pieces do not travel on a perfectly aligned front.
+       * A deterministic coastwise phase offset gives each stretch a small,
+       * stable lead or delay while preserving the common shoreward motion.
+       */
+      float timingSegment = floor(
+        currentCoastUv.x * 34.0 +
+        cycleSeed.x * 19.0
+      );
+      float timingOffset =
+        (
+          hash12(
+            vec2(
+              timingSegment + cycleSeed.y * 37.0,
+              cycleSeedB.x * 23.0
+            )
+          ) -
+          0.5
+        ) *
+        0.22;
+      center +=
+        (shorelineCenter - offshoreCenter) *
+        timingOffset;
 
       float currentBend = fbm(
         currentCoastUv * vec2(4.4, 0.92) +
@@ -572,7 +596,7 @@ export const atlasWaterShader = {
         approachWidthScale *
         mix(
           0.26,
-          2.18,
+          1.48,
           widthShapeA
         );
 
@@ -581,7 +605,7 @@ export const atlasWaterShader = {
         approachWidthScale *
         mix(
           0.24,
-          1.92,
+          1.34,
           widthShapeB
         );
 
@@ -591,106 +615,80 @@ export const atlasWaterShader = {
        * rather than ending as a hard dash.
        */
       /*
-       * Interruption masks are adaptive rather than independently animated.
-       * Each new incoming wave starts with many large random missing stretches;
-       * the same seeded pattern closes only partially as the wave nears the coast.
-       * Current advection still drags and bends the mask because all fields
-       * are sampled in the already current-aware coast frame.
+       * Persistent coastwise segmentation. Each front is born as distinct
+       * pieces and keeps a guaranteed empty interval between neighbouring
+       * pieces for its entire shoreward journey. Approaching the coast changes
+       * thickness, never continuity.
        */
-      float closure = smoothstep(
-        0.08,
-        0.92,
-        travelProgress
+      float segmentWarp = fbm(
+        currentCoastUv * vec2(7.2, 0.68) +
+        cycleSeedB * vec2(8.1, -5.4)
+      ) - 0.5;
+
+      float segmentCoordinate =
+        currentCoastUv.x * 34.0 +
+        segmentWarp * 1.65 +
+        cycleSeed.x * 19.0;
+
+      float segmentIndex = floor(segmentCoordinate);
+      float segmentPhase = fract(segmentCoordinate);
+      float segmentRandom = hash12(
+        vec2(
+          segmentIndex + cycleSeed.y * 41.0,
+          cycleSeedB.x * 29.0
+        )
       );
 
-      float offshoreGapBoost = mix(
-        0.58,
-        0.40,
-        closure
-      );
-
-      float adaptiveGapCoverage = clamp(
-        mix(
-          min(gapCoverage + offshoreGapBoost, 0.88),
-          gapCoverage,
-          closure
-        ),
+      float coverageT = clamp(
+        (gapCoverage - 0.38) / 0.34,
         0.0,
-        0.95
+        1.0
       );
 
-      float largeGapField = fbm(
-        currentCoastUv * vec2(2.05, 0.38) +
-        cycleSeed * vec2(9.7, 4.6) +
-        cycleSeedB * vec2(-3.4, 6.2)
+      float segmentCenter = mix(
+        0.43,
+        0.57,
+        segmentRandom
       );
 
-      float mediumGapField = fbm(
-        currentCoastUv * vec2(5.60, 0.82) +
-        cycleSeedB * vec2(7.9, -5.1) -
-        cycleSeed * vec2(2.6, 1.9)
-      );
+      float segmentHalfWidth =
+        mix(0.30, 0.21, coverageT) *
+        mix(0.82, 1.08, segmentRandom);
+
+      float segmentFeather = 0.055;
+      float segmentStart =
+        segmentCenter - segmentHalfWidth;
+      float segmentEnd =
+        segmentCenter + segmentHalfWidth;
+
+      float coreContinuity =
+        smoothstep(
+          segmentStart,
+          segmentStart + segmentFeather,
+          segmentPhase
+        ) *
+        (1.0 - smoothstep(
+          segmentEnd - segmentFeather,
+          segmentEnd,
+          segmentPhase
+        ));
+
+      float haloContinuity =
+        smoothstep(
+          segmentStart - 0.025,
+          segmentStart + segmentFeather * 1.35,
+          segmentPhase
+        ) *
+        (1.0 - smoothstep(
+          segmentEnd - segmentFeather * 1.35,
+          segmentEnd + 0.025,
+          segmentPhase
+        ));
 
       float edgeBreakupField = fbm(
-        currentCoastUv * vec2(9.40, 1.24) +
+        currentCoastUv * vec2(11.8, 1.36) +
         cycleSeed * vec2(5.6, -4.3) +
         cycleSeedB * vec2(1.8, 3.9)
-      );
-
-      float gapShape = mix(
-        largeGapField * 0.66 + mediumGapField * 0.34,
-        largeGapField * 0.56 + mediumGapField * 0.44,
-        smoothstep(0.22, 0.92, closure)
-      );
-      /*
-       * gapCoverage is the shoreline-side baseline continuity of each front.
-       * Offshore, every new wave starts with extra interruption coverage; the
-       * same seeded pattern then closes progressively as the wave approaches
-       * the coast.
-       */
-      float coverageT = clamp(
-        (adaptiveGapCoverage - 0.325) / 0.250,
-        0.0,
-        1.0
-      );
-
-      float coreGapStart = mix(0.500, 0.575, coverageT);
-      float coreGapEnd = mix(0.635, 0.710, coverageT);
-      float haloGapStart = coreGapStart - 0.055;
-      float haloGapEnd = coreGapEnd - 0.028;
-
-      float coreContinuity = smoothstep(
-        coreGapStart,
-        coreGapEnd,
-        gapShape
-      );
-
-      float haloContinuity = smoothstep(
-        haloGapStart,
-        haloGapEnd,
-        gapShape
-      );
-
-      /*
-       * Keep the initial seed and close only part of the offshore gaps, so
-       * the wave remains split into distinct segments at the shoreline.
-       */
-      float continuityLift = mix(
-        0.0,
-        0.025,
-        closure
-      );
-
-      coreContinuity = clamp(
-        coreContinuity + continuityLift,
-        0.0,
-        1.0
-      );
-
-      haloContinuity = clamp(
-        haloContinuity + continuityLift * 0.86,
-        0.0,
-        1.0
       );
 
       /*
@@ -933,8 +931,8 @@ export const atlasWaterShader = {
 
       /*
        * Texture detail drifts at the same low constant speed as Water2.
-       * The three foam fronts use an independent one-way lifecycle: each one
-       * is born offshore, travels toward the coast and disappears there.
+       * A single segmented front remains inside the near-shore band, travels
+       * toward the coast and disappears there before restarting.
        */
       float travel = time * foamSpeed;
 
@@ -979,15 +977,11 @@ export const atlasWaterShader = {
 
       float core0;
       float halo0;
-      float core1;
-      float halo1;
-      float core2;
-      float halo2;
 
       computeFoamFront(
         warpedDistance,
-        0.94,
-        0.045,
+        0.34,
+        0.050,
         foamLineWidths.x,
         0.000,
         advectedUv,
@@ -1002,44 +996,8 @@ export const atlasWaterShader = {
         halo0
       );
 
-      computeFoamFront(
-        warpedDistance,
-        0.94,
-        0.045,
-        foamLineWidths.y,
-        0.333,
-        advectedUv,
-        coastNormal,
-        coastTangent,
-        localFlowDirection,
-        localFlowMagnitude,
-        currentImpact,
-        0.555,
-        vec2(-6.2, 18.1),
-        core1,
-        halo1
-      );
-
-      computeFoamFront(
-        warpedDistance,
-        0.94,
-        0.045,
-        foamLineWidths.z,
-        0.666,
-        advectedUv,
-        coastNormal,
-        coastTangent,
-        localFlowDirection,
-        localFlowMagnitude,
-        currentImpact,
-        0.665,
-        vec2(23.4, -9.6),
-        core2,
-        halo2
-      );
-
-      float foamCore = max(core0, max(core1, core2));
-      float foamHalo = max(halo0, max(halo1, halo2));
+      float foamCore = core0;
+      float foamHalo = halo0;
 
       float impactGain = mix(
         0.88,
@@ -1069,8 +1027,26 @@ export const atlasWaterShader = {
 
       foamCore = clamp(foamCore, 0.0, 1.0);
 
-      vec3 haloColor = mix(foamColor, vec3(1.0), 0.03);
-      vec3 coreColor = mix(foamColor, vec3(1.0), 0.18);
+      float offshoreTint = smoothstep(
+        0.16,
+        0.34,
+        normalizedDistance
+      );
+      vec3 offshoreFoamColor = mix(
+        color,
+        foamColor,
+        0.38
+      );
+      vec3 haloColor = mix(
+        mix(foamColor, vec3(1.0), 0.03),
+        offshoreFoamColor,
+        offshoreTint * 0.82
+      );
+      vec3 coreColor = mix(
+        mix(foamColor, vec3(1.0), 0.18),
+        offshoreFoamColor,
+        offshoreTint * 0.72
+      );
 
       vec3 haloScreen = screenBlend(surface, haloColor);
       surface = mix(

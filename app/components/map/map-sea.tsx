@@ -337,7 +337,7 @@ export function MapSea({
      */
     material.uniforms
       .foamPushPullSpeed
-      .value = 0.39;
+      .value = 0.68;
 
     /*
      * Gap morphology is deliberately slower than the shoreward lifecycle. This
@@ -356,9 +356,9 @@ export function MapSea({
     material.uniforms
       .foamLineWidths
       .value.set(
-        0.0240,
-        0.0150,
-        0.0085,
+        0.0170,
+        0.0105,
+        0.0060,
       );
 
     material.uniforms

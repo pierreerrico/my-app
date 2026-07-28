@@ -155,7 +155,10 @@ export function MapFeatureMarker({
           }}
         >
           {staticMode && (
-            <span className="map-feature-static-title">
+            <span
+              className="map-feature-static-title"
+              data-title={feature.name}
+            >
               {feature.name}
             </span>
           )}
@@ -194,9 +197,17 @@ export function MapFeatureMarker({
               />
             </svg>
           )}
-          <MapFeatureIcon
-            kind={feature.kind}
-          />
+          {staticMode ? (
+            <span className="map-feature-static-icon">
+              <MapFeatureIcon
+                kind={feature.kind}
+              />
+            </span>
+          ) : (
+            <MapFeatureIcon
+              kind={feature.kind}
+            />
+          )}
         </button>
       </Html>
     </group>

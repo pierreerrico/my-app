@@ -32,6 +32,16 @@ export const selodiaFeatures: MapFeature[] = [
     description: "Città di Selodia.",
   },
   {
+    id: "adrienza",
+    name: "Adrienza",
+    kind: "city",
+    position: {
+      latitude: 39.14,
+      longitude: 0.97,
+    },
+    description: "Città di Selodia.",
+  }
+  /*{
     id: "monte-nivo",
     name: "Monte Nivo",
     kind: "mountain",
@@ -40,5 +50,5 @@ export const selodiaFeatures: MapFeature[] = [
       longitude: 0.28,
     },
     elevationKm: 4.326,
-  },
+  },*/
 ];

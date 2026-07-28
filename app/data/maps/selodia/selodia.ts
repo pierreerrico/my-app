@@ -192,6 +192,7 @@ export const selodiaMap:
    */
   performance: {
     mode: "auto",
+    clouds: true,
     pauseWhenHidden: true,
     textures: {
       diffuse:

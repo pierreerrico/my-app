@@ -316,7 +316,7 @@ export function MapWorldGrid({
         uniforms: {
           uColor: {
             value: new Color(
-              "#b69a67",
+              "#352b21",
             ),
           },
           uOpacity: {
