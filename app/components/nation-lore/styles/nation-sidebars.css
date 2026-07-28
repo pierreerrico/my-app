@@ -52,6 +52,11 @@
   box-shadow: none;
 }
 
+.nation-lore-page .sidebar-panel .sidebar-scroll-area {
+  /* Compensate the panel's 34px inline padding, leaving 10px at the edge. */
+  --scrollbar-track-inline-end: -24px;
+}
+
 .nation-lore-page .sidebar-panel--left {
   --sidebar-radial-x: 0%;
   --sidebar-shade-x: 100%;
