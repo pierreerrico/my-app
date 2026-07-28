@@ -293,14 +293,16 @@ def render_hierarchical_mask(
         relative_order * 0.88,
     )
     ink = np.zeros(land.shape, dtype=np.float32)
-    ink[stream] = 0.06 + hierarchy[stream] ** 1.35 * 0.94
+    # Le sorgenti devono rimanere sottili ma ancora leggibili dopo
+    # l'antialiasing. Il contrasto cresce più velocemente della larghezza.
+    ink[stream] = 0.11 + hierarchy[stream] ** 1.4 * 0.89
     rendered_ink = ink.copy()
 
     maximum_width = max(0, maximum_width)
     if maximum_width:
         desired_radius = np.zeros(land.shape, dtype=np.uint8)
         desired_radius[stream] = np.floor(
-            hierarchy[stream] * (maximum_width + 0.999),
+            hierarchy[stream] ** 1.3 * (maximum_width + 0.999),
         ).astype(np.uint8)
 
         for radius in range(1, maximum_width + 1):

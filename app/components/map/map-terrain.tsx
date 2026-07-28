@@ -105,9 +105,6 @@ export function MapTerrain({
       shader.uniforms.terrainRiverColor = {
         value: new Color(config.palette.seaShallow),
       };
-      shader.uniforms.terrainRiverDeepColor = {
-        value: new Color(config.palette.seaDeep),
-      };
       shader.fragmentShader = shader.fragmentShader
         .replace(
           "#include <common>",
@@ -117,7 +114,6 @@ export function MapTerrain({
             "uniform float terrainRiverTime;",
             "uniform float terrainRiverWater;",
             "uniform vec3 terrainRiverColor;",
-            "uniform vec3 terrainRiverDeepColor;",
           ].join("\n"),
         )
         .replace(
@@ -154,11 +150,7 @@ export function MapTerrain({
             "  smoothstep(0.62, 1.0, terrainFlowLight),",
             "  2.5",
             ");",
-            "vec3 terrainRiverBaseColor = mix(",
-            "  terrainRiverColor, terrainRiverDeepColor,",
-            "  smoothstep(0.28, 0.82, terrainRiverStrength)",
-            ");",
-            "vec3 terrainAnimatedRiverColor = terrainRiverBaseColor *",
+            "vec3 terrainAnimatedRiverColor = terrainRiverColor *",
             "  mix(0.94, 1.08, terrainFlowLight);",
             "float terrainWaterBlend = terrainRiverStrength *",
             "  terrainRiverWater * 0.88;",
@@ -175,7 +167,6 @@ export function MapTerrain({
     },
     [
       config.palette.seaShallow,
-      config.palette.seaDeep,
       parchment,
       riversTexture,
     ],

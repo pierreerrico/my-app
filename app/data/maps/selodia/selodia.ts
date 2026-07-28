@@ -47,23 +47,23 @@ export const selodiaMap:
 
   textures: {
     diffuse:
-      "/maps/selodia/selodia-atlas.png?v=relief-7",
+      "/maps/selodia/selodia-atlas.png?v=relief-10",
 
     heightmap:
-      "/maps/selodia/selodia-terrain-heightmap.png?v=relief-2",
+      "/maps/selodia/selodia-terrain-heightmap.png?v=relief-10",
 
     landMask:
       source.generatedLandMask
         .publicUrl,
 
     normalMap:
-      "/maps/selodia/selodia-normal.png?v=relief-2",
+      "/maps/selodia/selodia-normal.png?v=relief-10",
 
     coastDistance:
       "/maps/selodia/selodia-coast-distance.png",
 
     riversMask:
-      "/maps/selodia/selodia-rivers-generated.png?v=rivers-2",
+      "/maps/selodia/selodia-rivers-generated.png?v=rivers-5",
     
     currentMap: "/maps/selodia/selodia-current.png",
 
@@ -193,15 +193,15 @@ export const selodiaMap:
     pauseWhenHidden: true,
     textures: {
       diffuse:
-        "/maps/selodia/selodia-atlas-performance.png?v=relief-7",
+        "/maps/selodia/selodia-atlas-performance.png?v=relief-10",
       heightmap:
-        "/maps/selodia/selodia-terrain-heightmap-performance.png?v=relief-2",
+        "/maps/selodia/selodia-terrain-heightmap-performance.png?v=relief-10",
       landMask:
         "/maps/selodia/selodia-land-mask-performance.png",
       normalMap:
-        "/maps/selodia/selodia-normal-performance.png?v=relief-2",
+        "/maps/selodia/selodia-normal-performance.png?v=relief-10",
       riversMask:
-        "/maps/selodia/selodia-rivers-aligned-performance.png?v=rivers-2",
+        "/maps/selodia/selodia-rivers-aligned-performance.png?v=rivers-5",
       coastDistance:
         "/maps/selodia/selodia-coast-distance-performance.png",
       bathymetryMap:
