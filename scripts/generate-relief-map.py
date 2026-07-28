@@ -7,7 +7,8 @@ import math
 from pathlib import Path
 
 import numpy as np
-from PIL import Image, ImageFilter
+from PIL import Image
+from scipy.ndimage import gaussian_filter
 
 
 ColorStop = tuple[float, tuple[int, int, int]]
@@ -19,12 +20,13 @@ SEA_STOPS: tuple[ColorStop, ...] = (
 )
 
 LAND_STOPS: tuple[ColorStop, ...] = (
-    (0.00, (105, 145, 102)),
-    (0.12, (151, 174, 111)),
-    (0.32, (199, 190, 132)),
-    (0.56, (176, 142, 94)),
-    (0.78, (137, 105, 77)),
-    (1.00, (235, 226, 205)),
+    (0.00, (134, 151, 104)),
+    (0.12, (177, 168, 105)),
+    (0.30, (202, 166, 104)),
+    (0.52, (169, 112, 75)),
+    (0.74, (123, 78, 61)),
+    (0.90, (184, 142, 101)),
+    (1.00, (244, 225, 174)),
 )
 
 
@@ -58,7 +60,7 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument(
         "--strength",
         type=float,
-        default=7.0,
+        default=2.4,
         help="Esagerazione del rilievo usata dall'hillshade.",
     )
     parser.add_argument(
@@ -68,10 +70,25 @@ def parse_arguments() -> argparse.Namespace:
         help="Sfocatura preventiva della heightmap in pixel.",
     )
     parser.add_argument(
+        "--flat-smoothing",
+        type=float,
+        default=0.0,
+        help=(
+            "Smoothing aggiuntivo applicato soltanto nelle aree con poca "
+            "variazione altimetrica."
+        ),
+    )
+    parser.add_argument(
         "--shade-opacity",
         type=float,
-        default=0.58,
+        default=0.82,
         help="Intensita dell'ombreggiatura, tra 0 e 1.",
+    )
+    parser.add_argument(
+        "--contour-step",
+        type=int,
+        default=6,
+        help="Intervallo delle curve di livello in valori heightmap; 0 le disattiva.",
     )
     parser.add_argument(
         "--width",
@@ -126,8 +143,12 @@ def calculate_hillshade(
     strength: float,
 ) -> np.ndarray:
     dx, dy = sobel_gradients(height)
-    nx = -dx * strength
-    ny = -dy * strength
+    # Il gradiente per pixel si riduce aumentando la risoluzione. Questa
+    # normalizzazione mantiene lo stesso rilievo apparente a 2K e a 8K.
+    resolution_scale = height.shape[1] / 2048.0
+    slope_scale = strength * 72.0 * resolution_scale
+    nx = -dx * slope_scale
+    ny = -dy * slope_scale
     nz = np.ones_like(height)
     normal_length = np.sqrt(nx * nx + ny * ny + nz * nz)
 
@@ -146,6 +167,17 @@ def calculate_hillshade(
     return np.clip(illumination * 0.5 + 0.5, 0.0, 1.0)
 
 
+def contour_mask(height_u8: np.ndarray, land: np.ndarray, step: int) -> np.ndarray:
+    if step <= 0:
+        return np.zeros_like(height_u8, dtype=np.float32)
+    bands = height_u8.astype(np.int16) // step
+    boundary = np.zeros_like(land)
+    boundary[:, 1:] |= bands[:, 1:] != bands[:, :-1]
+    boundary[1:, :] |= bands[1:, :] != bands[:-1, :]
+    boundary &= land
+    return boundary.astype(np.float32)
+
+
 def generate_relief_map(
     input_path: Path,
     output_path: Path,
@@ -154,7 +186,9 @@ def generate_relief_map(
     altitude: float,
     strength: float,
     blur: float,
+    flat_smoothing: float,
     shade_opacity: float,
+    contour_step: int,
     width: int | None,
 ) -> None:
     if not 0 <= sea_level < 255:
@@ -174,22 +208,51 @@ def generate_relief_map(
             Image.Resampling.LANCZOS,
         )
 
-    smoothed = (
-        height_image.filter(ImageFilter.GaussianBlur(radius=blur))
+    source_values = np.asarray(height_image, dtype=np.float32)
+    height_values = (
+        gaussian_filter(source_values, sigma=blur, mode="nearest")
         if blur > 0
-        else height_image
+        else source_values.copy()
     )
-    height_u8 = np.asarray(smoothed, dtype=np.uint8)
-    height = height_u8.astype(np.float32) / 255.0
-    land = height_u8 > sea_level
+
+    if flat_smoothing > 0:
+        broadly_smoothed = gaussian_filter(
+            source_values,
+            sigma=flat_smoothing,
+            mode="nearest",
+        )
+        # La selezione pianura/pendio deve ignorare la rugosità minuta:
+        # misuriamo la pendenza sulla forma a grande scala, non sul dettaglio
+        # che stiamo cercando di attenuare.
+        dx, dy = sobel_gradients(broadly_smoothed / 255.0)
+        # Compensa la risoluzione affinché il criterio di "pianura" rimanga
+        # coerente tra atlas completo e variante performance.
+        slope = np.hypot(dx, dy) * (height_values.shape[1] / 2048.0)
+        flat_weight = 1.0 - np.clip(
+            (slope - 0.0012) / (0.0105 - 0.0012),
+            0.0,
+            1.0,
+        )
+        flat_weight = flat_weight * flat_weight * (3.0 - 2.0 * flat_weight)
+        height_values = (
+            height_values * (1.0 - flat_weight)
+            + broadly_smoothed * flat_weight
+        )
+
+    height_values = np.clip(height_values, 0.0, 255.0)
+    height_u8 = np.clip(np.rint(height_values), 0, 255).astype(np.uint8)
+    height = height_values / 255.0
+    # La costa rimane quella della sorgente: lo smoothing non deve né
+    # espandere né erodere la terra.
+    land = source_values > sea_level
 
     sea_values = np.clip(
-        height_u8.astype(np.float32) / max(sea_level, 1),
+        height_values / max(sea_level, 1),
         0.0,
         1.0,
     )
     land_values = np.clip(
-        (height_u8.astype(np.float32) - sea_level)
+        (height_values - sea_level)
         / (255.0 - sea_level),
         0.0,
         1.0,
@@ -199,15 +262,22 @@ def generate_relief_map(
     land_colors = interpolate_palette(land_values, LAND_STOPS)
     colors[land] = land_colors[land]
 
-    shade = calculate_hillshade(
+    primary_shade = calculate_hillshade(
         height,
         azimuth=azimuth,
         altitude=altitude,
         strength=strength,
     )
-    # Mantiene leggibili i colori, scurendo i versanti in ombra e
-    # schiarendo con moderazione quelli rivolti alla luce.
-    shade_multiplier = 0.58 + shade * 0.62
+    secondary_shade = calculate_hillshade(
+        height,
+        azimuth=azimuth + 110.0,
+        altitude=max(altitude - 12.0, 12.0),
+        strength=strength * 0.72,
+    )
+    # La luce principale modella la forma; una seconda luce debole conserva
+    # i dettagli nei versanti in ombra, come nei shaded relief cartografici.
+    shade = np.clip(primary_shade * 0.82 + secondary_shade * 0.18, 0.0, 1.0)
+    shade_multiplier = 0.34 + shade * 1.12
     effective_opacity = np.where(land, shade_opacity, shade_opacity * 0.16)
     colors *= (
         1.0
@@ -215,6 +285,20 @@ def generate_relief_map(
             (shade_multiplier - 1.0) * effective_opacity
         )[..., None]
     )
+
+    contours = contour_mask(height_u8, land, contour_step)
+    if contour_step > 0:
+        index_contours = contour_mask(
+            height_u8,
+            land,
+            contour_step * 5,
+        )
+        contour_alpha = np.clip(contours * 0.24 + index_contours * 0.28, 0.0, 0.48)
+        contour_color = np.asarray((70, 47, 38), dtype=np.float32)
+        colors = (
+            colors * (1.0 - contour_alpha[..., None])
+            + contour_color * contour_alpha[..., None]
+        )
 
     result = Image.fromarray(
         np.clip(np.rint(colors), 0, 255).astype(np.uint8),
@@ -240,7 +324,9 @@ def main() -> None:
         altitude=arguments.altitude,
         strength=arguments.strength,
         blur=arguments.blur,
+        flat_smoothing=arguments.flat_smoothing,
         shade_opacity=arguments.shade_opacity,
+        contour_step=arguments.contour_step,
         width=arguments.width,
     )
 

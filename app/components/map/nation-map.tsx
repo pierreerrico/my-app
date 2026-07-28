@@ -11,7 +11,7 @@ import {
   type CSSProperties,
   type TouchEvent,
 } from "react";
-import { PCFShadowMap } from "three";
+import { PCFSoftShadowMap } from "three";
 import type {
   MapFeature,
   NationMapConfig,
@@ -433,7 +433,7 @@ export default function NationMap({ config }: { config: NationMapConfig }) {
           shadows={
             performance.shadowMapSize > 0
               ? {
-                  type: PCFShadowMap,
+                  type: PCFSoftShadowMap,
                 }
               : false
           }

@@ -414,8 +414,8 @@ export function MapSeabed({
       name={`${config.id}-seabed`}
       rotation={[-Math.PI / 2, 0, 0]}
       position={[0, SEABED_TOP_OFFSET, 0]}
-      receiveShadow={performance.shadowMapSize > 0}
-      castShadow={performance.shadowMapSize > 0}
+      receiveShadow={false}
+      castShadow={false}
       renderOrder={-30}
       frustumCulled={false}
     >

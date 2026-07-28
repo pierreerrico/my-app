@@ -1,10 +1,17 @@
 "use client";
 
-import { useLoader } from "@react-three/fiber";
-import { useEffect, useMemo } from "react";
+import { useFrame, useLoader } from "@react-three/fiber";
 import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+} from "react";
+import {
+  Color,
   TextureLoader,
   Vector2,
+  type Texture,
 } from "three";
 
 import type {
@@ -17,6 +24,11 @@ import {
   configureScalarTexture,
   configureTerrainNormalTexture,
 } from "./map-texture-config";
+
+type TerrainShader = {
+  uniforms: Record<string, { value: unknown }>;
+  fragmentShader: string;
+};
 
 export function MapTerrain({
   config,
@@ -37,6 +49,8 @@ export function MapTerrain({
     config.textures.normalMap ??
       config.textures.heightmap,
     config.textures.landMask,
+    config.textures.riversMask ??
+      config.textures.landMask,
   ];
 
   const [
@@ -44,6 +58,7 @@ export function MapTerrain({
     elevation,
     normal,
     landMask,
+    rivers,
   ] = useLoader(
     TextureLoader,
     texturePaths,
@@ -68,6 +83,120 @@ export function MapTerrain({
     () => configureScalarTexture(landMask),
     [landMask],
   );
+
+  const riversTexture = useMemo(
+    () => configureScalarTexture(rivers),
+    [rivers],
+  );
+  const shaderRef = useRef<TerrainShader | null>(null);
+
+  const applyRiverMask = useCallback(
+    (shader: TerrainShader) => {
+      shaderRef.current = shader;
+      shader.uniforms.terrainRiverMask = {
+        value: riversTexture as Texture,
+      };
+      shader.uniforms.terrainRiverTime = {
+        value: 0,
+      };
+      shader.uniforms.terrainRiverWater = {
+        value: parchment ? 0 : 1,
+      };
+      shader.uniforms.terrainRiverColor = {
+        value: new Color(config.palette.seaShallow),
+      };
+      shader.uniforms.terrainRiverDeepColor = {
+        value: new Color(config.palette.seaDeep),
+      };
+      shader.fragmentShader = shader.fragmentShader
+        .replace(
+          "#include <common>",
+          [
+            "#include <common>",
+            "uniform sampler2D terrainRiverMask;",
+            "uniform float terrainRiverTime;",
+            "uniform float terrainRiverWater;",
+            "uniform vec3 terrainRiverColor;",
+            "uniform vec3 terrainRiverDeepColor;",
+          ].join("\n"),
+        )
+        .replace(
+          "#include <alphamap_fragment>",
+          [
+            "#include <alphamap_fragment>",
+            "float terrainRiverValue = texture2D(",
+            "  terrainRiverMask,",
+            "  vAlphaMapUv",
+            ").r;",
+            "float terrainRiverStrength = 1.0 - smoothstep(",
+            "  0.56, 0.94, terrainRiverValue",
+            ");",
+            "terrainRiverStrength = pow(terrainRiverStrength, 1.35);",
+            "float terrainRiverInk = terrainRiverStrength *",
+            "  (1.0 - terrainRiverWater);",
+            "diffuseColor.rgb *= 1.0 - terrainRiverInk * 0.3;",
+            "float terrainFlowA = sin(",
+            "  vAlphaMapUv.x * 118.0 +",
+            "  vAlphaMapUv.y * 74.0 -",
+            "  terrainRiverTime * 3.8",
+            ");",
+            "float terrainFlowB = sin(",
+            "  vAlphaMapUv.x * -57.0 +",
+            "  vAlphaMapUv.y * 143.0 -",
+            "  terrainRiverTime * 2.6",
+            ");",
+            "float terrainFlow = clamp(",
+            "  terrainFlowA * 0.62 + terrainFlowB * 0.38,",
+            "  -1.0, 1.0",
+            ");",
+            "float terrainFlowLight = terrainFlow * 0.5 + 0.5;",
+            "float terrainFlowFlash = pow(",
+            "  smoothstep(0.62, 1.0, terrainFlowLight),",
+            "  2.5",
+            ");",
+            "vec3 terrainRiverBaseColor = mix(",
+            "  terrainRiverColor, terrainRiverDeepColor,",
+            "  smoothstep(0.28, 0.82, terrainRiverStrength)",
+            ");",
+            "vec3 terrainAnimatedRiverColor = terrainRiverBaseColor *",
+            "  mix(0.94, 1.08, terrainFlowLight);",
+            "float terrainWaterBlend = terrainRiverStrength *",
+            "  terrainRiverWater * 0.88;",
+            "diffuseColor.rgb = mix(",
+            "  diffuseColor.rgb,",
+            "  terrainAnimatedRiverColor,",
+            "  terrainWaterBlend",
+            ");",
+            "diffuseColor.rgb += vec3(0.035, 0.055, 0.05) *",
+            "  terrainFlowFlash *",
+            "  terrainRiverStrength * terrainRiverWater;",
+          ].join("\n"),
+        );
+    },
+    [
+      config.palette.seaShallow,
+      config.palette.seaDeep,
+      parchment,
+      riversTexture,
+    ],
+  );
+
+  useFrame(({ clock }) => {
+    const shader = shaderRef.current;
+    const timeUniform =
+      shader?.uniforms.terrainRiverTime;
+    if (timeUniform) {
+      // Three.js uniforms are mutable by design and are updated per frame.
+      // eslint-disable-next-line react-hooks/immutability
+      timeUniform.value = clock.elapsedTime;
+    }
+    const waterUniform =
+      shader?.uniforms.terrainRiverWater;
+    if (waterUniform) {
+      // Keep the prewarmed material in sync when leaving parchment mode.
+      waterUniform.value = parchment ? 0 : 1;
+    }
+  });
 
   const exaggeration =
     config.rendering?.elevationExaggeration ??
@@ -143,6 +272,7 @@ export function MapTerrain({
     landMaskTexture,
     normalTexture,
     onReady,
+    riversTexture,
     surfaceTexture,
   ]);
 
@@ -162,6 +292,10 @@ export function MapTerrain({
       />
 
       <meshStandardMaterial
+        onBeforeCompile={applyRiverMask}
+        customProgramCacheKey={() =>
+          `terrain-rivers-water-v3:${parchment ? "parchment" : "dynamic"}:${config.textures.riversMask ?? "land-mask"}`
+        }
         map={
           parchment
             ? undefined

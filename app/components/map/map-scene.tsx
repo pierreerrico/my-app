@@ -435,7 +435,7 @@ export function MapScene({
       />
 
       <ambientLight
-        intensity={1.25}
+        intensity={0.62}
       />
 
       <directionalLight
@@ -454,14 +454,27 @@ export function MapScene({
           ),
         ]}
         shadow-camera-near={0.5}
-        shadow-camera-far={30}
-        shadow-bias={-0.0004}
+        shadow-camera-far={40}
+        shadow-camera-left={
+          -geometry.planeWidth * 0.72
+        }
+        shadow-camera-right={
+          geometry.planeWidth * 0.72
+        }
+        shadow-camera-top={
+          geometry.planeHeight * 0.85
+        }
+        shadow-camera-bottom={
+          -geometry.planeHeight * 0.85
+        }
+        shadow-bias={-0.00015}
+        shadow-normalBias={0.018}
         position={[
           -6,
           10,
           5,
         ]}
-        intensity={2.25}
+        intensity={2.1}
         color="#ffe0ae"
       />
 
@@ -469,7 +482,7 @@ export function MapScene({
         args={[
           "#b8dbe0",
           "#785b3b",
-          0.75,
+          0.38,
         ]}
       />
 
