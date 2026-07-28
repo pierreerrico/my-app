@@ -320,7 +320,7 @@ export function MapWorldGrid({
             ),
           },
           uOpacity: {
-            value: 0.5,
+            value: 0.28,
           },
           uMaskCount: {
             value: 0,
