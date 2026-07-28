@@ -105,6 +105,9 @@ export const atlasWaterShader = {
     foamImpactStrength: {
       value: 0.34,
     },
+    foamVisibility: {
+      value: 0.0,
+    },
     edgeBlendColor: {
       value: new Color("#123f55"),
     },
@@ -196,6 +199,7 @@ export const atlasWaterShader = {
     uniform float foamGapSpeed;
     uniform vec3 foamLineWidths;
     uniform float foamImpactStrength;
+    uniform float foamVisibility;
     uniform vec3 edgeBlendColor;
     uniform float edgeFadeWidth;
 
@@ -600,8 +604,8 @@ export const atlasWaterShader = {
       );
 
       float offshoreGapBoost = mix(
-        0.46,
-        0.27,
+        0.58,
+        0.40,
         closure
       );
 
@@ -650,8 +654,8 @@ export const atlasWaterShader = {
         1.0
       );
 
-      float coreGapStart = mix(0.430, 0.510, coverageT);
-      float coreGapEnd = mix(0.560, 0.640, coverageT);
+      float coreGapStart = mix(0.500, 0.575, coverageT);
+      float coreGapEnd = mix(0.635, 0.710, coverageT);
       float haloGapStart = coreGapStart - 0.055;
       float haloGapEnd = coreGapEnd - 0.028;
 
@@ -673,7 +677,7 @@ export const atlasWaterShader = {
        */
       float continuityLift = mix(
         0.0,
-        0.08,
+        0.025,
         closure
       );
 
@@ -1043,8 +1047,15 @@ export const atlasWaterShader = {
         currentImpact * localFlowMagnitude
       );
 
-      foamCore *= impactGain * waterMask * shoreLimit;
-      foamHalo *= waterMask * shoreLimit;
+      foamCore *=
+        impactGain *
+        waterMask *
+        shoreLimit *
+        foamVisibility;
+      foamHalo *=
+        waterMask *
+        shoreLimit *
+        foamVisibility;
 
       /*
        * Do not leave a permanent shoreline residue: when a front reaches the

@@ -48,6 +48,8 @@ export const selodiaMap:
   textures: {
     diffuse:
       "/maps/selodia/selodia-atlas.png?v=relief-14",
+    parchmentDiffuse:
+      "/maps/selodia/selodia-atlas-sepia.png?v=relief-1",
 
     heightmap:
       "/maps/selodia/selodia-terrain-heightmap.png?v=relief-13",
@@ -82,7 +84,7 @@ export const selodiaMap:
 
   rendering: {
     planeHeight: 9.9,
-    elevationExaggeration: 2.85,
+    elevationExaggeration: 2.25,
     segments: 768,
   },
 
@@ -194,6 +196,8 @@ export const selodiaMap:
     textures: {
       diffuse:
         "/maps/selodia/selodia-atlas-performance.png?v=relief-14",
+      parchmentDiffuse:
+        "/maps/selodia/selodia-atlas-sepia.png?v=relief-1",
       heightmap:
         "/maps/selodia/selodia-terrain-heightmap-performance.png?v=relief-13",
       landMask:

@@ -79,13 +79,13 @@ export function MapLighting({
 
   return (
     <>
-      <ambientLight intensity={0.42} />
+      <ambientLight color="#eadcc2" intensity={0.62} />
 
       <hemisphereLight
         args={[
-          "#b8dbe0",
-          "#785b3b",
-          0.28,
+          "#c9dce0",
+          "#8a6f52",
+          0.42,
         ]}
       />
 
@@ -95,7 +95,7 @@ export function MapLighting({
         ref={light}
         position={sunPosition}
         color="#fff0c7"
-        intensity={2.2}
+        intensity={1.55}
         castShadow={shadowsEnabled}
         shadow-mapSize={[
           Math.max(performance.shadowMapSize, 512),
@@ -108,7 +108,9 @@ export function MapLighting({
         shadow-camera-top={shadowVolume.radius}
         shadow-camera-bottom={-shadowVolume.radius}
         shadow-bias={-0.0001}
-        shadow-normalBias={0.012}
+        shadow-normalBias={0.016}
+        shadow-radius={2.2}
+        shadow-blurSamples={12}
       />
     </>
   );

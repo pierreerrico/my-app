@@ -42,6 +42,7 @@ export type MapFeature = {
 
 export type NationMapTextures = {
   diffuse: string;
+  parchmentDiffuse?: string;
   heightmap: string;
   landMask: string;
   normalMap?: string;

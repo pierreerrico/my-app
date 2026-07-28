@@ -420,7 +420,7 @@ export function MapScene({
 
   const background =
     parchment
-      ? "#b5a88f"
+      ? "#948875"
       : config.seaRendering?.deepColor ??
         config.palette.seaDeep;
 

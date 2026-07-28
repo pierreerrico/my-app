@@ -480,6 +480,34 @@ export function MapSea({
 
     material.uniforms.time.value =
       state.clock.elapsedTime;
+
+    const mapRadius =
+      Math.hypot(
+        geometry.planeWidth,
+        geometry.planeHeight,
+      ) * 0.5;
+    const cameraDistance =
+      state.camera.position.length();
+    const visibilityStart = mapRadius * 0.72;
+    const visibilityEnd = mapRadius * 1.65;
+    const visibilityRange = Math.max(
+      visibilityEnd - visibilityStart,
+      0.0001,
+    );
+    const distanceProgress = Math.min(
+      Math.max(
+        (cameraDistance - visibilityStart) /
+          visibilityRange,
+        0,
+      ),
+      1,
+    );
+    const smoothDistance =
+      distanceProgress *
+      distanceProgress *
+      (3 - 2 * distanceProgress);
+    material.uniforms.foamVisibility.value =
+      1 - smoothDistance;
   }, -19);
 
   useEffect(
