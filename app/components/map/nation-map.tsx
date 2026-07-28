@@ -18,12 +18,13 @@ import type {
 } from "../../data/maps/";
 import { deriveMapGeometry } from "../../data/maps/geography";
 import NeoclassicalMapFrame from "./neoclassical-map-frame";
-import { CompassControl } from "./map-controls";
-import { MapScale } from "./map-scale";
+import {
+  CompassControl,
+  ZoomControls,
+} from "./map-controls";
 import { MapScene } from "./map-scene";
 import { MapTitle } from "./map-title";
 import { MapFeatureSidebar } from "./map-feature-sidebar";
-import { resolveStaticMapFit } from "./map-camera-fit";
 import {
   resolveMapPerformance,
   resolvePerformanceMapConfig,
@@ -34,6 +35,8 @@ import { MapRenderScheduler } from "./map-render-scheduler";
 import "./map-runtime.css";
 
 const FREE_VIEW_MIN_ZOOM = 0.08;
+const STATIC_ZOOM_ACCELERATION_THRESHOLD = 0.65;
+const STATIC_ZOOM_SNAP_THRESHOLD = 0.14;
 type MapReadyPart = "terrain" | "water" | "atmosphere";
 
 const useClientLayoutEffect =
@@ -45,15 +48,12 @@ export default function NationMap({ config }: { config: NationMapConfig }) {
   const geometry = useMemo(() => deriveMapGeometry(config), [config]);
   const [zoomLevel, setZoomLevel] = useState(0);
   const [azimuth, setAzimuth] = useState(0);
-  const [projectedMapRect, setProjectedMapRect] =
-    useState<ProjectedMapRect>({
-      left: 0,
-      top: 0,
-      width: 0,
-      height: 0,
-    });
   const [resetNorthSignal, setResetNorthSignal] = useState(0);
   const [northStepSignal, setNorthStepSignal] = useState(0);
+  const [rotationStep, setRotationStep] = useState({
+    id: 0,
+    direction: 0,
+  });
   const [selectedFeature, setSelectedFeature] =
     useState<MapFeature | null>(null);
   const [performance, setPerformance] =
@@ -179,37 +179,6 @@ export default function NationMap({ config }: { config: NationMapConfig }) {
   }, []);
 
   useEffect(() => {
-    const map = mapRef.current;
-    if (!map) return;
-
-    const updateProjectedMapRect = () => {
-      const width = map.clientWidth;
-      const height = map.clientHeight;
-
-      setProjectedMapRect(
-        calculateProjectedMapRect(
-          width,
-          height,
-          geometry.planeWidth,
-          geometry.planeHeight,
-        ),
-      );
-    };
-    updateProjectedMapRect();
-    const observer = new ResizeObserver(
-      updateProjectedMapRect,
-    );
-    observer.observe(map);
-
-    return () => {
-      observer.disconnect();
-    };
-  }, [
-    geometry.planeHeight,
-    geometry.planeWidth,
-  ]);
-
-  useEffect(() => {
     const updateVisibility = () => {
       setPageVisible(
         document.visibilityState ===
@@ -244,7 +213,7 @@ export default function NationMap({ config }: { config: NationMapConfig }) {
 
   function changeZoom(amount: number) {
     const currentLevel = zoomLevelRef.current;
-    const nextLevel = Math.min(2, Math.max(0, currentLevel + amount));
+    const nextLevel = resolveZoomLevel(currentLevel, amount);
 
     if (amount > 0) {
       commitZoomLevel(nextLevel);
@@ -261,6 +230,17 @@ export default function NationMap({ config }: { config: NationMapConfig }) {
     }
 
     commitZoomLevel(nextLevel);
+  }
+
+  function rotateMap(direction: -1 | 1) {
+    if (zoomLevelRef.current <= 0.02) {
+      commitZoomLevel(FREE_VIEW_MIN_ZOOM);
+    }
+
+    setRotationStep((step) => ({
+      id: step.id + 1,
+      direction,
+    }));
   }
 
   useEffect(() => {
@@ -282,12 +262,9 @@ export default function NationMap({ config }: { config: NationMapConfig }) {
         -event.deltaY * unit * 0.0025;
       const currentLevel =
         zoomLevelRef.current;
-      const nextLevel = Math.min(
-        2,
-        Math.max(
-          0,
-          currentLevel + amount,
-        ),
+      const nextLevel = resolveZoomLevel(
+        currentLevel,
+        amount,
       );
 
       if (
@@ -346,13 +323,9 @@ export default function NationMap({ config }: { config: NationMapConfig }) {
     const distance = touchDistance(event.touches);
     const distanceDelta =
       distance - pinchRef.current.distance;
-    const nextLevel = Math.min(
-      2,
-      Math.max(
-        0,
-        pinchRef.current.zoom +
-          distanceDelta / 140,
-      ),
+    const nextLevel = resolveZoomLevel(
+      pinchRef.current.zoom,
+      distanceDelta / 140,
     );
 
     if (
@@ -487,6 +460,7 @@ export default function NationMap({ config }: { config: NationMapConfig }) {
             }}
             resetNorthSignal={resetNorthSignal}
             northStepSignal={northStepSignal}
+            rotationStep={rotationStep}
             performance={performance}
             prewarming={prewarming}
             onReadyPart={markScenePartReady}
@@ -545,73 +519,31 @@ export default function NationMap({ config }: { config: NationMapConfig }) {
       />
 
       <div
-        className="map-navigation-cluster map-atlas-reveal"
+        className="map-navigation-cluster map-controls-group map-atlas-reveal"
         aria-hidden={!canvasReady}
       >
         <CompassControl
           headingRadians={azimuth}
           onReset={() => setResetNorthSignal((value) => value + 1)}
+          onRotateLeft={() => rotateMap(-1)}
+          onRotateRight={() => rotateMap(1)}
         />
-        <MapScale
-          config={runtimeConfig}
-          projectedMapWidth={projectedMapRect.width}
+        <ZoomControls
+          zoom={zoomLevel}
+          onZoomIn={() => changeZoom(0.5)}
+          onZoomOut={() => changeZoom(-0.5)}
         />
+        <button
+          className="map-interact-control"
+          type="button"
+          onClick={() => commitZoomLevel(0.38)}
+        >
+          Interagisci con la mappa
+        </button>
       </div>
 
     </div>
   );
-}
-
-type ProjectedMapRect = {
-  left: number;
-  top: number;
-  width: number;
-  height: number;
-};
-
-
-function calculateProjectedMapRect(
-  viewportWidth: number,
-  viewportHeight: number,
-  planeWidth: number,
-  planeHeight: number,
-): ProjectedMapRect {
-  const shortSide = Math.min(
-    viewportWidth,
-    viewportHeight,
-  );
-  const frameDepth = Math.min(
-    58,
-    Math.max(38, shortSide * 0.054),
-  );
-  const safeInset = frameDepth + 10;
-  const usableWidth = Math.max(
-    viewportWidth - safeInset * 2,
-    viewportWidth * 0.5,
-  );
-  const usableHeight = Math.max(
-    viewportHeight - safeInset * 2,
-    viewportHeight * 0.5,
-  );
-  const { pixelsPerPlaneUnit } = resolveStaticMapFit({
-    viewportWidth,
-    viewportHeight,
-    usableWidth,
-    usableHeight,
-    planeWidth,
-    planeHeight,
-  });
-  const width =
-    planeWidth * pixelsPerPlaneUnit;
-  const height =
-    planeHeight * pixelsPerPlaneUnit;
-
-  return {
-    left: (viewportWidth - width) / 2,
-    top: (viewportHeight - height) / 2,
-    width,
-    height,
-  };
 }
 
 function touchDistance(touches: React.TouchList): number {
@@ -621,4 +553,23 @@ function touchDistance(touches: React.TouchList): number {
     second.clientX - first.clientX,
     second.clientY - first.clientY,
   );
+}
+
+function resolveZoomLevel(
+  currentLevel: number,
+  amount: number,
+): number {
+  const acceleratedAmount =
+    amount < 0 &&
+    currentLevel < STATIC_ZOOM_ACCELERATION_THRESHOLD
+      ? amount * 2.4
+      : amount;
+  const nextLevel = Math.min(
+    2,
+    Math.max(0, currentLevel + acceleratedAmount),
+  );
+
+  return nextLevel < STATIC_ZOOM_SNAP_THRESHOLD
+    ? 0
+    : nextLevel;
 }

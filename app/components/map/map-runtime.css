@@ -111,6 +111,344 @@
   transition-delay: 0s;
 }
 
+.map-zoom-controls {
+  display: flex;
+  gap: 6px;
+}
+
+.map-controls-group {
+  left: calc(var(--map-frame-depth) + var(--map-overlay-gap));
+  bottom: calc(var(--map-frame-depth) + var(--map-overlay-gap));
+  width: 136px;
+  min-width: 136px;
+  height: 110px;
+  display: block;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+.map-controls-group .compass-rotation-controls {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.map-controls-group .map-zoom-controls {
+  position: absolute;
+  top: 72px;
+  left: 50%;
+  transform: translateX(-50%);
+  opacity: 1;
+  visibility: visible;
+  transition:
+    opacity .28s ease .08s,
+    top .38s cubic-bezier(.22, .8, .2, 1),
+    transform .38s cubic-bezier(.22, .8, .2, 1) .04s,
+    visibility 0s linear 0s;
+}
+
+.map-controls-group .map-scale {
+  display: none;
+}
+
+.map-controls-group .map-scale-ornament {
+  --scale-ink: #4a3b2b;
+  --scale-accent: #8f7348;
+  --scale-light: #efe4d0;
+  overflow: visible;
+  color: var(--scale-ink);
+  filter: drop-shadow(0 1px 0 rgba(255, 248, 226, .34));
+  transition:
+    color .32s ease,
+    filter .32s ease;
+}
+
+.map-scale-ornament .scale-ornament-line,
+.map-scale-ornament .scale-major-mark path,
+.map-scale-ornament .scale-minor-mark,
+.map-scale-ornament .scale-outline {
+  fill: none;
+  stroke: var(--scale-accent);
+  stroke-width: 1.4;
+  vector-effect: non-scaling-stroke;
+}
+
+.map-scale-ornament .scale-ornament-line {
+  stroke-width: 1;
+}
+
+.map-scale-ornament .scale-ornament-node {
+  fill: var(--scale-accent);
+  stroke: none;
+}
+
+.map-scale-ornament .scale-segment {
+  stroke: none;
+}
+
+.map-scale-ornament .scale-segment.is-dark {
+  fill: var(--scale-ink);
+}
+
+.map-scale-ornament .scale-segment.is-light {
+  fill: var(--scale-light);
+}
+
+.map-scale-ornament .scale-outline.is-minor {
+  stroke-width: 1;
+}
+
+.map-scale-ornament .scale-major-mark text {
+  fill: var(--scale-ink);
+  font: 600 11px/1 Georgia, "Times New Roman", serif;
+  letter-spacing: .035em;
+}
+
+.map-interact-control {
+  position: absolute;
+  top: 72px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 7px 12px 6px;
+  color: #4a3b2b;
+  border: 1px solid color-mix(in srgb, #6e5737 78%, transparent);
+  background:
+    linear-gradient(rgba(255, 255, 255, .12), rgba(83, 62, 35, .05)),
+    #e8dbc5;
+  box-shadow:
+    inset 0 0 0 2px rgba(255, 250, 235, .42),
+    0 5px 13px -8px rgba(7, 22, 27, .72);
+  font: 600 8px/1.2 Georgia, "Times New Roman", serif;
+  letter-spacing: .11em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    color .2s ease,
+    border-color .2s ease,
+    opacity .28s ease .12s,
+    transform .32s cubic-bezier(.22, .8, .2, 1),
+    visibility 0s linear 0s;
+}
+
+.map-interact-control::before {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border: 1px solid rgba(110, 87, 55, .22);
+  pointer-events: none;
+}
+
+.map-interact-control:focus-visible {
+  outline: 2px solid var(--nation-ivory, #f2eadb);
+  outline-offset: 3px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .map-interact-control:hover {
+    color: #271e16;
+    border-color: #4f3d28;
+    transform: translateX(-50%) translateY(-1px);
+  }
+}
+
+.interactive-map.zoom-level-0 .map-rotation-control,
+.interactive-map.zoom-level-0 .map-zoom-controls {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.interactive-map.zoom-level-0 .map-controls-group .map-scale {
+  display: block;
+}
+
+.interactive-map:not(.zoom-level-0) .map-interact-control {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.interactive-map.zoom-level-0 .map-zoom-controls {
+  transform: translateX(-50%) translateY(7px) scale(.94);
+  transition-delay: 0s, 0s, .28s;
+}
+
+.interactive-map:not(.zoom-level-0) .map-interact-control {
+  transform: translateX(-50%) translateY(7px) scale(.97);
+  transition-delay: 0s, 0s, 0s, 0s, .28s;
+}
+
+.interactive-map.zoom-level-0 .map-rotation-control {
+  transform: scale(.82);
+  transition-delay: 0s, 0s, 0s, 0s, .28s;
+}
+
+.map-rotation-control {
+  opacity: 1;
+  visibility: visible;
+  transition:
+    color .2s ease,
+    border-color .2s ease,
+    transform .32s cubic-bezier(.22, .8, .2, 1),
+    opacity .28s ease,
+    visibility 0s linear 0s;
+}
+
+.interactive-map.zoom-level-0 .compass-control {
+  color: #392f25;
+  border-color: #6e5737;
+  background:
+    radial-gradient(
+      circle,
+      #efe4d0 0 38%,
+      #cdbb9d 39% 41%,
+      #e8dbc5 42% 64%,
+      #8f7348 65% 67%,
+      #efe4d0 68%
+    );
+  box-shadow:
+    0 9px 26px rgba(7, 22, 27, .34),
+    inset 0 0 0 4px rgba(255, 255, 255, .28);
+}
+
+.interactive-map:not(.zoom-level-0) .map-scale-ornament {
+  --scale-ink: var(--nation-green-deep, #173e35);
+  --scale-accent: var(--nation-gold-strong, #c9a85d);
+  --scale-light: var(--nation-ivory, #f2eadb);
+  filter:
+    drop-shadow(0 1px 0 color-mix(in srgb, var(--nation-gold, #c9a85d) 58%, transparent))
+    drop-shadow(0 2px 4px rgba(242, 234, 219, .32));
+}
+
+.interactive-map.zoom-level-0 .compass-dial svg {
+  color: #173e35;
+}
+
+.interactive-map.zoom-level-0 .compass-control svg path {
+  stroke: #7f6b4d;
+}
+
+.interactive-map.zoom-level-0 .compass-control svg path:nth-child(2) {
+  fill: #b99a64;
+}
+
+.interactive-map.zoom-level-0 .compass-control svg circle {
+  fill: #efe3ce;
+  stroke: #173e35;
+}
+
+.map-zoom-controls button,
+.map-round-control {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid color-mix(in srgb, var(--nation-gold, #c9a85d) 72%, transparent);
+  border-radius: 50%;
+  color: var(--nation-ivory, #f2eadb);
+  background:
+    radial-gradient(circle at 31% 23%, rgba(255, 255, 255, .09), transparent 62%),
+    var(--nation-green-deep, #173e35);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .11),
+    inset 0 -1px 0 rgba(0, 0, 0, .2),
+    0 5px 12px -6px rgba(0, 0, 0, .7);
+  cursor: pointer;
+  touch-action: manipulation;
+  transition:
+    color .2s ease,
+    border-color .2s ease,
+    transform .2s cubic-bezier(.22, .8, .2, 1),
+    opacity .2s ease;
+}
+
+.map-zoom-controls button span {
+  display: block;
+  font: 400 20px/1 Georgia, serif;
+  transform: translateY(-1px);
+}
+
+.map-zoom-controls button:focus-visible,
+.map-round-control:focus-visible {
+  outline: 2px solid var(--nation-ivory, #f2eadb);
+  outline-offset: 3px;
+}
+
+.map-zoom-controls button:disabled {
+  opacity: .38;
+  cursor: default;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .map-zoom-controls button:not(:disabled):hover,
+  .map-round-control:hover {
+    color: var(--nation-gold-bright, #e2c77f);
+    border-color: var(--nation-gold-bright, #e2c77f);
+    transform: scale(1.07);
+  }
+}
+
+.compass-rotation-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.map-rotation-control span {
+  display: block;
+  font: 400 21px/1 Georgia, "Times New Roman", serif;
+  transform: translateY(-1px) rotate(90deg);
+}
+
+.map-rotation-control:first-child span {
+  transform: translateY(-1px) scaleX(-1) rotate(90deg);
+}
+
+.map-rotation-control:last-child span {
+  transform: translateY(-1px) scaleY(-1) rotate(90deg);
+}
+
+.compass-control {
+  color: var(--nation-ivory, #f2eadb);
+  border-color: color-mix(in srgb, var(--nation-gold, #c9a85d) 72%, transparent);
+  background:
+    radial-gradient(circle at 31% 23%, rgba(255, 255, 255, .09), transparent 62%),
+    var(--nation-green-deep, #173e35);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .11),
+    inset 0 -1px 0 rgba(0, 0, 0, .2),
+    0 7px 18px -8px rgba(0, 0, 0, .72);
+  transition:
+    color .34s ease,
+    border-color .34s ease,
+    background .42s cubic-bezier(.22, .8, .2, 1),
+    box-shadow .42s ease;
+}
+
+.compass-dial svg {
+  color: var(--nation-gold-bright, #e2c77f);
+}
+
+.compass-control svg path {
+  stroke: var(--nation-gold, #c9a85d);
+}
+
+.compass-control svg path:nth-child(2) {
+  fill: var(--nation-ivory, #f2eadb);
+}
+
+.compass-control svg circle {
+  fill: var(--nation-green-deep, #173e35);
+  stroke: var(--nation-gold-bright, #e2c77f);
+}
+
 .interactive-map.is-map-ready.zoom-level-0 .map-title-group {
   visibility: visible;
   transition-delay: 0s;

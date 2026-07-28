@@ -46,6 +46,7 @@ export function MapScene({
   onStaticAlignmentChange,
   resetNorthSignal,
   northStepSignal,
+  rotationStep,
   performance,
   prewarming,
   onReadyPart,
@@ -59,6 +60,10 @@ export function MapScene({
   onStaticAlignmentChange: (aligned: boolean) => void;
   resetNorthSignal: number;
   northStepSignal: number;
+  rotationStep: {
+    id: number;
+    direction: number;
+  };
   performance: ResolvedMapPerformance;
   prewarming: boolean;
   onReadyPart: (part: "terrain" | "water" | "atmosphere") => void;
@@ -76,10 +81,10 @@ export function MapScene({
   const recentering =
     useRef(false);
   const size = useThree((state) => state.size);
-  const origin = useMemo(() => new Vector3(), []);
-  const cameraOffset = useMemo(() => new Vector3(), []);
-  const boundedTarget = useMemo(() => new Vector3(), []);
-  const panCorrection = useMemo(() => new Vector3(), []);
+  const originRef = useRef(new Vector3());
+  const cameraOffsetRef = useRef(new Vector3());
+  const boundedTargetRef = useRef(new Vector3());
+  const panCorrectionRef = useRef(new Vector3());
 
   const staticView = useMemo(() => {
     const shortSide = Math.min(size.width, size.height);
@@ -215,11 +220,31 @@ export function MapScene({
     onAzimuthChange(nextAzimuth);
   }, [northStepSignal, onAzimuthChange]);
 
+  useEffect(() => {
+    if (!controls.current || rotationStep.id === 0) {
+      return;
+    }
+
+    recentering.current = false;
+    const nextAzimuth =
+      controls.current.getAzimuthalAngle() +
+      rotationStep.direction * MathUtils.degToRad(15);
+
+    controls.current.setAzimuthalAngle(nextAzimuth);
+    controls.current.update();
+    reportedAzimuth.current = nextAzimuth;
+    onAzimuthChange(nextAzimuth);
+  }, [rotationStep, onAzimuthChange]);
+
   useFrame(({ camera }) => {
     if (!controls.current) {
       return;
     }
-    
+
+    const origin = originRef.current;
+    const cameraOffset = cameraOffsetRef.current;
+    const boundedTarget = boundedTargetRef.current;
+    const panCorrection = panCorrectionRef.current;
 
     const staticPanEnabled = staticView.panEnabled;
 
