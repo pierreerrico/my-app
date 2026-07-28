@@ -388,349 +388,87 @@ export const atlasWaterShader = {
       out float core,
       out float halo
     ) {
-      /*
-       * foamPushPullSpeed retains its existing uniform name for compatibility,
-       * but now controls a one-way breaking-wave lifecycle. Its old angular
-       * speed is converted to cycles per second so the overall timing remains
-       * unchanged from the approved animation.
-       */
       const float TWO_PI = 6.28318530718;
-
       float waveCycle =
         time * foamPushPullSpeed / TWO_PI +
         lifecycleOffset;
-
-      float waveIndex = floor(waveCycle);
       float lifecycle = fract(waveCycle);
+      float waveIndex = floor(waveCycle);
+      float motionFade = foamLifecycleOpacity(lifecycle);
+      float shoreApproach = smoothstep(0.08, 0.92, lifecycle);
 
       /*
-       * Every new incoming wave gets its own deterministic random seed.
-       * That seed stays fixed for the whole shoreward trip, so the same
-       * interruption pattern starts offshore and then progressively closes
-       * as the wave approaches the coastline.
+       * A new deterministic layout is selected while the front is fully
+       * transparent at the loop boundary. During the visible part of a cycle
+       * the layout remains coherent and is carried by the local flow map.
        */
       vec2 cycleSeed = vec2(
         hash12(seed + vec2(waveIndex * 1.37, 2.19)),
         hash12(seed + vec2(waveIndex * 2.11, -3.47))
       );
-
-      vec2 cycleSeedB = vec2(
-        hash12(seed + vec2(waveIndex * -1.73, 5.81)),
-        hash12(seed + vec2(waveIndex * 0.93, -7.13))
-      );
-
-      /*
-       * coastDistance is zero on the shoreline and increases offshore. Every
-       * front therefore begins at offshoreCenter and moves monotonically down
-       * to shorelineCenter. The reset happens while opacity is exactly zero.
-       */
-      float travelProgress = lifecycle;
-
-      float center = mix(
-        offshoreCenter,
-        shorelineCenter,
-        travelProgress
-      );
-
-      float motionFade = foamLifecycleOpacity(lifecycle);
-
-      /*
-       * A breaking front starts narrow in deep water and swells as it reaches
-       * the coast. The final maximum thickness is reached just before the
-       * complete shoreline fade.
-       */
-      float shoreApproach = smoothstep(
-        0.10,
-        0.94,
-        travelProgress
-      );
-
-      float approachWidthScale = mix(
-        0.62,
-        1.34,
-        shoreApproach
-      );
-
-      /*
-       * Build a local coast-oriented frame. X follows the shoreline and Y
-       * points offshore. Noise stretched in this frame creates long organic
-       * stretches rather than concentric, uniformly segmented contours.
-       */
-      vec2 centeredUv = advectedUv - vec2(0.5);
-
-      vec2 coastUv = vec2(
-        dot(centeredUv, coastTangent),
-        dot(centeredUv, coastNormal)
-      );
-
-      /*
-       * Resolve the current in a coast-oriented frame. The tangential
-       * component carries foam patches along the shoreline, while the normal
-       * component slightly bends them shoreward or offshore. This is added on
-       * top of the one-way shoreward lifecycle instead of replacing it.
-       */
-      float currentAlongCoast = dot(
-        currentDirection,
-        coastTangent
-      );
-
-      float currentAcrossCoast = dot(
-        currentDirection,
-        coastNormal
-      );
-
       float currentStrength = smoothstep(
         0.025,
         0.78,
         currentMagnitude
       );
+      float currentAlongCoast = dot(
+        currentDirection,
+        coastTangent
+      );
+      float currentAcrossCoast = dot(
+        currentDirection,
+        coastNormal
+      );
+      vec2 coastwiseFlow =
+        coastTangent * currentAlongCoast +
+        coastNormal * currentAcrossCoast * 0.24;
+      vec2 currentDrift =
+        coastwiseFlow *
+        lifecycle *
+        mix(0.012, 0.068, currentStrength);
+      vec2 patternUv =
+        vUv -
+        currentDrift +
+        (cycleSeed - 0.5) * 0.31;
 
-      vec2 currentCoastDrift = vec2(
-        currentAlongCoast,
-        currentAcrossCoast * 0.42
-      ) *
-      time *
-      foamSpeed *
-      mix(0.30, 1.55, currentStrength);
+      float staggerBroad = fbm(
+        patternUv * vec2(7.5, 5.4) + seed * 0.73
+      );
+      float staggerFine = fbm(
+        patternUv * vec2(18.0, 12.5) - seed * 0.41
+      );
+      float stagger =
+        (staggerBroad - 0.5) * 0.105 +
+        (staggerFine - 0.5) * 0.026;
 
-      vec2 currentCoastUv = coastUv + currentCoastDrift;
+      float center =
+        mix(offshoreCenter, shorelineCenter, lifecycle) +
+        stagger;
 
       /*
-       * Neighbouring pieces do not travel on a perfectly aligned front.
-       * A deterministic coastwise phase offset gives each stretch a small,
-       * stable lead or delay while preserving the common shoreward motion.
+       * A pair of differently oriented static fields produces short,
+       * irregular stretches. Multiplication guarantees real gaps instead of
+       * merely dimming a continuous contour.
        */
-      float timingSegment = floor(
-        currentCoastUv.x * 34.0 +
-        cycleSeed.x * 19.0
+      float patchA = fbm(
+        patternUv * vec2(15.0, 10.0) + seed * 1.91
       );
-      float timingOffset =
-        (
-          hash12(
-            vec2(
-              timingSegment + cycleSeed.y * 37.0,
-              cycleSeedB.x * 23.0
-            )
-          ) -
-          0.5
-        ) *
-        0.22;
-      center +=
-        (shorelineCenter - offshoreCenter) *
-        timingOffset;
-
-      float currentBend = fbm(
-        currentCoastUv * vec2(4.4, 0.92) +
-        cycleSeed * 1.23 + cycleSeedB * 0.77
-      ) - 0.5;
-
-      center +=
-        currentBend * currentStrength * 0.034 +
-        currentAcrossCoast * currentStrength * 0.010;
-
-      float centerWarpA = fbm(
-        currentCoastUv * vec2(3.8, 1.15) +
-        cycleSeed * 6.0
+      float patchB = fbm(
+        vec2(patternUv.y, patternUv.x) * vec2(23.0, 13.0) -
+        seed * 1.27
       );
+      float coarsePieces = smoothstep(0.47, 0.59, patchA);
+      float hardBreaks = smoothstep(0.39, 0.57, patchB);
+      float continuity = coarsePieces * hardBreaks;
 
-      float centerWarpB = texture2D(
-        tShoreTexture,
-        advectedUv * foamTiling.y * 0.84 +
-        cycleSeedB * 0.19
-      ).r;
-
-      center +=
-        (centerWarpA - 0.5) * 0.055 +
-        (centerWarpB - 0.5) * 0.028;
-
-      /*
-       * Inner and outer sides are varied independently. This gives each front
-       * visibly changing thickness and avoids a constant-width outline.
-       */
-      /*
-       * Width changes use a very broad field plus a second medium-scale field.
-       * The broad field creates long stretches that visibly swell or narrow;
-       * the medium field keeps the edge organic without turning it granular.
-       */
-      float broadWidthNoise = fbm(
-        currentCoastUv * vec2(1.55, 0.42) +
-        cycleSeed * 4.7 +
-        vec2(time * foamSpeed * 0.055, 0.0)
+      float widthNoise = fbm(
+        patternUv * vec2(12.0, 8.0) + seed * 2.43
       );
-
-      float widthNoiseA = fbm(
-        currentCoastUv * vec2(4.8, 0.92) +
-        cycleSeedB * 5.3
-      );
-
-      float widthNoiseB = fbm(
-        currentCoastUv * vec2(7.4, 1.18) -
-        cycleSeed * 3.1 +
-        vec2(time * foamSpeed * 0.11, 0.0)
-      );
-
-      float fineWidthNoise = texture2D(
-        tFoamTexture,
-        advectedUv * foamTiling.y * 0.96 +
-        cycleSeedB * 0.27
-      ).r;
-
-      float widthShapeA = smoothstep(
-        0.12,
-        0.90,
-        broadWidthNoise * 0.58 +
-        widthNoiseA * 0.30 +
-        fineWidthNoise * 0.12
-      );
-
-      float widthShapeB = smoothstep(
-        0.14,
-        0.88,
-        (1.0 - broadWidthNoise) * 0.40 +
-        widthNoiseB * 0.46 +
-        (1.0 - fineWidthNoise) * 0.14
-      );
-
-      float innerWidth =
-        baseWidth *
-        approachWidthScale *
-        mix(
-          0.26,
-          1.48,
-          widthShapeA
-        );
-
-      float outerWidth =
-        baseWidth *
-        approachWidthScale *
-        mix(
-          0.24,
-          1.34,
-          widthShapeB
-        );
-
-      /*
-       * Two broad, aperiodic fields cut each line into irregular stretches.
-       * The thresholds have feathered transitions, so the front dissolves
-       * rather than ending as a hard dash.
-       */
-      /*
-       * Persistent coastwise segmentation. Each front is born as distinct
-       * pieces and keeps a guaranteed empty interval between neighbouring
-       * pieces for its entire shoreward journey. Approaching the coast changes
-       * thickness, never continuity.
-       */
-      float segmentWarp = fbm(
-        currentCoastUv * vec2(7.2, 0.68) +
-        cycleSeedB * vec2(8.1, -5.4)
-      ) - 0.5;
-
-      float segmentCoordinate =
-        currentCoastUv.x * 34.0 +
-        segmentWarp * 1.65 +
-        cycleSeed.x * 19.0;
-
-      float segmentIndex = floor(segmentCoordinate);
-      float segmentPhase = fract(segmentCoordinate);
-      float segmentRandom = hash12(
-        vec2(
-          segmentIndex + cycleSeed.y * 41.0,
-          cycleSeedB.x * 29.0
-        )
-      );
-
-      float coverageT = clamp(
-        (gapCoverage - 0.38) / 0.34,
-        0.0,
-        1.0
-      );
-
-      float segmentCenter = mix(
-        0.43,
-        0.57,
-        segmentRandom
-      );
-
-      float segmentHalfWidth =
-        mix(0.30, 0.21, coverageT) *
-        mix(0.82, 1.08, segmentRandom);
-
-      float segmentFeather = 0.055;
-      float segmentStart =
-        segmentCenter - segmentHalfWidth;
-      float segmentEnd =
-        segmentCenter + segmentHalfWidth;
-
-      float coreContinuity =
-        smoothstep(
-          segmentStart,
-          segmentStart + segmentFeather,
-          segmentPhase
-        ) *
-        (1.0 - smoothstep(
-          segmentEnd - segmentFeather,
-          segmentEnd,
-          segmentPhase
-        ));
-
-      float haloContinuity =
-        smoothstep(
-          segmentStart - 0.025,
-          segmentStart + segmentFeather * 1.35,
-          segmentPhase
-        ) *
-        (1.0 - smoothstep(
-          segmentEnd - segmentFeather * 1.35,
-          segmentEnd + 0.025,
-          segmentPhase
-        ));
-
-      float edgeBreakupField = fbm(
-        currentCoastUv * vec2(11.8, 1.36) +
-        cycleSeed * vec2(5.6, -4.3) +
-        cycleSeedB * vec2(1.8, 3.9)
-      );
-
-      /*
-       * A small secondary modulation makes the ends dissolve irregularly rather
-       * than terminate at the same opacity across the full line width.
-       */
-      float irregularEdge = mix(
-        0.64,
-        1.0,
-        smoothstep(0.28, 0.72, edgeBreakupField)
-      );
-
-      coreContinuity *= irregularEdge;
-      haloContinuity *= mix(0.76, 1.0, irregularEdge);
-
-      /*
-       * Texture controls the fine ragged edge, never the front placement.
-       */
-      float textureA = texture2D(
-        tFoamTexture,
-        advectedUv * foamTiling.x +
-        seed * 0.039
-      ).r;
-
-      float textureB = 1.0 - texture2D(
-        tShoreTexture,
-        advectedUv * foamTiling.y * 1.55 -
-        seed * 0.053
-      ).r;
-
-      float textureDefinition = smoothstep(
-        0.05,
-        0.74,
-        textureA * 0.76 +
-        textureB * 0.24
-      );
-
-      float localDefinition = mix(
-        0.58,
-        1.15,
-        textureDefinition
-      );
+      float widthScale =
+        mix(0.66, 1.08, shoreApproach) *
+        mix(0.78, 1.16, widthNoise);
+      float innerWidth = baseWidth * widthScale * 0.82;
+      float outerWidth = baseWidth * widthScale;
 
       core = asymmetricBand(
         normalizedDistance,
@@ -738,34 +476,37 @@ export const atlasWaterShader = {
         innerWidth,
         outerWidth
       );
-
       halo = asymmetricBand(
         normalizedDistance,
         center,
-        innerWidth * 2.55,
-        outerWidth * 2.75
+        innerWidth * 2.05,
+        outerWidth * 2.25
       );
-
-      core *=
-        coreContinuity *
-        localDefinition *
-        motionFade;
-
-      halo *=
-        haloContinuity *
-        motionFade;
 
       /*
-       * Current impact strengthens visible foam without reconnecting gaps.
+       * Only the surface grain is advected. Geometry, gaps and stagger stay
+       * fixed in map space, while the foam itself still reads as moving water.
        */
-      float impactGain = mix(
-        0.92,
-        1.18,
-        currentImpact
+      float grain = texture2D(
+        tFoamTexture,
+        advectedUv * foamTiling.x + seed * 0.039
+      ).r;
+      float grainDefinition = mix(
+        0.68,
+        1.08,
+        smoothstep(0.18, 0.78, grain)
       );
+      float impactGain = mix(0.92, 1.16, currentImpact);
 
-      core *= impactGain;
-      halo *= mix(0.96, 1.08, currentImpact);
+      core *=
+        continuity *
+        grainDefinition *
+        motionFade *
+        impactGain;
+      halo *=
+        smoothstep(0.0, 0.72, continuity) *
+        motionFade *
+        mix(0.94, 1.06, currentImpact);
     }
 
     void main() {
