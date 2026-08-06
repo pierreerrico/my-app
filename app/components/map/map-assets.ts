@@ -104,3 +104,13 @@ export function preloadMapAssets(
 
   useLoader.preload(TextureLoader, paths);
 }
+
+/** Drops failed or stalled loader promises before remounting the renderer. */
+export function clearMapAssets(
+  config: NationMapConfig,
+  performance: ResolvedMapPerformance,
+): void {
+  for (const path of collectMapAssetPaths(config, performance)) {
+    useLoader.clear(TextureLoader, path);
+  }
+}

@@ -29,11 +29,14 @@ import {
   resolvePerformanceMapConfig,
   type ResolvedMapPerformance,
 } from "./map-performance";
-import { preloadMapAssets } from "./map-assets";
+import { clearMapAssets, preloadMapAssets } from "./map-assets";
 import { MapRenderScheduler } from "./map-render-scheduler";
+import { MapCanvasRecovery } from "./map-canvas-recovery";
 import "./map-runtime.css";
 
 const FREE_VIEW_MIN_ZOOM = 0.08;
+const MAP_STARTUP_TIMEOUT_MS = 12000;
+const MAX_MAP_STARTUP_RETRIES = 2;
 type MapReadyPart = "terrain" | "water" | "atmosphere";
 
 const useClientLayoutEffect =
@@ -66,6 +69,8 @@ export default function NationMap({ config }: { config: NationMapConfig }) {
     useState(false);
   const [prewarming, setPrewarming] =
     useState(true);
+  const [canvasAttempt, setCanvasAttempt] =
+    useState(0);
   const readyPartsRef = useRef<Set<MapReadyPart>>(
     new Set(),
   );
@@ -117,6 +122,7 @@ export default function NationMap({ config }: { config: NationMapConfig }) {
     setSceneAssetsReady(false);
     setCanvasReady(false);
     setPrewarming(true);
+    setCanvasAttempt(0);
     setPerformance(resolved);
   }, [config]);
 
@@ -125,6 +131,18 @@ export default function NationMap({ config }: { config: NationMapConfig }) {
     zoomLevelRef.current = nextLevel;
     setZoomLevel(nextLevel);
   }
+
+  const restartCanvas = useCallback(() => {
+    if (performance) {
+      clearMapAssets(config, performance);
+      preloadMapAssets(config, performance);
+    }
+    readyPartsRef.current.clear();
+    setSceneAssetsReady(false);
+    setCanvasReady(false);
+    setPrewarming(true);
+    setCanvasAttempt((attempt) => attempt + 1);
+  }, [config, performance]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -230,17 +248,29 @@ export default function NationMap({ config }: { config: NationMapConfig }) {
   }, []);
 
   useEffect(() => {
-    if (!performance || canvasReady) return;
+    if (
+      !performance ||
+      canvasReady ||
+      !atlasActive ||
+      !pageVisible ||
+      canvasAttempt >= MAX_MAP_STARTUP_RETRIES
+    ) return;
 
     const fallback = window.setTimeout(() => {
-      setPrewarming(false);
-      setCanvasReady(true);
-    }, 12000);
+      restartCanvas();
+    }, MAP_STARTUP_TIMEOUT_MS);
 
     return () => {
       window.clearTimeout(fallback);
     };
-  }, [canvasReady, performance]);
+  }, [
+    atlasActive,
+    canvasAttempt,
+    canvasReady,
+    pageVisible,
+    performance,
+    restartCanvas,
+  ]);
 
   function changeZoom(amount: number) {
     const currentLevel = zoomLevelRef.current;
@@ -430,6 +460,7 @@ export default function NationMap({ config }: { config: NationMapConfig }) {
           aria-hidden={!canvasReady}
         >
           {performance ? <Canvas
+          key={canvasAttempt}
           shadows={
             performance.shadowMapSize > 0
               ? {
@@ -457,6 +488,7 @@ export default function NationMap({ config }: { config: NationMapConfig }) {
           }}
           resize={{ debounce: { scroll: 0, resize: 0 } }}
         >
+          <MapCanvasRecovery onContextLost={restartCanvas} />
           <MapRenderScheduler
             active={
               atlasActive &&
